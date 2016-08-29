@@ -18,4 +18,8 @@ public:
 	static int setProcToAST(PROC p, TNode* r);
 	static TNode* getRootAST (PROC p);
 
+	void getFollowsTable();
+	void getParentTable();
+	void getModifiesUsesTable();
+
 };

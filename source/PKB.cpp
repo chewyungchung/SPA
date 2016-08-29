@@ -17,3 +17,17 @@ int PKB::setProcToAST(PROC p, TNode* r) {
 TNode* PKB::getRootAST (PROC p){
 	return NULL;
 }
+
+void PKB::getFollowsTable() {
+	// TODO
+}
+
+void PKB::getParentTable() {
+	// TODO
+}
+
+void PKB::getModifiesUsesTable() {
+	// TODO
+}
+
+
