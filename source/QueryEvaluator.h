@@ -11,8 +11,8 @@ class QueryEvaluator {
 public:
 	// Default constructor
 	QueryEvaluator();
-	//Overloaded Constructor with QueryTree structure
-	//QueryEvaluator(QueryTree);
+	//Overloaded Constructor with QueryTable structure
+	//QueryEvaluator(QueryTable);
 	vector<string> evaluate();
 
 private:

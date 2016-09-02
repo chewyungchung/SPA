@@ -1,12 +1,27 @@
 #include "QueryEvaluator.h"
+#include <string>
+
+const string REL_FOLLOWS = "FOLLOWS";
+const string REL_FOLLOWS_STAR = "FOLLOWS*";
+const string REL_PARENT = "PARENT";
+const string REL_PARENT_STAR = "PARENT*";
+const string REL_MODIFIES = "MODIFIES";
+const string REL_USES = "USES";
 
 // Default Constructor
 QueryEvaluator::QueryEvaluator() {
 
 }
 
+QueryEvaluator::QueryEvaluator(QueryTable qt) {
+
+}
+
 vector<string> QueryEvaluator::evaluate() {
-	// Traverse query tree and build result
+	// Traverse query table and build result
+
+	// 
+
 	return result;
 }
 
