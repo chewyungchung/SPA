@@ -15,16 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\source\DesignExtractor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\Parser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\PKB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\source\TNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tokenizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -33,6 +33,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\source\TNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tokenizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
