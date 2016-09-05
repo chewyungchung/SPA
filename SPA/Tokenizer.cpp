@@ -5,11 +5,12 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <deque>
 using namespace std;
 
 class Tokenizer {
 public:
-	vector<string> tokens;
+	deque<string> tokens;
 
 	Tokenizer::Tokenizer(string filename) {
 		static const string arr[] = { "{", "}", ";", "=" };
@@ -48,6 +49,13 @@ public:
 	}
 
 	string Tokenizer::getNextToken() {
-		return NULL;
+		if (tokens.empty) {
+			return NULL;
+		}
+		else {
+			string output = tokens.front();
+			tokens.pop_front();
+			return output;
+		}
 	}
 };
