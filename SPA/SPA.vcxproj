@@ -11,11 +11,26 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+<<<<<<< HEAD
+    <ClCompile Include="..\source\Clause.cpp" />
+    <ClCompile Include="..\source\DesignExtractor.cpp" />
+    <ClCompile Include="..\source\Parser.cpp" />
+=======
+>>>>>>> master
     <ClCompile Include="..\source\PKB.cpp" />
+    <ClCompile Include="..\source\QueryEvaluator.cpp" />
+    <ClCompile Include="..\source\QueryResult.cpp" />
+    <ClCompile Include="..\source\QueryTable.cpp" />
+    <ClCompile Include="..\source\SharedUtility.cpp" />
     <ClCompile Include="..\source\TNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\source\Clause.h" />
     <ClInclude Include="..\source\PKB.h" />
+    <ClInclude Include="..\source\QueryEvaluator.h" />
+    <ClInclude Include="..\source\QueryResult.h" />
+    <ClInclude Include="..\source\QueryTable.h" />
+    <ClInclude Include="..\source\SharedUtility.h" />
     <ClInclude Include="..\source\TNode.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

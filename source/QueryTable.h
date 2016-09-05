@@ -12,17 +12,20 @@ using namespace std;
 
 class QueryTable {
 public:
+	QueryTable();
 	Clause getSelectClause();
 	Clause getSuchThatClause();
 	Clause getPatternClause();
 	string getSynType(string);
-	bool isSuchThatAvail;
-	bool isPatternAvail;
+	bool isSuchThatAvail();
+	bool isPatternAvail();
 
 private:
 	
-	map<string, unordered_set<Clause>> hashMap; // MAP<SYN, ENTITY>
-	string selectClause;
-	string suchThatClause;
-	string patternClause;
+	map<string, string> _synEntityMap; // MAP<SYN, ENTITY> // Remove
+	Clause _selectClause;
+	Clause _suchThatClause;
+	Clause _patternClause;
+	bool _isSuchThatAvail;
+	bool _isPatternAvail;
 };
