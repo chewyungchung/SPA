@@ -14,13 +14,13 @@ public:
 	Clause();
 	Clause(string relation, vector<string> arg, vector<string> argType);
 	string getRelation();
-	vector<string>* getArg();
-	vector<string>* getArgType();
+	vector<string> getArg();
+	vector<string> getArgType();
 
 private:
-	string relation_;
-	vector<string> arg_;
-	vector<string> argType_;
+	string _relation;
+	vector<string> _arg;
+	vector<string> _argType;
 
 	 
 };

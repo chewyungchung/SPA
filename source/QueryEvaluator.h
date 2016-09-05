@@ -1,5 +1,8 @@
 #pragma once
 
+#include "QueryTable.h"
+#include "Clause.h"
+#include "QueryResult.h"
 #include <string>
 #include <vector>
 #include <iostream>
@@ -11,20 +14,31 @@ class QueryEvaluator {
 public:
 	// Default constructor
 	QueryEvaluator();
-	//Overloaded Constructor with QueryTable structure
-	//QueryEvaluator(QueryTable);
+	QueryEvaluator(QueryTable);
 	vector<string> evaluate();
 
 private:
-	vector<string> result;
+	vector<string> _result;
 
-	vector<string> processSuchThat();
-	vector<string> processPattern();
+	QueryTable _qt;
 
-	vector<string> processFollows();
-	vector<string> processFollowsT();
-	vector<string> processParent();
-	vector<string> processParentT();
-	vector<string> processUses();
-	vector<string> processModifies();
+	QueryResult _suchThatResults;
+	QueryResult _patternResults;
+	QueryResult _selectResults;
+
+	bool processSelect(Clause selectClause);
+	bool processSuchThat(Clause suchThatClause);
+	bool processPattern(Clause patternClause);
+
+	QueryResult processFollows(Clause followClause);
+	QueryResult processFollowsT(Clause followTClause);
+	QueryResult processParent(Clause parentClause);
+	QueryResult processParentT(Clause parentTClause);
+	QueryResult processUses(Clause usesClause);
+	QueryResult processModifies(Clause modifiesClause);
+
+	bool isInList(list<int> inList, int item);
+	bool isListEmpty(list<int> intList);
+
+	list<int> getList(string argType);
 };
