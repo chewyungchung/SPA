@@ -23,6 +23,7 @@
     <ClCompile Include="..\source\QueryTable.cpp" />
     <ClCompile Include="..\source\SharedUtility.cpp" />
     <ClCompile Include="..\source\TNode.cpp" />
+    <ClCompile Include="Tokenizer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\Clause.h" />
@@ -32,6 +33,7 @@
     <ClInclude Include="..\source\QueryTable.h" />
     <ClInclude Include="..\source\SharedUtility.h" />
     <ClInclude Include="..\source\TNode.h" />
+    <ClInclude Include="Tokenizer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DC21A1EA-D2C6-4D14-A2B4-E025B64BDE81}</ProjectGuid>

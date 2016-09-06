@@ -36,6 +36,9 @@
     <ClCompile Include="..\source\QueryResult.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Tokenizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\PKB.h">
@@ -44,6 +47,9 @@
     <ClInclude Include="..\source\TNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< HEAD
+    <ClInclude Include="Tokenizer.h">
+=======
     <ClInclude Include="..\source\QueryEvaluator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -57,6 +63,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\source\QueryResult.h">
+>>>>>>> master
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
