@@ -21,26 +21,26 @@ Clause::Clause()
 }
 Clause::Clause(string relation, vector<string> arg, vector<string> argType)
 {
-	relation_ = relation;
-	arg_ = arg;
-	argType_ = argType;
+	_relation = relation;
+	_arg = arg;
+	_argType = argType;
 	sharedUtility =new SharedUtility();
 	
 }
 
 string Clause::getRelation()
 {
-	return NULL;
+	return _relation;
 }
 
-vector<string>* Clause::getArg()
+vector<string> Clause::getArg()
 {
-	return NULL;
+	return _arg;
 }
 
-vector<string>* Clause::getArgType()
+vector<string> Clause::getArgType()
 {
-	return NULL;
+	return _argType;
 }
 
 void run()
