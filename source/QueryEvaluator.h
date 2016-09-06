@@ -22,10 +22,6 @@ private:
 
 	QueryTable _qt;
 
-	QueryResult _suchThatResults;
-	QueryResult _patternResults;
-	QueryResult _selectResults;
-
 	bool processSelect(Clause selectClause);
 	bool processSuchThat(Clause suchThatClause);
 	bool processPattern(Clause patternClause);

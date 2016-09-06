@@ -55,6 +55,10 @@ bool QueryEvaluator::processSelect(Clause selectClause) {
 	{
 		// Results should be returning T/F
 	}
+	else if (expectedResultType == ARGTYPE_CONSTANT)
+	{
+		// Results should be returning constants
+	}
 	else 
 	{
 		// Results should be returning stmt#
@@ -96,11 +100,13 @@ bool QueryEvaluator::processSuchThat(Clause suchThatClause) {
 		return true;
 	}
 
-	if (suchThatResult.isResultEmpty()) 
+	if (suchThatResult.isArg1ResultEmpty() && suchThatResult.isArg2ResultEmpty()) 
 	{
 		return false;
 	}
-
+	else {
+		_qt.setSuchThatResult(suchThatResult);
+	}
 	return true;
 }
 

@@ -10,21 +10,30 @@ class QueryResult {
 
 public:
 	QueryResult();
-	QueryResult(vector<string> _result);
+
+	// Getter
 	vector<string> getSynonymList();
-	vector<int> getResultList();
-	void setResultList(vector<int> resultList);
-	void setIsExist(bool input);
+	vector<string> getArg1ResultList();
+	vector<string> getArg2ResultList();
 	bool getIsExist();
-	void insertSynonym(string synonym);
-	void insertResult(int item);
 	bool isQueryExistential();
 	bool isSynonymExist(string syn);
-	bool isResultEmpty();
+	bool isArg1ResultEmpty();
+	bool isArg2ResultEmpty();
+
+	// Setter
+	void setArg1ResultList(vector<string> resultList);
+	void setArg2ResultList(vector<string> resultList);
+	void setIsExist(bool input);
+	void insertSynonym(string synonym);
+	void insertArg1Result(string item);
+	void insertArg2Result(string item);
 
 private:
 	vector<string> _synonymList;
-	vector<int> _resultList;
+	vector<string> _arg1ResultList;
+	vector<string> _arg2ResultList;
+
 	bool _isExist;
 
 };

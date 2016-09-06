@@ -11,28 +11,36 @@ QueryResult::QueryResult() {
 	// Empty result list
 }
 
-QueryResult::QueryResult(vector<string> synList) {
-	_synonymList = synList;
-}
-
 vector<string> QueryResult::getSynonymList() {
 	return _synonymList;
 }
 
-vector<int> QueryResult::getResultList() {
-	return _resultList;
+vector<string> QueryResult::getArg1ResultList() {
+	return _arg1ResultList;
 }
 
-void QueryResult::setResultList(vector<int> resultList) {
-	_resultList = resultList;
+vector<string> QueryResult::getArg2ResultList() {
+	return _arg2ResultList;
+}
+
+void QueryResult::setArg1ResultList(vector<string> resultList) {
+	_arg1ResultList = resultList;
+}
+
+void QueryResult::setArg2ResultList(vector<string> resultList) {
+	_arg2ResultList = resultList;
 }
 
 void QueryResult::insertSynonym(string syn) {
 	_synonymList.push_back(syn);
 }
 
-void QueryResult::insertResult(int item) {
-	_resultList.push_back(item);
+void QueryResult::insertArg1Result(string item) {
+	_arg1ResultList.push_back(item);
+}
+
+void QueryResult::insertArg2Result(string item) {
+	_arg2ResultList.push_back(item);
 }
 
 void QueryResult::setIsExist(bool input) {
@@ -65,6 +73,10 @@ bool QueryResult::isQueryExistential() {
 	return _isExist;
 }
 
-bool QueryResult::isResultEmpty() {
-	return _resultList.empty();
+bool QueryResult::isArg1ResultEmpty() {
+	return _arg1ResultList.empty();
+}
+
+bool QueryResult::isArg2ResultEmpty() {
+	return _arg2ResultList.empty();
 }
