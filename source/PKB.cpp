@@ -10,6 +10,8 @@ using namespace std;
 #include "PKB.h"
 #include "TNode.h"
 #include "ModUsesTablebyVariable.h"
+#include "FollowsTable.h"
+#include "ParentTable.h"
 
 int PKB::setProcToAST(PROC p, TNode* r) {
 	return NULL;
@@ -22,6 +24,8 @@ TNode* PKB::getRootAST (PROC p){
 PKB::PKB() {
 	instance = new PKB;
 	M_U_TableByVar = new ModUsesTablebyVariable;
+	F_Table = new FollowsTable;
+	P_Table = new ParentTable;
 }
 
 PKB::~PKB() {
@@ -40,40 +44,40 @@ void PKB::resetPKB() {
 	delete instance;
 	instance = NULL; // so that getPKB still works.
 }
-/*
-int PKB::getParentOf(int stmt) {
-	return 0;
-}
 
+int PKB::getParentOf(int stmt) {
+	return P_Table->getParentOf(stmt);
+}
+/*
 vector<int> PKB::getParentStar(int stmt) {
 	return vector<int>();
 }
-
-vector<int> PKB::getChildrenOf(int stmt) {
-	return vector<int>();
+*/
+list<int> PKB::getChildrenOf(int stmt) {
+	return P_Table->getChildrenOf(stmt);
 }
 
 bool PKB::isParentEmpty() {
-	return false;
+	return P_Table->isParentEmpty();
 }
 
 bool PKB::isParentOf(int parentStmt, int childStmt)
 {
-	return false;
+	return P_Table->isParentOf(parentStmt, childStmt);
 }
-
+/*
 bool PKB::isParentStar(int stmt1, int stmt2) {
 	return false;
 }
-
+*/
 int PKB::getFollowedFrom(int stmt) {
-	return 0;
+	return F_Table->getFollowedFrom(stmt);
 }
 
 int PKB::getFollower(int stmt) {
-	return 0;
+	return F_Table->getFollower(stmt);
 }
-
+/*
 vector<int> PKB::getFollowedFromStar(int stmt) {
 	return vector<int>();
 }
@@ -81,15 +85,15 @@ vector<int> PKB::getFollowedFromStar(int stmt) {
 vector<int> PKB::getFollowerStar(int stmt) {
 	return vector<int>();
 }
-
+*/
 bool PKB::isFollowEmpty() {
-	return false;
+	return F_Table->isFollowEmpty();
 }
 
 bool PKB::isValidFollows(int followedFrom, int follower) {
-	return false;
+	return F_Table->isValidFollows(followedFrom, follower);
 }
-
+/*
 bool PKB::isFollowsStar(int stmt1, int stmt2) {
 	return false;
 }
