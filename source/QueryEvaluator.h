@@ -1,7 +1,7 @@
 #pragma once
 
-#include "QueryTable.h"
 #include "Clause.h"
+#include "QueryTable.h"
 #include "QueryResult.h"
 #include <string>
 #include <vector>
@@ -15,7 +15,7 @@ public:
 	// Default constructor
 	QueryEvaluator();
 	QueryEvaluator(QueryTable);
-	vector<string> evaluate();
+	QueryTable evaluate();
 
 private:
 	vector<string> _result;
