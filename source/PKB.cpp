@@ -9,6 +9,7 @@ using namespace std;
 
 #include "PKB.h"
 #include "TNode.h"
+#include "ModUsesTablebyVariable.h"
 
 int PKB::setProcToAST(PROC p, TNode* r) {
 	return NULL;
@@ -18,18 +19,28 @@ TNode* PKB::getRootAST (PROC p){
 	return NULL;
 }
 
-void PKB::getFollowsTable() {
-	// TODO
+PKB::PKB() {
+	instance = new PKB;
+	M_U_TableByVar = new ModUsesTablebyVariable;
 }
 
-void PKB::getParentTable() {
-	// TODO
+PKB::~PKB() {
+	delete M_U_TableByVar;
 }
 
-void PKB::getModifiesUsesTable() {
-	// TODO
+PKB * PKB::getPKB()
+{
+	if (instance == NULL) {
+		PKB::PKB();
+	}
+	return instance;
 }
 
+void PKB::resetPKB() {
+	delete instance;
+	instance = NULL; // so that getPKB still works.
+}
+/*
 int PKB::getParentOf(int stmt) {
 	return 0;
 }
@@ -82,11 +93,11 @@ bool PKB::isValidFollows(int followedFrom, int follower) {
 bool PKB::isFollowsStar(int stmt1, int stmt2) {
 	return false;
 }
-
-vector<int> PKB::getUsedBy(string name) {
-	return vector<int>();
+*/
+list<int> PKB::getUsedBy(string name) {
+	return M_U_TableByVar->getUsedBy(name);
 }
-
+/*
 vector<string> PKB::getUses(int stmt) {
 	return vector<string>();
 }
@@ -94,15 +105,15 @@ vector<string> PKB::getUses(int stmt) {
 vector<int, vector<string>> PKB::getAllUses() {
 	return vector<int, vector<string>>();
 }
-
+*/
 bool PKB::isUsed(int stmt, string name) {
-	return false;
+	return M_U_TableByVar->isUsed(stmt, name);
 }
 
-vector<int> PKB::getModifiedBy(string name) {
-	return vector<int>();
+list<int> PKB::getModifiedBy(string name) {
+	return M_U_TableByVar->getModifiedBy(name);
 }
-
+/*
 vector<string> PKB::getModifies(int stmt) {
 	return vector<string>();
 }
@@ -110,11 +121,11 @@ vector<string> PKB::getModifies(int stmt) {
 vector<int, vector<string>> PKB::getAllModifies() {
 	return vector<int, vector<string>>();
 }
-
+*/
 bool PKB::isModified(int stmt, string name) {
-	return false;
+	return M_U_TableByVar->isModified(stmt, name);
 }
-
+/*
 vector<int> PKB::getAssignList() {
 	return vector<int>();
 }
@@ -138,3 +149,4 @@ bool PKB::isValidStmt(int stmt) {
 vector<int> PKB::getConstantList(){
 	return vector<int>();
 }
+*/

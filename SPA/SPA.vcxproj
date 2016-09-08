@@ -11,12 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-<<<<<<< HEAD
     <ClCompile Include="..\source\Clause.cpp" />
     <ClCompile Include="..\source\DesignExtractor.cpp" />
+    <ClCompile Include="..\source\ModUsesTablebyStmt.cpp" />
+    <ClCompile Include="..\source\ModUsesTablebyVariable.cpp" />
     <ClCompile Include="..\source\Parser.cpp" />
-=======
->>>>>>> master
     <ClCompile Include="..\source\PKB.cpp" />
     <ClCompile Include="..\source\QueryEvaluator.cpp" />
     <ClCompile Include="..\source\QueryResult.cpp" />
@@ -27,6 +26,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\Clause.h" />
+    <ClInclude Include="..\source\ModUsesTablebyStmt.h" />
+    <ClInclude Include="..\source\ModUsesTablebyVariable.h" />
     <ClInclude Include="..\source\PKB.h" />
     <ClInclude Include="..\source\QueryEvaluator.h" />
     <ClInclude Include="..\source\QueryResult.h" />

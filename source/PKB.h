@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 
 using namespace std;
 typedef short PROC;
@@ -11,17 +12,23 @@ typedef short PROC;
 class TNode;
 
 class VarTable;  // no need to #include "VarTable.h" as all I need is pointer
+class ModUsesTablebyVariable;
 
 class PKB {
+
+private:
+	ModUsesTablebyVariable* M_U_TableByVar;
+	PKB();
+	~PKB();
+	static PKB* instance;
 public:
 	static VarTable* varTable; 
 	static int setProcToAST(PROC p, TNode* r);
 	static TNode* getRootAST (PROC p);
 
-	void getFollowsTable();
-	void getParentTable();
-	void getModifiesUsesTable();
-
+	static PKB* getPKB();
+	static void resetPKB();
+	/*
 	int getParentOf(int stmt);
 	vector<int> getParentStar(int stmt);
 	vector<int> getChildrenOf(int stmt);
@@ -36,16 +43,16 @@ public:
 	bool isFollowEmpty();
 	bool isValidFollows(int followedFrom, int follower);
 	bool isFollowsStar(int stmt1, int stmt2);
-
-	vector<int> getUsedBy(string name);
-	vector<string> getUses(int stmt);
-	vector<int, vector<string> > getAllUses();
+	*/
+	list<int> getUsedBy(string name);
+	// vector<string> getUses(int stmt);
+	// vector<int, vector<string> > getAllUses();
 	bool isUsed(int stmt, string name);
-	vector<int> getModifiedBy(string name);
-	vector<string> getModifies(int stmt);
-	vector<int, vector<string> > getAllModifies();
+	list<int> getModifiedBy(string name);
+	// vector<string> getModifies(int stmt);
+	// vector<int, vector<string> > getAllModifies();
 	bool isModified(int stmt, string name);
-	
+	/*
 	vector<int> getAssignList();
 	vector<int> getWhileList();
 
@@ -54,4 +61,5 @@ public:
 	int getStatementCount();
 	bool isValidStmt(int stmt);
 	vector<int> getConstantList();
+	*/
 };
