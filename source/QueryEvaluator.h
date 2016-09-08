@@ -22,10 +22,10 @@ private:
 
 	QueryTable _qt;
 
-	bool processSelect(Clause selectClause);
 	bool processSuchThat(Clause suchThatClause);
-	bool processPattern(Clause patternClause);
-
+	
+	QueryResult processSelect(Clause selectClause);
+	QueryResult processPattern(Clause patternClause);
 	QueryResult processFollows(Clause followClause);
 	QueryResult processFollowsT(Clause followTClause);
 	QueryResult processParent(Clause parentClause);

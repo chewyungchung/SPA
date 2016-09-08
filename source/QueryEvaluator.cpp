@@ -21,6 +21,8 @@ const string ARGTYPE_VARIABLE = "VARIABLE";
 const string ARGTYPE_ASSIGN = "ASSIGN";
 const string ARGTYPE_WHILE = "WHILE";
 const string ARGTYPE_STRING = "STRING";
+const string ARGTYPE_STMT = "STATEMENT";
+const string ARGTYPE_PROG_LINE = "PROG_LINE";
 
 
 // Default Constructor
@@ -34,32 +36,83 @@ QueryEvaluator::QueryEvaluator(QueryTable qt) {
 
 QueryTable QueryEvaluator::evaluate() {
 	// Process all such that and pattern clause, and finally select clause.
-	processSuchThat(_qt.getSuchThatClause);
-	processPattern(_qt.getPatternClause);
-	processSelect(_qt.getSelectClause);
+	_qt.setSuchThatResult = processSuchThat(_qt.getSuchThatClause);
+	_qt.setPatternResult = processPattern(_qt.getPatternClause);
+	_qt.setSelectResult = processSelect(_qt.getSelectClause);
 	return _qt;
 }
 
-bool QueryEvaluator::processSelect(Clause selectClause) {
+QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 	// Results that output stmt#: 
-	// -> stmt | assign | while | variable | constant | prog_line
+	// -> stmt | assign | while | prog_line
 	// Other results:
-	// -> variable | boolean
+	// -> variable | boolean | constant
 
+	string expectedResultSynonym = selectClause.getArg().at(0);
 	string expectedResultType = selectClause.getArgType().at(0);
+
+	QueryResult qr;
+
+	qr.insertSynonym(expectedResultSynonym);
 
 	if (expectedResultType == ARGTYPE_VARIABLE) {
 		// Results should be returning VAR
+		list<string> varList;
+		// varList = PKB.getVarList();
+		if (varList.empty()) {
+			return qr;
+		}
+		qr.setIsExist(true);
+		for (list<string>::iterator it = varList.begin(); it != varList.end(); it++) {
+			qr.insertArg1Result(*it);
+		}
 	}
 	else if (expectedResultType == ARGTYPE_BOOLEAN) {
 		// Results should be returning T/F
+		// Need to check in projector. QR.isExist will not be validated
+		qr.insertSynonym("BOOLEAN");
+		return qr;
 	}
 	else if (expectedResultType == ARGTYPE_CONSTANT) {
 		// Results should be returning constants
+		list<int> constantList;
+		// constantList = PKB.getConstantList();
+		if (constantList.empty()) {
+			return qr;
+		}
+		qr.setIsExist(true);
+		for (list<int>::iterator it = constantList.begin(); it != constantList.end(); it++) {
+			qr.insertArg1Result(to_string(*it));
+		}
+		return;
 	}
 	else {
 		// Results should be returning stmt#
+		if (expectedResultType == ARGTYPE_ASSIGN || expectedResultType == ARGTYPE_WHILE) {
+			list<int> expectedResultStatements = getList(expectedResultType);
+			if (expectedResultStatements.empty()) {
+				return qr;
+			}
+			qr.setIsExist(true);
+			for (list<int>::iterator it = expectedResultStatements.begin(); it != expectedResultStatements.end(); it++) {
+				qr.insertArg1Result(to_string(*it));
+			}
+			return qr;
+		} 
+		else {
+			// expectedResultType should be either stmt OR progline
+			int statementCount;
+			// statementCount = PKB.getStatementCount();
+			// statementCount will always be >= 1
+			qr.setIsExist(true);
+			for (int i = 1; i <= statementCount; i++) {
+				qr.insertArg1Result(to_string(i));
+			}
+			return qr;
+		}
 	}
+	return qr;
+
 }
 
 bool QueryEvaluator::processSuchThat(Clause suchThatClause) {
@@ -99,14 +152,102 @@ bool QueryEvaluator::processSuchThat(Clause suchThatClause) {
 	return true;
 }
 
-bool QueryEvaluator::processPattern(Clause patternClause) {
-	string relation = patternClause.getRelation();
+QueryResult QueryEvaluator::processPattern(Clause patternClause) {
+	string arg1 = patternClause.getArg().at(0);
+	string arg2 = patternClause.getArg().at(1);
+	string arg1Type = patternClause.getArgType().at(0);
+	string arg2Type = patternClause.getArgType().at(1);
+	string synAssign = patternClause.getArg().at(2);
+	string synAssignType = ARGTYPE_ASSIGN;
 
-	if (relation == STRING_ASSIGN_PATTERN) {
+	list<int> synAssignStatements = getList(synAssignType);
+	
+	QueryResult qr;
 
+	// synAssign is the synonym
+	qr.insertSynonym(synAssign);
+
+	if (arg1Type == ARGTYPE_STRING) {
+		// arg1 must be valid varName
+		// if (!PKB.isValidVar(arg1)) return qr;
+
+		if (arg2Type == ARGTYPE_ANY) {
+			// arg2 is any '_'
+
+			// check if arg1 is modified by anything
+			list<int> arg1ModifiedBy;
+			// arg1ModifiedBy = PKB.getModifiedBy(arg1);
+			if (arg1ModifiedBy.empty()) {
+				return qr;
+			}
+
+			// if arg1ModifiedBy (made up of assign stmts in ite 1) is non empty, add them all
+			// to pattern results
+			qr.setIsExist(true);
+			for (list<int>::iterator it = arg1ModifiedBy.begin(); it != arg1ModifiedBy.end(); it++) {
+				qr.insertPatternResult(to_string(*it));
+			}
+			return qr;
+		}
+		else if (arg2Type == ARGTYPE_CONSTANT) {
+			// TO BE IMPLEMENTED
+		}
 	}
+	else if (arg1Type == ARGTYPE_ANY) {
+		// arg1 is any '_'
+		if (arg2Type == ARGTYPE_ANY) {
+			// arg2 is any '_'
 
-	return false;
+			list<int> assignList;
+			// assignList = PKB.getAssignList();
+			if (assignList.empty) {
+				return qr;
+			}
+			// if assignList not empty, add everything to pattern result
+			qr.setIsExist(true);
+			for (list<int>::iterator it = assignList.begin(); it != assignList.end(); it++) {
+				qr.insertPatternResult(to_string(*it));
+			}
+			return qr;
+		}
+		else if (arg2Type == ARGTYPE_CONSTANT) {
+			// TO BE IMPLEMENTED
+		}
+	}
+	else {
+		//arg1 is a variable synonym
+		qr.insertSynonym(arg1);
+		list<string> varList;
+		// varList = PKB.getVarList();
+		if (varList.empty()) {
+			return qr;
+		}
+
+		if (arg2Type == ARGTYPE_ANY) {
+			// since synAssignStatements not empty, can assume that query is true
+			// as something is modified for sure
+			qr.setIsExist(true);
+			// for each stmt in synAssignStatements, check each modifies what var
+			for (list<int>::iterator it1 = synAssignStatements.begin(); it1 != synAssignStatements.end(); it1++) {
+				bool outerIteratorIsValidResult = false;
+				list<string> synAssignModifiesVar;
+				// synAssignModifiesVar = PKB.getModifies(*it1);
+				if (!synAssignModifiesVar.empty()) {
+					for (list<string>::iterator it2 = synAssignModifiesVar.begin(); it2 != synAssignModifiesVar.end(); it2++) {
+						// if (PKB.isModified(*it1, *it2)) outerIteratorIsValidResult = true; qr.insertArg1Result(*it2);
+					}
+					if (outerIteratorIsValidResult) {
+						qr.insertPatternResult(to_string(*it1));
+					}
+				}
+			}
+			return qr;
+		}
+		else if (arg2Type == ARGTYPE_CONSTANT) {
+			// TO BE IMPLEMENTED
+		}
+	}
+	return qr;
 }
 
 QueryResult QueryEvaluator::processFollows(Clause followClause) {
