@@ -31,14 +31,14 @@ QueryEvaluator::QueryEvaluator() {
 }
 
 QueryEvaluator::QueryEvaluator(QueryTable qt) {
-	_qt = qt;
+	_qt = &qt;
 }
 
-QueryTable QueryEvaluator::evaluate() {
-	// Process all such that and pattern clause, and finally select clause.
-	_qt.setSuchThatResult = processSuchThat(_qt.getSuchThatClause);
-	_qt.setPatternResult = processPattern(_qt.getPatternClause);
-	_qt.setSelectResult = processSelect(_qt.getSelectClause);
+QueryTable* QueryEvaluator::evaluate() {
+	// Process all such that and pattern clause, and finally select clause
+	_qt->setSuchThatResult(processSuchThat(_qt->getSuchThatClause())); 
+	_qt->setPatternResult(processPattern(_qt->getPatternClause()));
+	_qt->setSelectResult(processSelect(_qt->getSelectClause()));
 	return _qt;
 }
 
@@ -84,7 +84,7 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 		for (list<int>::iterator it = constantList.begin(); it != constantList.end(); it++) {
 			qr.insertArg1Result(to_string(*it));
 		}
-		return;
+		return qr;
 	}
 	else {
 		// Results should be returning stmt#
@@ -115,10 +115,11 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 
 }
 
-bool QueryEvaluator::processSuchThat(Clause suchThatClause) {
+QueryResult QueryEvaluator::processSuchThat(Clause suchThatClause) {
 	string relation = suchThatClause.getRelation();
 
 	QueryResult suchThatResult;
+	QueryResult emptyResult;
 
 	if (relation == REL_FOLLOWS) {
 		suchThatResult = processFollows(suchThatClause);
@@ -140,16 +141,16 @@ bool QueryEvaluator::processSuchThat(Clause suchThatClause) {
 	}
 
 	if (suchThatResult.getIsExist()) {
-		return true;
+		return suchThatResult;
 	}
 
 	if (suchThatResult.isArg1ResultEmpty() && suchThatResult.isArg2ResultEmpty()) {
-		return false;
+		return emptyResult;
 	}
 	else {
-		_qt.setSuchThatResult(suchThatResult);
+		_qt->setSuchThatResult(suchThatResult);
 	}
-	return true;
+	return suchThatResult;
 }
 
 QueryResult QueryEvaluator::processPattern(Clause patternClause) {
@@ -200,7 +201,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 
 			list<int> assignList;
 			// assignList = PKB.getAssignList();
-			if (assignList.empty) {
+			if (assignList.empty()) {
 				return qr;
 			}
 			// if assignList not empty, add everything to pattern result
@@ -1174,6 +1175,9 @@ list<int> QueryEvaluator::getList(string argType) {
 	}
 	else if (argType == ARGTYPE_WHILE) {
 		// wantedList = PKB.getAssignList();
+	}
+	else if (argType == ARGTYPE_STMT || argType == ARGTYPE_PROG_LINE) {
+		// wantedList = PKB.getStatementList();
 	}
 	return wantedList;
 }

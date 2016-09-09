@@ -15,15 +15,14 @@ public:
 	// Default constructor
 	QueryEvaluator();
 	QueryEvaluator(QueryTable);
-	QueryTable evaluate();
+	QueryTable* evaluate();
 
 private:
 	vector<string> _result;
 
-	QueryTable _qt;
+	QueryTable* _qt;
 
-	bool processSuchThat(Clause suchThatClause);
-	
+	QueryResult processSuchThat(Clause suchThatClause);
 	QueryResult processSelect(Clause selectClause);
 	QueryResult processPattern(Clause patternClause);
 	QueryResult processFollows(Clause followClause);

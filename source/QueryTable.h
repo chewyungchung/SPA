@@ -47,12 +47,12 @@ private:
 	
 	map<string, string> _synEntityMap; // MAP<SYN, ENTITY> // Remove
 	
-	Clause _selectClause;
-	Clause _suchThatClause;
-	Clause _patternClause;
-	QueryResult _selectResult;
-	QueryResult _suchThatResult;
-	QueryResult _patternResult;
+	Clause *_selectClause;
+	Clause *_suchThatClause;
+	Clause *_patternClause;
+	QueryResult *_selectResult;
+	QueryResult *_suchThatResult;
+	QueryResult *_patternResult;
 
 	bool _isSuchThatAvail;
 	bool _isPatternAvail;
