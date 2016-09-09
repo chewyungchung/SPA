@@ -15,15 +15,15 @@ class QueryTable {
 public:
 
 	QueryTable();
-	QueryTable(Clause selectClause, Clause suchThatClause, Clause patternClause);
+	QueryTable(Clause* selectClause, Clause* suchThatClause, Clause* patternClause);
 
 	// Get
-	Clause getSelectClause();
-	Clause getSuchThatClause();
-	Clause getPatternClause();
-	QueryResult getSelectResult();
-	QueryResult getSuchThatResult();
-	QueryResult getPatternResult();
+	Clause* getSelectClause();
+	Clause* getSuchThatClause();
+	Clause* getPatternClause();
+	QueryResult* getSelectResult();
+	QueryResult* getSuchThatResult();
+	QueryResult* getPatternResult();
 
 	bool isSuchThatAvail();
 	bool isPatternAvail();
@@ -34,12 +34,12 @@ public:
 	string getSynType(string);
 
 	// Set
-	void setSelectClause(Clause selectClause);
-	void setSuchThatClause(Clause suchThatClause);
-	void setPatternClause(Clause patternClause);
-	void setSelectResult(QueryResult qr);
-	void setSuchThatResult(QueryResult qr);
-	void setPatternResult(QueryResult qr);
+	void setSelectClause(Clause* selectClause);
+	void setSuchThatClause(Clause* suchThatClause);
+	void setPatternClause(Clause* patternClause);
+	void setSelectResult(QueryResult* qr);
+	void setSuchThatResult(QueryResult* qr);
+	void setPatternResult(QueryResult* qr);
 	void setIsSuchThatAvail(bool val);
 	void setIsPatternAvail(bool val);
 

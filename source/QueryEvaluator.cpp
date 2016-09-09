@@ -42,18 +42,18 @@ QueryTable* QueryEvaluator::evaluate() {
 	return _qt;
 }
 
-QueryResult QueryEvaluator::processSelect(Clause selectClause) {
+QueryResult* QueryEvaluator::processSelect(Clause* selectClause) {
 	// Results that output stmt#: 
 	// -> stmt | assign | while | prog_line
 	// Other results:
 	// -> variable | boolean | constant
 
-	string expectedResultSynonym = selectClause.getArg().at(0);
-	string expectedResultType = selectClause.getArgType().at(0);
+	string expectedResultSynonym = selectClause->getArg().at(0);
+	string expectedResultType = selectClause->getArgType().at(0);
 
-	QueryResult qr;
+	QueryResult* qr;
 
-	qr.insertSynonym(expectedResultSynonym);
+	qr->insertSynonym(expectedResultSynonym);
 
 	if (expectedResultType == ARGTYPE_VARIABLE) {
 		// Results should be returning VAR
@@ -62,15 +62,15 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 		if (varList.empty()) {
 			return qr;
 		}
-		qr.setIsExist(true);
+		qr->setIsExist(true);
 		for (list<string>::iterator it = varList.begin(); it != varList.end(); it++) {
-			qr.insertArg1Result(*it);
+			qr->insertArg1Result(*it);
 		}
 	}
 	else if (expectedResultType == ARGTYPE_BOOLEAN) {
 		// Results should be returning T/F
-		// Need to check in projector. QR.isExist will not be validated
-		qr.insertSynonym("BOOLEAN");
+		// Need to check in projector. qr->isExist will not be validated
+		qr->insertSynonym("BOOLEAN");
 		return qr;
 	}
 	else if (expectedResultType == ARGTYPE_CONSTANT) {
@@ -80,9 +80,9 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 		if (constantList.empty()) {
 			return qr;
 		}
-		qr.setIsExist(true);
+		qr->setIsExist(true);
 		for (list<int>::iterator it = constantList.begin(); it != constantList.end(); it++) {
-			qr.insertArg1Result(to_string(*it));
+			qr->insertArg1Result(to_string(*it));
 		}
 		return qr;
 	}
@@ -93,9 +93,9 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 			if (expectedResultStatements.empty()) {
 				return qr;
 			}
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			for (list<int>::iterator it = expectedResultStatements.begin(); it != expectedResultStatements.end(); it++) {
-				qr.insertArg1Result(to_string(*it));
+				qr->insertArg1Result(to_string(*it));
 			}
 			return qr;
 		} 
@@ -104,9 +104,9 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 			int statementCount;
 			// statementCount = PKB.getStatementCount();
 			// statementCount will always be >= 1
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			for (int i = 1; i <= statementCount; i++) {
-				qr.insertArg1Result(to_string(i));
+				qr->insertArg1Result(to_string(i));
 			}
 			return qr;
 		}
@@ -115,11 +115,11 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 
 }
 
-QueryResult QueryEvaluator::processSuchThat(Clause suchThatClause) {
-	string relation = suchThatClause.getRelation();
+QueryResult* QueryEvaluator::processSuchThat(Clause* suchThatClause) {
+	string relation = suchThatClause->getRelation();
 
-	QueryResult suchThatResult;
-	QueryResult emptyResult;
+	QueryResult* suchThatResult;
+	QueryResult* emptyResult;
 
 	if (relation == REL_FOLLOWS) {
 		suchThatResult = processFollows(suchThatClause);
@@ -140,11 +140,11 @@ QueryResult QueryEvaluator::processSuchThat(Clause suchThatClause) {
 		suchThatResult = processUses(suchThatClause);
 	}
 
-	if (suchThatResult.getIsExist()) {
+	if (suchThatResult->getIsExist()) {
 		return suchThatResult;
 	}
 
-	if (suchThatResult.isArg1ResultEmpty() && suchThatResult.isArg2ResultEmpty()) {
+	if (suchThatResult->isArg1ResultEmpty() && suchThatResult->isArg2ResultEmpty()) {
 		return emptyResult;
 	}
 	else {
@@ -153,20 +153,20 @@ QueryResult QueryEvaluator::processSuchThat(Clause suchThatClause) {
 	return suchThatResult;
 }
 
-QueryResult QueryEvaluator::processPattern(Clause patternClause) {
-	string arg1 = patternClause.getArg().at(0);
-	string arg2 = patternClause.getArg().at(1);
-	string arg1Type = patternClause.getArgType().at(0);
-	string arg2Type = patternClause.getArgType().at(1);
-	string synAssign = patternClause.getArg().at(2);
+QueryResult* QueryEvaluator::processPattern(Clause* patternClause) {
+	string arg1 = patternClause->getArg().at(0);
+	string arg2 = patternClause->getArg().at(1);
+	string arg1Type = patternClause->getArgType().at(0);
+	string arg2Type = patternClause->getArgType().at(1);
+	string synAssign = patternClause->getArg().at(2);
 	string synAssignType = ARGTYPE_ASSIGN;
 
 	list<int> synAssignStatements = getList(synAssignType);
 	
-	QueryResult qr;
+	QueryResult* qr;
 
 	// synAssign is the synonym
-	qr.insertSynonym(synAssign);
+	qr->insertSynonym(synAssign);
 
 	if (arg1Type == ARGTYPE_STRING) {
 		// arg1 must be valid varName
@@ -184,9 +184,9 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 
 			// if arg1ModifiedBy (made up of assign stmts in ite 1) is non empty, add them all
 			// to pattern results
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			for (list<int>::iterator it = arg1ModifiedBy.begin(); it != arg1ModifiedBy.end(); it++) {
-				qr.insertPatternResult(to_string(*it));
+				qr->insertPatternResult(to_string(*it));
 			}
 			return qr;
 		}
@@ -205,9 +205,9 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 				return qr;
 			}
 			// if assignList not empty, add everything to pattern result
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			for (list<int>::iterator it = assignList.begin(); it != assignList.end(); it++) {
-				qr.insertPatternResult(to_string(*it));
+				qr->insertPatternResult(to_string(*it));
 			}
 			return qr;
 		}
@@ -217,7 +217,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 	}
 	else {
 		//arg1 is a variable synonym
-		qr.insertSynonym(arg1);
+		qr->insertSynonym(arg1);
 		list<string> varList;
 		// varList = PKB.getVarList();
 		if (varList.empty()) {
@@ -227,7 +227,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 		if (arg2Type == ARGTYPE_ANY) {
 			// since synAssignStatements not empty, can assume that query is true
 			// as something is modified for sure
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			// for each stmt in synAssignStatements, check each modifies what var
 			for (list<int>::iterator it1 = synAssignStatements.begin(); it1 != synAssignStatements.end(); it1++) {
 				bool outerIteratorIsValidResult = false;
@@ -235,10 +235,10 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 				// synAssignModifiesVar = PKB.getModifies(*it1);
 				if (!synAssignModifiesVar.empty()) {
 					for (list<string>::iterator it2 = synAssignModifiesVar.begin(); it2 != synAssignModifiesVar.end(); it2++) {
-						// if (PKB.isModified(*it1, *it2)) outerIteratorIsValidResult = true; qr.insertArg1Result(*it2);
+						// if (PKB.isModified(*it1, *it2)) outerIteratorIsValidResult = true; qr->insertArg1Result(*it2);
 					}
 					if (outerIteratorIsValidResult) {
-						qr.insertPatternResult(to_string(*it1));
+						qr->insertPatternResult(to_string(*it1));
 					}
 				}
 			}
@@ -251,13 +251,13 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 	return qr;
 }
 
-QueryResult QueryEvaluator::processFollows(Clause followClause) {
-	string arg1 = followClause.getArg().at(0);
-	string arg2 = followClause.getArg().at(1);
-	string arg1Type = followClause.getArgType().at(0);
-	string arg2Type = followClause.getArgType().at(1);
+QueryResult* QueryEvaluator::processFollows(Clause* followClause) {
+	string arg1 = followClause->getArg().at(0);
+	string arg2 = followClause->getArg().at(1);
+	string arg1Type = followClause->getArgType().at(0);
+	string arg2Type = followClause->getArgType().at(1);
 
-	QueryResult qr;
+	QueryResult* qr;
 
 	if (arg1Type == ARGTYPE_CONSTANT) {
 		// If arg1 not valid stmt, return empty QueryResult
@@ -273,18 +273,18 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 
 			// If follows(arg1, arg2) true, set QueryResult to true and return.
 			// Else just return
-			// if (PKB.isValidFollows(arg1, arg2)) qr.setIsExist(true); 
+			// if (PKB.isValidFollows(arg1, arg2)) qr->setIsExist(true); 
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_ANY) {
 			// At this point, arg1 determined to have follower from the first getFollower() check for arg1
 			// Hence, return QueryResult set to true
-			// qr.setIsExist(true); 
+			// qr->setIsExist(true); 
 			return qr;
 		}
 		else {
 			// Arg2 is a synonym
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 
 			// If program does not have any statements of arg2Type,
@@ -294,7 +294,7 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 			// Check if any of the statement in synonymStatementsArg2 list is a follower of arg1
 			// If found, add to arg2ResultList and set query to true
 			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-				// if (PKB.isValidFollow(arg1, *it)) qr.insertArg2Result(to_string(*it)); qr.setIsExist(true);
+				// if (PKB.isValidFollow(arg1, *it)) qr->insertArg2Result(to_string(*it)); qr->setIsExist(true);
 			}
 			return qr;
 		}
@@ -306,17 +306,17 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 
 			// If have followed from, set QueryResult to true & return
 			// int arg2FollowedFrom = PKB.getFollowedFrom(arg2);
-			// if (arg2FollowedFrom) qr.setIsExist(true); 
+			// if (arg2FollowedFrom) qr->setIsExist(true); 
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_ANY) {
 			// If follow table not empty, result exists
-			// if (!PKB.isFollowEmpty()) qr.setIsExist(true);
+			// if (!PKB.isFollowEmpty()) qr->setIsExist(true);
 			return qr;
 		}
 		else {
 			// arg2 is a synonym
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2;
 			synonymStatementsArg2 = getList(arg2Type);
 
@@ -329,14 +329,14 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 
 			for (list<int>::iterator it = synonymStatementsArg2.begin(), end = synonymStatementsArg2.end(); it != end; ++it) {
 				// int followedFrom = PKB.getFollowedFrom(*it);
-				// if (followedFrom) qr.insertArg2Result(to_string(followedFrom));
+				// if (followedFrom) qr->insertArg2Result(to_string(followedFrom));
 			}
 			return qr;
 		}
 	}
 	else {
 		// arg1 is a synonym
-		qr.insertSynonym(arg1);
+		qr->insertSynonym(arg1);
 		list<int> synonymStatementsArg1;
 		synonymStatementsArg1 = getList(arg1Type);
 
@@ -351,7 +351,7 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 			// If any of them are true, add it to the query results
 			// for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) 
 			// {
-			//		if (PKB.isValidFollows(*it, arg2)) qr.insertArg1Result(to_string(*it)); qr.setIsExist(true);
+			//		if (PKB.isValidFollows(*it, arg2)) qr->insertArg1Result(to_string(*it)); qr->setIsExist(true);
 			// }
 			return qr;
 
@@ -362,7 +362,7 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 			// for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++)
 			// {
 			//		int arg1Follower = PKB.getFollower(*it);
-			//		if (arg1Follower) { qr.insertArg1Result(to_string(arg1Follower)); qr.setIsExist(true); }
+			//		if (arg1Follower) { qr->insertArg1Result(to_string(arg1Follower)); qr->setIsExist(true); }
 			// }
 			return qr;
 		}
@@ -373,7 +373,7 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 			// if same synonym, return empty result
 			// if (arg2 == arg1) return qr;
 
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2;
 			synonymStatementsArg2 = getList(arg2Type);
 
@@ -385,10 +385,10 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
 				bool outerIteratorIsValidResult = false;
 				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it1++) {
-					// if (PKB.isValidFollows(*it1, *it2)) { outerIteratorIsValidResult = true; qr.insertArg2Result(to_string(*it2)); qr.setIsExist(true); }
+					// if (PKB.isValidFollows(*it1, *it2)) { outerIteratorIsValidResult = true; qr->insertArg2Result(to_string(*it2)); qr->setIsExist(true); }
 				}
 				if (outerIteratorIsValidResult) {
-					//qr.insertArg1Result(to_string(*it1));
+					//qr->insertArg1Result(to_string(*it1));
 				}
 			}
 
@@ -399,13 +399,13 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 	return qr; 
 }
 
-QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
-	string arg1 = followTClause.getArg().at(0);
-	string arg2 = followTClause.getArg().at(1);
-	string arg1Type = followTClause.getArgType().at(0);
-	string arg2Type = followTClause.getArgType().at(1);
+QueryResult* QueryEvaluator::processFollowsT(Clause* followTClause) {
+	string arg1 = followTClause->getArg().at(0);
+	string arg2 = followTClause->getArg().at(1);
+	string arg1Type = followTClause->getArgType().at(0);
+	string arg2Type = followTClause->getArgType().at(1);
 
-	QueryResult qr;
+	QueryResult* qr;
 
 	if (arg1Type == ARGTYPE_CONSTANT) {
 		// arg1 must be valid stmt
@@ -422,18 +422,18 @@ QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
 
 			//if arg2 in arg1FollowerStar list, true and return
 			if (find(arg1FollowerStar.begin(), arg1FollowerStar.end(), arg2) != arg1FollowerStar.end()) {
-				qr.setIsExist(true);
+				qr->setIsExist(true);
 			}
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_ANY) {
 			// since arg1FollowerStar is non empty, we can say that query is true
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			return qr;
 		}
 		else {
 			// arg2 is synonym
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) {
 				return qr;
@@ -443,8 +443,8 @@ QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
 			// if true, add to result and query is true
 			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
 				if (find(arg1FollowerStar.begin(), arg1FollowerStar.end(), *it) != arg1FollowerStar.end()) {
-					qr.insertArg2Result(to_string(*it));
-					qr.setIsExist(true);
+					qr->insertArg2Result(to_string(*it));
+					qr->setIsExist(true);
 				}
 			}
 			return qr;
@@ -459,18 +459,18 @@ QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
 			list<int> arg2FollowedFromStar;
 			// arg2FollowedFromStar = PKB.getFollowedFromStar(arg2);
 			if (!arg2FollowedFromStar.empty()) {
-				qr.setIsExist(true);
+				qr->setIsExist(true);
 			}
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_ANY) {
 			// if follow table not empty then is all good
-			// if (!PKB.isFollowEmpty()) qr.setIsExist(true);
+			// if (!PKB.isFollowEmpty()) qr->setIsExist(true);
 			return qr;
 		}
 		else {
 			// arg2 is synonym
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) return qr;
 
@@ -479,9 +479,9 @@ QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
 				list<int> arg2FollowedFromStar;
 				// arg2FollowedFromStar = PKB.getFollowedFromStar(*it1);
 				if (!arg2FollowedFromStar.empty()) {
-					qr.setIsExist(true);
+					qr->setIsExist(true);
 					for (list<int>::iterator it2 = arg2FollowedFromStar.begin(); it2 != arg2FollowedFromStar.end(); it2++) {
-						qr.insertArg2Result(to_string(*it2));
+						qr->insertArg2Result(to_string(*it2));
 					}
 				}
 			}
@@ -490,7 +490,7 @@ QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
 	}
 	else {
 		// arg1 is synonym
-		qr.insertSynonym(arg1);
+		qr->insertSynonym(arg1);
 		list<int> synonymStatementsArg1 = getList(arg1Type);
 		if (synonymStatementsArg1.empty()) {
 			return qr;
@@ -502,7 +502,7 @@ QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
 
 			// for each element in synonymStatementsArg1, check if arg1,arg2 is valid follow* rel
 			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				// if (PKB.isFollowStar(*it, arg2)) qr.setIsExist(true); qr.insertArg1Result(to_string(*it));
+				// if (PKB.isFollowStar(*it, arg2)) qr->setIsExist(true); qr->insertArg1Result(to_string(*it));
 			}
 			return qr;
 		}
@@ -512,9 +512,9 @@ QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
 				list<int> arg1FollowerStar;
 				// arg1FollowerStar = PKB.getFollowerStar(*it1);
 				if (!arg1FollowerStar.empty()) {
-					qr.setIsExist(true);
+					qr->setIsExist(true);
 					for (list<int>::iterator it2 = arg1FollowerStar.begin(); it2 != arg1FollowerStar.end(); it2++) {
-						qr.insertArg1Result(to_string(*it2));
+						qr->insertArg1Result(to_string(*it2));
 					}
 				}
 			}
@@ -527,7 +527,7 @@ QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
 				return qr;
 			}
 
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) {
 				return qr;
@@ -537,11 +537,11 @@ QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
 			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg2.end(); it1++) {
 				bool outerIteratorIsValidResult = false;
 				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					// if (PKB.isFollowStar(*it1, *it2)) outerIteratorIsValidResult = true; qr.insertArg2Result(to_string(*it2));
+					// if (PKB.isFollowStar(*it1, *it2)) outerIteratorIsValidResult = true; qr->insertArg2Result(to_string(*it2));
 				}
 				if (outerIteratorIsValidResult) {
-					qr.setIsExist(true);
-					qr.insertArg1Result(to_string(*it1));
+					qr->setIsExist(true);
+					qr->insertArg1Result(to_string(*it1));
 				}
 			}
 			return qr;
@@ -550,13 +550,13 @@ QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
 	return qr;
 }
 
-QueryResult QueryEvaluator::processParent(Clause parentClause) {
-	string arg1 = parentClause.getArg().at(0);
-	string arg2 = parentClause.getArg().at(1);
-	string arg1Type = parentClause.getArgType().at(0);
-	string arg2Type = parentClause.getArgType().at(1);
+QueryResult* QueryEvaluator::processParent(Clause* parentClause) {
+	string arg1 = parentClause->getArg().at(0);
+	string arg2 = parentClause->getArg().at(1);
+	string arg1Type = parentClause->getArgType().at(0);
+	string arg2Type = parentClause->getArgType().at(1);
 
-	QueryResult qr;
+	QueryResult* qr;
 
 	if (arg1Type == ARGTYPE_CONSTANT)
 	{
@@ -572,26 +572,26 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 			// if (!PKB.isValidStmt(stoi(arg2))) return qr;
 
 			// check if valid parent
-			// if (PKB.isParentOf(arg1, arg2)) qr.setIsExist(true); 
+			// if (PKB.isParentOf(arg1, arg2)) qr->setIsExist(true); 
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_ANY)
 		{
 			// at this point determined that arg1 has child.
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			return qr;
 		}
 		else
 		{
 			// Arg2 is a synonym
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) return qr;
 
 			// Check if any statement in synonymStatementsArg2 is a child of arg1
 			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++)
 			{
-				// if (PKB.isParentOf(arg1, *it)) qr.insertArg2Result(to_string(*it)); qr.setIsExist(true);
+				// if (PKB.isParentOf(arg1, *it)) qr->insertArg2Result(to_string(*it)); qr->setIsExist(true);
 			}
 			return qr;
 		}
@@ -604,20 +604,20 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 			// if (!PKB.isValidStmt(stoi(arg2))) return qr;
 
 			//arg2 must have parent
-			// if (PKB.getParentOf(arg2)) qr.setIsExist(true)
+			// if (PKB.getParentOf(arg2)) qr->setIsExist(true)
 
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_ANY)
 		{
 			// If ParentTable is non empty (with relationships), existential query
-			// if (!PKB.isParentEmpty()) qr.setIsExist(true);
+			// if (!PKB.isParentEmpty()) qr->setIsExist(true);
 			return qr;
 		}
 		else
 		{
 			// Arg2 is a synonym
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) return qr;
 
@@ -625,7 +625,7 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++)
 			{
 				// int parentOfArg2  = PKB.getParentOf(*it);
-				// if (parentOfArg2) qr.insertArg2Result(to_string(*it)); qr.setIsExist(true);
+				// if (parentOfArg2) qr->insertArg2Result(to_string(*it)); qr->setIsExist(true);
 			}
 			return qr;
 		}
@@ -636,7 +636,7 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 
 		// assume validator already check arg1Type == CONTAINER
 
-		qr.insertSynonym(arg1);
+		qr->insertSynonym(arg1);
 		list<int> synonymStatementsArg1 = getList(arg1Type);
 		if (synonymStatementsArg1.empty()) return qr;
 
@@ -648,7 +648,7 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 			// arg2 must have parent in synonymStatementsArg1
 			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++)
 			{
-				// if (PKB.isParentOf(*it, arg2)) qr.insertArg1Result(to_string(*it)); qr.setIsExist(true); return qr;
+				// if (PKB.isParentOf(*it, arg2)) qr->insertArg1Result(to_string(*it)); qr->setIsExist(true); return qr;
 			}
 			return qr;
 		}
@@ -659,7 +659,7 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++)
 			{
 				// int childOfArg1 = PKB.getChildOf(*it);
-				// if (childOfArg1) qr.insertArg1Result(to_string(*it)); qr.setIsExist(true);
+				// if (childOfArg1) qr->insertArg1Result(to_string(*it)); qr->setIsExist(true);
 			}
 			return qr;
 		}
@@ -670,7 +670,7 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 			
 			// corner case. p(x,x)
 			// if (arg1 == arg2) return qr;
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) return qr;
 
@@ -678,9 +678,9 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
 				bool outerIteratorIsValidResult = false;
 				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					// if (PKB.isParentOf(*it1, *it2)) outerIteratorIsValidResult = true; qr.insertArg2Result(to_string(*it2)); qr.setIsExist(true);
+					// if (PKB.isParentOf(*it1, *it2)) outerIteratorIsValidResult = true; qr->insertArg2Result(to_string(*it2)); qr->setIsExist(true);
 				}
-				// if (outerIteratorIsValidResult) qr.insertArg1Result(to_string(arg1));
+				// if (outerIteratorIsValidResult) qr->insertArg1Result(to_string(arg1));
 			}
 
 			return qr;
@@ -689,13 +689,13 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 	return qr;
 }
 
-QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
-	string arg1 = parentTClause.getArg().at(0);
-	string arg2 = parentTClause.getArg().at(1);
-	string arg1Type = parentTClause.getArgType().at(0);
-	string arg2Type = parentTClause.getArgType().at(1);
+QueryResult* QueryEvaluator::processParentT(Clause* parentTClause) {
+	string arg1 = parentTClause->getArg().at(0);
+	string arg2 = parentTClause->getArg().at(1);
+	string arg1Type = parentTClause->getArgType().at(0);
+	string arg2Type = parentTClause->getArgType().at(1);
 
-	QueryResult qr;
+	QueryResult* qr;
 
 	if (arg1Type == ARGTYPE_CONSTANT) {
 		//arg1 must be valid stmt
@@ -713,18 +713,18 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 
 			// check if arg2 is in arg1Children. If yes, query is true
 			if (find(arg1Children.begin(), arg1Children.end(), arg2) != arg1Children.end()) {
-				qr.setIsExist(true);
+				qr->setIsExist(true);
 			}
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_ANY) {
 			// established that arg1 has children. hence, query is true
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			return qr;
 		}
 		else {
 			// arg2 is synonym
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) {
 				return qr;
@@ -733,8 +733,8 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 			// for each element in synonymStatementsArg2, check if arg2 is in arg1Children. If yes, add to results
 			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
 				if (find(arg1Children.begin(), arg1Children.end(), *it) != arg1Children.end()) {
-					qr.insertArg2Result(to_string(*it));
-					qr.setIsExist(true);
+					qr->insertArg2Result(to_string(*it));
+					qr->setIsExist(true);
 				}
 			}
 			return qr;
@@ -749,18 +749,18 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 			list<int> arg2ParentStar;
 			// arg2ParentStar = PKB.getParentStar(arg2);
 			if (!arg2ParentStar.empty()) {
-				qr.setIsExist(true);
+				qr->setIsExist(true);
 			}
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_ANY) {
 			// check if parent table non empty
-			// if (!PKB.isParentEmpty()) qr.setIsExist(true);
+			// if (!PKB.isParentEmpty()) qr->setIsExist(true);
 			return qr;
 		}
 		else {
 			// arg2 is synonym
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) {
 				return qr;
@@ -771,9 +771,9 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 				list<int> arg2ParentStar;
 				// arg2ParentStar = PKB.getParentStar(*it);
 				if (!arg2ParentStar.empty()) {
-					qr.setIsExist(true);
+					qr->setIsExist(true);
 					for (list<int>::iterator it2 = arg2ParentStar.begin(); it2 != arg2ParentStar.end(); it2++) {
-						qr.insertArg2Result(to_string(*it2));
+						qr->insertArg2Result(to_string(*it2));
 					}
 				}
 			}
@@ -782,7 +782,7 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 	}
 	else {
 		// arg1 is synonym
-		qr.insertSynonym(arg1);
+		qr->insertSynonym(arg1);
 		list<int> synonymStatementsArg1 = getList(arg1Type);
 		if (synonymStatementsArg1.empty()) {
 			return qr;
@@ -794,7 +794,7 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 
 			// for each element in synonymStatementsArg1, check if they are the Parent* of arg2
 			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				// if (PKB.isParentStar(*it1,arg2)) qr.insertArg1Result(to_string(*it1)); qr.setIsExist(true);
+				// if (PKB.isParentStar(*it1,arg2)) qr->insertArg1Result(to_string(*it1)); qr->setIsExist(true);
 			}
 			return qr;
 		}
@@ -804,8 +804,8 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 				list<int> arg1Children;
 				// arg1Children = PKB.getChildren(arg1);
 				if (!arg1Children.empty()) {
-					qr.setIsExist(true);
-					qr.insertArg1Result(to_string(*it));
+					qr->setIsExist(true);
+					qr->insertArg1Result(to_string(*it));
 				}
 			}
 			return qr;
@@ -817,7 +817,7 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 				return qr;
 			}
 
-			qr.insertSynonym(arg2);
+			qr->insertSynonym(arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) {
 				return qr;
@@ -827,11 +827,11 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg2.end(); it1++) {
 				bool outerIteratorIsValidResult = false;
 				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					// if (PKB.isParentStar(*it1, *it2)) outerIteratorIsValidResult = true; qr.insertArg2Result(to_string(*it2));
+					// if (PKB.isParentStar(*it1, *it2)) outerIteratorIsValidResult = true; qr->insertArg2Result(to_string(*it2));
 				}
 				if (outerIteratorIsValidResult) {
-					qr.setIsExist(true);
-					qr.insertArg1Result(to_string(*it1));
+					qr->setIsExist(true);
+					qr->insertArg1Result(to_string(*it1));
 				}
 			}
 			return qr;
@@ -840,13 +840,13 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 	return qr;
 }
 
-QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
-	string arg1 = modifiesClause.getArg().at(0);
-	string arg2 = modifiesClause.getArg().at(1);
-	string arg1Type = modifiesClause.getArgType().at(0);
-	string arg2Type = modifiesClause.getArgType().at(1);
+QueryResult* QueryEvaluator::processModifies(Clause* modifiesClause) {
+	string arg1 = modifiesClause->getArg().at(0);
+	string arg2 = modifiesClause->getArg().at(1);
+	string arg1Type = modifiesClause->getArgType().at(0);
+	string arg2Type = modifiesClause->getArgType().at(1);
 	
-	QueryResult qr;
+	QueryResult* qr;
 
 	if (arg2Type == ARGTYPE_STRING) {
 		// arg2 must be valid var
@@ -864,18 +864,18 @@ QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
 
 			// check if arg1 in arg2ModifiedBy list
 			if (find(arg2ModifiedBy.begin(), arg2ModifiedBy.end(), arg1) != arg2ModifiedBy.end()) {
-				qr.setIsExist(true);
+				qr->setIsExist(true);
 			}
 			return qr;
 		}
 		else if (arg1Type == ARGTYPE_ANY) {
 			// at this point, if arg2ModifiedBy is not empty, this query is true;
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			return qr;
 		}
 		else {
 			// arg1 is a synonym
-			qr.insertSynonym(arg1);
+			qr->insertSynonym(arg1);
 			list<int> synonymStatementsArg1 = getList(arg1Type); //For now, this should only be assign
 			if (synonymStatementsArg1.empty()) {
 				return qr;
@@ -883,14 +883,14 @@ QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
 
 			// for each stmt in synonymStatementsArg1, check if they modify arg2 and add results accordingly
 			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				// if (PKB.isModified(*it, arg2)) qr.setIsExist(true); qr.insertArg1Result(to_string(*it));
+				// if (PKB.isModified(*it, arg2)) qr->setIsExist(true); qr->insertArg1Result(to_string(*it));
 			}
 			return qr;
 		}
 	}
 	else if (arg2Type == ARGTYPE_VARIABLE) {
 		// arg2 is a variable synonym
-		qr.insertSynonym(arg2);
+		qr->insertSynonym(arg2);
 		list<string> allVarList;
 		// allVarList = PKB.getVarList();
 		if (allVarList.empty()) {
@@ -909,23 +909,23 @@ QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
 			}
 
 			// query is true since arg1ModifiedVar is non empty
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 
 			// add everything in arg1ModifiedVar to results in arg2
 			for (list<string>::iterator it = arg1ModifiedVar.begin(); it != arg1ModifiedVar.end(); it++) {
-				qr.insertArg2Result(*it);
+				qr->insertArg2Result(*it);
 			}
 			return qr;
 		}
 		else if (arg1Type == ARGTYPE_ANY) {
 			// since allVarList is non-empty, add everything into the reuslts for arg2
 			for (list<string>::iterator it = allVarList.begin(); it != allVarList.end(); it++) {
-				qr.insertArg2Result(*it);
+				qr->insertArg2Result(*it);
 			}
 		}
 		else {
 			// arg1 is a synonym
-			qr.insertSynonym(arg1);
+			qr->insertSynonym(arg1);
 			list<int> synonymStatementsArg1 = getList(arg1Type);
 			if (synonymStatementsArg1.empty()) {
 				return qr;
@@ -936,11 +936,11 @@ QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
 			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
 				bool outerIteratorIsValidResult = false;
 				for (list<string>::iterator it2 = allVarList.begin(); it2 != allVarList.end(); it2++) {
-					// if (PKB.isModified(*it1, *it2)) outerIteratorIsValidResult = true; qr.insertArg2Result(*it2);
+					// if (PKB.isModified(*it1, *it2)) outerIteratorIsValidResult = true; qr->insertArg2Result(*it2);
 				}
 				if (outerIteratorIsValidResult) {
-					qr.setIsExist(true);
-					qr.insertArg1Result(to_string(*it1));
+					qr->setIsExist(true);
+					qr->insertArg1Result(to_string(*it1));
 				}
 			}
 			return qr;
@@ -962,18 +962,18 @@ QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
 			list<string> arg1Modifies;
 			// arg1Modifies = PKB.getModifies(arg1);
 			if (!arg1Modifies.empty()) {
-				qr.setIsExist(true);
+				qr->setIsExist(true);
 			}
 			return qr;
 		}
 		else if (arg1Type == ARGTYPE_ANY) {
 			// since varList is non empty, something is modified
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			return qr;
 		}
 		else {
 			// arg1 is a synonym. as of now, this should only be assign type statements
-			qr.insertSynonym(arg1);
+			qr->insertSynonym(arg1);
 			list<int> synonymStatementsArg1 = getList(arg1Type);
 			if (synonymStatementsArg1.empty()) {
 				return qr;
@@ -985,8 +985,8 @@ QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
 				list<string> arg1ModifiesVar;
 				// arg1ModifiesVar = PKB.getModifies(*it);
 				if (!arg1ModifiesVar.empty()) {
-					qr.insertArg1Result(to_string(*it));
-					qr.setIsExist(true);
+					qr->insertArg1Result(to_string(*it));
+					qr->setIsExist(true);
 				}
 			}
 			return qr;
@@ -995,13 +995,13 @@ QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
 	return qr;
 }
 
-QueryResult QueryEvaluator::processUses(Clause usesClause) {
-	string arg1 = usesClause.getArg().at(0);
-	string arg2 = usesClause.getArg().at(1);
-	string arg1Type = usesClause.getArgType().at(0);
-	string arg2Type = usesClause.getArgType().at(1);
+QueryResult* QueryEvaluator::processUses(Clause* usesClause) {
+	string arg1 = usesClause->getArg().at(0);
+	string arg2 = usesClause->getArg().at(1);
+	string arg1Type = usesClause->getArgType().at(0);
+	string arg2Type = usesClause->getArgType().at(1);
 
-	QueryResult qr;
+	QueryResult* qr;
 
 	if (arg2Type == ARGTYPE_STRING) {
 		// arg2 must be valid var
@@ -1020,18 +1020,18 @@ QueryResult QueryEvaluator::processUses(Clause usesClause) {
 
 			// check if arg1 is in arg2UsedBy
 			if (find(arg2UsedBy.begin(), arg2UsedBy.end(), arg1) != arg2UsedBy.end()) {
-				qr.setIsExist(true);
+				qr->setIsExist(true);
 			}
 			return qr;
 		}
 		else if (arg1Type == ARGTYPE_ANY) {
 			// since arg2UsedBy is non empty, this query is true
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			return qr;
 		}
 		else {
 			// arg1 is a synonym. at this point in time, should just be assign type statements
-			qr.insertSynonym(arg1);
+			qr->insertSynonym(arg1);
 			list<int> synonymStatementsArg1 = getList(arg1Type);
 			if (synonymStatementsArg1.empty()) {
 				return qr;
@@ -1039,14 +1039,14 @@ QueryResult QueryEvaluator::processUses(Clause usesClause) {
 
 			// for each statement in synonymStatementsArg1, if any statement is using arg2
 			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				// if (PKB.isUsed(*it, arg2)) qr.setIsExist(true); qr.insertArg1Result(to_string(*it));
+				// if (PKB.isUsed(*it, arg2)) qr->setIsExist(true); qr->insertArg1Result(to_string(*it));
 			}
 			return qr;
 		}
 	}
 	else if (arg2Type == ARGTYPE_VARIABLE) {
 		// arg2 is a variable synonym
-		qr.insertSynonym(arg2);
+		qr->insertSynonym(arg2);
 		list<string> allVarList;
 		// allVarList = PKB.getVarlist();
 		if (allVarList.empty()) {
@@ -1065,9 +1065,9 @@ QueryResult QueryEvaluator::processUses(Clause usesClause) {
 			}
 
 			// if arg1UsesVar non empty, add everything in arg1UsesVar to results
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			for (list<string>::iterator it = arg1UsesVar.begin(); it != arg1UsesVar.end(); it++) {
-				qr.insertArg2Result(*it);
+				qr->insertArg2Result(*it);
 			}
 			return qr;
 		}
@@ -1079,15 +1079,15 @@ QueryResult QueryEvaluator::processUses(Clause usesClause) {
 				return qr;
 			}
 			// add all used var into results
-			qr.setIsExist(true);
+			qr->setIsExist(true);
 			for (list<string>::iterator it = allUsedVar.begin(); it != allUsedVar.end(); it++) {
-				qr.insertArg2Result(*it);
+				qr->insertArg2Result(*it);
 			}
 			return qr;
 		}
 		else {
 			// arg1 is a synonym (can be assign or while)
-			qr.insertSynonym(arg1);
+			qr->insertSynonym(arg1);
 			list<int> synonymStatementsArg1 = getList(arg1Type);
 			if (synonymStatementsArg1.empty()) {
 				return qr;
@@ -1097,11 +1097,11 @@ QueryResult QueryEvaluator::processUses(Clause usesClause) {
 			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
 				bool outerIteratorIsValidResult = false;
 				for (list<string>::iterator it2 = allVarList.begin(); it2 != allVarList.end(); it2++) {
-					// if (PKB.isUsedBy(*it1, *it2)) outerIteratorIsValidResult = true; qr.insertArg2Result(*it2);
+					// if (PKB.isUsedBy(*it1, *it2)) outerIteratorIsValidResult = true; qr->insertArg2Result(*it2);
 				}
 				if (outerIteratorIsValidResult) {
-					qr.setIsExist(true);
-					qr.insertArg1Result(to_string(*it1));
+					qr->setIsExist(true);
+					qr->insertArg1Result(to_string(*it1));
 				}
 			}
 			return qr;
@@ -1123,7 +1123,7 @@ QueryResult QueryEvaluator::processUses(Clause usesClause) {
 			list<string> arg1UsesVar;
 			// arg1UsesVar = PKB.getUses(arg1);
 			if (!arg1UsesVar.empty()) {
-				qr.setIsExist(true);
+				qr->setIsExist(true);
 			}
 			return qr;
 		}
@@ -1131,13 +1131,13 @@ QueryResult QueryEvaluator::processUses(Clause usesClause) {
 			list<string> allUsedVar;
 			// allUsedVar = PKB.getAllUsedVar();
 			if (!allUsedVar.empty()) {
-				qr.setIsExist(true);
+				qr->setIsExist(true);
 			}
 			return qr;
 		}
 		else {
 			// arg1 is a synonym
-			qr.insertSynonym(arg1);
+			qr->insertSynonym(arg1);
 			list<int> synonymStatementsArg1 = getList(arg1Type);
 			if (synonymStatementsArg1.empty()) {
 				return qr;
@@ -1149,8 +1149,8 @@ QueryResult QueryEvaluator::processUses(Clause usesClause) {
 				list<string> arg1UsesVar;
 				// arg1UsesVar = PKB.getUses(*it);
 				if (!arg1UsesVar.empty()) {
-					qr.insertArg1Result(to_string(*it));
-					qr.setIsExist(true);
+					qr->insertArg1Result(to_string(*it));
+					qr->setIsExist(true);
 				}
 			}
 			return qr;

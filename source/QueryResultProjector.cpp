@@ -17,9 +17,9 @@ list<string> QueryResultProjector::getResults() {
 	list<string> results;
 
 	// Retrieve all the results from the QueryTable
-	QueryResult *selectResults = &(_qt->getSelectResult());
-	QueryResult *suchThatResults = &(_qt->getSuchThatResult());
-	QueryResult *patternResults = &(_qt->getPatternResult());
+	QueryResult *selectResults = (_qt->getSelectResult());
+	QueryResult *suchThatResults = (_qt->getSuchThatResult());
+	QueryResult *patternResults = (_qt->getPatternResult());
 
 	bool selectExists = selectResults -> getIsExist();
 	bool suchThatExists = suchThatResults -> getIsExist();

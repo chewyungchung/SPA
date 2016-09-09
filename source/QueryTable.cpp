@@ -7,40 +7,40 @@ QueryTable::QueryTable()
 }
 
 // Overloaded Constructor
-QueryTable::QueryTable(Clause selectClause, Clause suchThatClause, Clause patternClause) {
-	*_selectClause = selectClause;
-	*_suchThatClause = suchThatClause;
-	*_patternClause = patternClause;
+QueryTable::QueryTable(Clause* selectClause, Clause* suchThatClause, Clause* patternClause) {
+	_selectClause = selectClause;
+	_suchThatClause = suchThatClause;
+	_patternClause = patternClause;
 }
 
-Clause QueryTable::getSelectClause()
+Clause* QueryTable::getSelectClause()
 {
-	return *_selectClause;
+	return _selectClause;
 }
 
-QueryResult QueryTable::getSelectResult()
+QueryResult* QueryTable::getSelectResult()
 {
-	return *_selectResult;
+	return _selectResult;
 }
 
-Clause QueryTable::getSuchThatClause()
+Clause* QueryTable::getSuchThatClause()
 {
-	return *_suchThatClause;
+	return _suchThatClause;
 }
 
-QueryResult QueryTable::getSuchThatResult()
+QueryResult* QueryTable::getSuchThatResult()
 {
-	return *_suchThatResult;
+	return _suchThatResult;
 }
 
-Clause QueryTable::getPatternClause()
+Clause* QueryTable::getPatternClause()
 {
-	return *_patternClause;
+	return _patternClause;
 }
 
-QueryResult QueryTable::getPatternResult()
+QueryResult* QueryTable::getPatternResult()
 {
-	return *_patternResult;
+	return _patternResult;
 }
 
 string QueryTable::getSynType(string syn)
@@ -92,34 +92,34 @@ bool QueryTable::isPatternResultEmpty()
 	}
 }
 
-void QueryTable::setSelectClause(Clause selectClause)
+void QueryTable::setSelectClause(Clause* selectClause)
 {
-	*_selectClause = selectClause;
+	_selectClause = selectClause;
 }
 
-void QueryTable::setSuchThatClause(Clause suchThatClause)
+void QueryTable::setSuchThatClause(Clause* suchThatClause)
 {
-	*_suchThatClause = suchThatClause;
+	_suchThatClause = suchThatClause;
 }
 
-void QueryTable::setPatternClause(Clause patternClause)
+void QueryTable::setPatternClause(Clause* patternClause)
 {
-	*_patternClause = patternClause;
+	_patternClause = patternClause;
 }
 
-void QueryTable::setSelectResult(QueryResult selectResult)
+void QueryTable::setSelectResult(QueryResult* selectResult)
 {
-	*_selectResult = selectResult;
+	_selectResult = selectResult;
 }
 
-void QueryTable::setSuchThatResult(QueryResult suchThatResult)
+void QueryTable::setSuchThatResult(QueryResult* suchThatResult)
 {
-	*_suchThatResult = suchThatResult;
+	_suchThatResult = suchThatResult;
 }
 
-void QueryTable::setPatternResult(QueryResult patternResult)
+void QueryTable::setPatternResult(QueryResult* patternResult)
 {
-	*_patternResult = patternResult;
+	_patternResult = patternResult;
 }
 
 void QueryTable::setIsSuchThatAvail(bool val) 
