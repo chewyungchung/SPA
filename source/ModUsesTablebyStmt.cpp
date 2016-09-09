@@ -20,6 +20,9 @@ void ModUsesTablebyStmt::addModifies(int stmtNum, list<string> var)
 	if (it == modifiesTable.end()) {
 		modifiesTable.insert(pair<int, list<string>>(stmtNum, var));
 	}
+	else {
+		modifiesTable[stmtNum] = var;
+	}
 }
 
 void ModUsesTablebyStmt::addUses(int stmtNum, list<string> var)
@@ -29,6 +32,21 @@ void ModUsesTablebyStmt::addUses(int stmtNum, list<string> var)
 	/* if key is not found, add key-value pair into usesTable */
 	if (it == usesTable.end) {
 		usesTable.insert(pair<int, list<string>>(stmtNum, var));
+	}
+	else {
+		usesTable[stmtNum] = var;
+	}
+}
+
+bool ModUsesTablebyStmt::isValidStmt(int stmtNum)
+{
+	unordered_map<int, list<string>>::iterator it = modifiesTable.find(stmtNum);
+	
+	if (it != modifiesTable.end()) {
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 
@@ -84,4 +102,20 @@ list<string> ModUsesTablebyStmt::getUsed(int stmtNum)
 	else {
 		return list<string>();
 	}
+}
+
+list<int> ModUsesTablebyStmt::getStatementList()
+{
+	unordered_map<int, list<string>>::iterator it;
+	list<int> statementList;
+
+	for (it = usesTable.begin(); it != usesTable.end(); ++it) {
+		statementList.push_back(it->first);
+	}
+	return statementList;
+}
+
+int ModUsesTablebyStmt::getStatementCount() 
+{
+	return usesTable.size();
 }
