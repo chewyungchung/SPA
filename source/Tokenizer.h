@@ -1,15 +1,10 @@
-#pragma once
-
-#include<stdio.h>
-#include <iostream>
+#include <stdio.h>
 #include <string>
-#include <vector>
 
-using namespace std;
-
-class Tokenizer
-{
-	Tokenizer(FILE);
-	string getToken();
+class Tokenizer{
+public:
+	Tokenizer();
+	~Tokenizer();
+	std::string getNextToken();
 };
 
