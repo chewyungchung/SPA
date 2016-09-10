@@ -1,10 +1,16 @@
 #include <stdio.h>
 #include <string>
+#include <deque>
+
+using namespace std;
 
 class Tokenizer{
 public:
 	Tokenizer();
-	~Tokenizer();
-	std::string getNextToken();
+	Tokenizer(string fileName);
+	string getNextToken();
+
+private:
+	deque<string> tokens;
 };
 

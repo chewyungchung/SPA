@@ -82,6 +82,7 @@ list<string> QueryResultProjector::getResults() {
 			return finalResult;
 		}
 	}
+	return finalResult;
 }
 
 bool QueryResultProjector::isResultShareCommonSyn(string selectSyn, QueryResult* suchThatResult, QueryResult* patternResult) {
@@ -331,22 +332,24 @@ unordered_map<string, list<string>> QueryResultProjector::getCommonSynonymResult
 
 // Retrieve the result list corresponding to the syn and clause
 list<string> QueryResultProjector::getSynResult(string syn, string clause, QueryResult* clauseResult) {
+	list<string> synResult;
 	if (clause == CLAUSE_SUCH_THAT) {
 		if (clauseResult->getSynonym(PARAM_ARG1) == syn) {
-			return getListResult(clauseResult->getArg1ResultList());
+			synResult = getListResult(clauseResult->getArg1ResultList());
 		}
 		else if (clauseResult->getSynonym(PARAM_ARG2) == syn) {
-			return getListResult(clauseResult->getArg2ResultList());
+			synResult = getListResult(clauseResult->getArg2ResultList());
 		}
 	}
 	else if (clause == CLAUSE_PATTERN) {
 		if (clauseResult->getSynonym(PARAM_ARG1) == syn) {
-			return getListResult(clauseResult->getArg1ResultList());
+			synResult = getListResult(clauseResult->getArg1ResultList());
 		}
 		else if (clauseResult->getSynonym(PARAM_PATTERN) == syn) {
-			return getListResult(clauseResult->getPatternResultList());
+			synResult = getListResult(clauseResult->getPatternResultList());
 		}
 	}
+	return synResult;
 }
 
 // Convert vector results into list results

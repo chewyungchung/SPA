@@ -6,8 +6,8 @@
 #include <vector>
 #include "QueryResult.h"
 #include "Clause.h"
-#include "map";
-#include "unordered_set";
+#include "map"
+#include "unordered_set"
 
 using namespace std;
 

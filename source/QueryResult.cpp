@@ -91,15 +91,14 @@ bool QueryResult::getIsExist() {
 }
 
 bool QueryResult::isSynonymExist(string syn) {
+	bool isSynonymExist = false;
 	for (vector<string>::iterator i = _synonymList.begin(); i != _synonymList.end(); i++) {
 		if (find(_synonymList.begin(), _synonymList.end(), syn) != _synonymList.end())
 		{
-			return true;
-		}
-		else {
-			return false;
+			isSynonymExist = true;;
 		}
 	}
+	return isSynonymExist;
 }
 
 bool QueryResult::isQueryExistential() {
