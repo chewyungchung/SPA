@@ -4,12 +4,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "SharedUtility.h"
 #include "Clause.h"
 
 using namespace std;
-
-SharedUtility* sharedUtility;
 
 /*
 * Establish relation, store arg and argtype of clauses
@@ -24,7 +21,6 @@ Clause::Clause(string relation, vector<string> arg, vector<string> argType)
 	_relation = relation;
 	_arg = arg;
 	_argType = argType;
-	sharedUtility =new SharedUtility();
 	
 }
 
