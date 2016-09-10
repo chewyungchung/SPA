@@ -22,8 +22,8 @@ public:
 	bool isValidStmt(int stmtNo);
 	bool isModified(int stmtNum, string varName);
 	bool isUsed(int stmtNum, string varName);
-	list<string> getModified(int stmtNum);
-	list<string> getUsed(int stmtNum);
+	list<string> getModifiedBy(int stmtNum);
+	list<string> getUsedBy(int stmtNum);
 };
 
 
