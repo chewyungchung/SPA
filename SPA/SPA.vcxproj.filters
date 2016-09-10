@@ -11,6 +11,10 @@
     <ClCompile Include="..\source\SharedUtility.cpp" />
     <ClCompile Include="..\source\TNode.cpp" />
     <ClCompile Include="..\source\Tokenizer.cpp" />
+    <ClCompile Include="..\source\FollowsTable.cpp" />
+    <ClCompile Include="..\source\ModUsesTablebyStmt.cpp" />
+    <ClCompile Include="..\source\ModUsesTablebyVariable.cpp" />
+    <ClCompile Include="..\source\ParentTable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\PKB.cpp">
@@ -34,64 +38,26 @@
     <ClCompile Include="..\source\QueryResult.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tokenizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\DesignExtractor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\source\Parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\ModUsesTablebyStmt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\ModUsesTablebyVariable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\ParentTable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\FollowsTable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Tokenizer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\PKB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\TNode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryEvaluator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\Clause.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\SharedUtility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryResult.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\ModUsesTablebyStmt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\ModUsesTablebyVariable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\ParentTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\FollowsTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ClInclude Include="..\source\Clause.h" />
+    <ClInclude Include="..\source\FollowsTable.h" />
+    <ClInclude Include="..\source\ModUsesTablebyStmt.h" />
+    <ClInclude Include="..\source\ModUsesTablebyVariable.h" />
+    <ClInclude Include="..\source\ParentTable.h" />
+    <ClInclude Include="..\source\PKB.h" />
+    <ClInclude Include="..\source\QueryEvaluator.h" />
+    <ClInclude Include="..\source\QueryResult.h" />
+    <ClInclude Include="..\source\QueryTable.h" />
+    <ClInclude Include="..\source\SharedUtility.h" />
+    <ClInclude Include="..\source\TNode.h" />
+    <ClInclude Include="..\source\Tokenizer.h" />
+    <ClInclude Include="..\source\Parser.h" />
   </ItemGroup>
 </Project>
