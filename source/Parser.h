@@ -14,7 +14,7 @@ class Parser
 {
 
 public:
-	Parser(FILE f);
+	Parser(string fileName);
 	void process();
 
 private:
@@ -45,5 +45,5 @@ private:
 	void parseStmtLst();
 	void parseWhileStmt();
 	void parseAssignStmt();
-
+	bool isConstant(string s);
 };

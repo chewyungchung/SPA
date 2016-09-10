@@ -107,12 +107,26 @@ void Parser::parseAssignStmt()
 	PKB.addParent(parentStack.top(), stmtLine);
 	PKB.addFollows(stmtLine, followsStack.top());
 
-	string varName = next_token;
-	PKB.addModifiesbyVar(next_token, stmtLine);
-	PKB.addModifiesbyStmt(stmtLine, next_token);
-	match(varName);
+	string LHS = next_token;
+	PKB.addModifiesbyVar(LHS, stmtLine);
+	PKB.addModifiesbyStmt(stmtLine, LHS);
+
+	match(LHS);
 	match(EQUAL_FLAG);
-	varName = next_token;
-	PKB.addUsesbyVar(next_token, stmtLine);
-	PKB.addUsesbyStmt(stmtLine, next_token);
+
+	string RHS = next_token;
+	if (isConstant(RHS))
+	{
+		PKB.addConstant(RHS, stmtLine);
+	}
+	else
+	{
+		PKB.addUsesbyVar(RHS, stmtLine);
+		PKB.addUsesbyStmt(stmtLine,RHS);
+	}
+}
+
+bool Parser::isConstant(string s)
+{
+	return isdigit(s.at(0));
 }
