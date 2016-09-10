@@ -15,6 +15,7 @@ class QueryTable {
 public:
 
 	QueryTable();
+	~QueryTable();
 	QueryTable(Clause* selectClause, Clause* suchThatClause, Clause* patternClause);
 
 	// Get

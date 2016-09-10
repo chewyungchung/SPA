@@ -24,10 +24,18 @@ const string ARGTYPE_STRING = "STRING";
 const string ARGTYPE_STMT = "STATEMENT";
 const string ARGTYPE_PROG_LINE = "PROG_LINE";
 
+const string PARAM_ARG1 = "ARG1";
+const string PARAM_ARG2 = "ARG2";
+const string PARAM_PATTERN = "PATTERN";
+const string PARAM_BOOLEAN = "BOOLEAN";
+
 
 // Default Constructor
 QueryEvaluator::QueryEvaluator() {
 
+}
+QueryEvaluator::~QueryEvaluator() {
+	delete _qt;
 }
 
 QueryEvaluator::QueryEvaluator(QueryTable qt) {
@@ -48,12 +56,13 @@ QueryResult* QueryEvaluator::processSelect(Clause* selectClause) {
 	// Other results:
 	// -> variable | boolean | constant
 
+	// May not be synonym. Could be BOOLEAN
 	string expectedResultSynonym = selectClause->getArg().at(0);
 	string expectedResultType = selectClause->getArgType().at(0);
 
-	QueryResult* qr;
+	QueryResult* qr = NULL;
 
-	qr->insertSynonym(expectedResultSynonym);
+	//qr->insertSynonym(expectedResultSynonym);
 
 	if (expectedResultType == ARGTYPE_VARIABLE) {
 		// Results should be returning VAR
@@ -62,6 +71,8 @@ QueryResult* QueryEvaluator::processSelect(Clause* selectClause) {
 		if (varList.empty()) {
 			return qr;
 		}
+		qr = new QueryResult();
+		qr->setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
 		qr->setIsExist(true);
 		for (list<string>::iterator it = varList.begin(); it != varList.end(); it++) {
 			qr->insertArg1Result(*it);
@@ -70,7 +81,8 @@ QueryResult* QueryEvaluator::processSelect(Clause* selectClause) {
 	else if (expectedResultType == ARGTYPE_BOOLEAN) {
 		// Results should be returning T/F
 		// Need to check in projector. qr->isExist will not be validated
-		qr->insertSynonym("BOOLEAN");
+		qr = new QueryResult();
+		qr->setArgToSynonymMapping(PARAM_ARG1, PARAM_BOOLEAN);
 		return qr;
 	}
 	else if (expectedResultType == ARGTYPE_CONSTANT) {
@@ -80,6 +92,8 @@ QueryResult* QueryEvaluator::processSelect(Clause* selectClause) {
 		if (constantList.empty()) {
 			return qr;
 		}
+		qr = new QueryResult();
+		qr->setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
 		qr->setIsExist(true);
 		for (list<int>::iterator it = constantList.begin(); it != constantList.end(); it++) {
 			qr->insertArg1Result(to_string(*it));
@@ -93,6 +107,8 @@ QueryResult* QueryEvaluator::processSelect(Clause* selectClause) {
 			if (expectedResultStatements.empty()) {
 				return qr;
 			}
+			qr = new QueryResult();
+			qr->setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
 			qr->setIsExist(true);
 			for (list<int>::iterator it = expectedResultStatements.begin(); it != expectedResultStatements.end(); it++) {
 				qr->insertArg1Result(to_string(*it));
@@ -104,6 +120,8 @@ QueryResult* QueryEvaluator::processSelect(Clause* selectClause) {
 			int statementCount;
 			// statementCount = PKB.getStatementCount();
 			// statementCount will always be >= 1
+			qr = new QueryResult();
+			qr->setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
 			qr->setIsExist(true);
 			for (int i = 1; i <= statementCount; i++) {
 				qr->insertArg1Result(to_string(i));
@@ -118,8 +136,7 @@ QueryResult* QueryEvaluator::processSelect(Clause* selectClause) {
 QueryResult* QueryEvaluator::processSuchThat(Clause* suchThatClause) {
 	string relation = suchThatClause->getRelation();
 
-	QueryResult* suchThatResult;
-	QueryResult* emptyResult;
+	QueryResult* suchThatResult = NULL;
 
 	if (relation == REL_FOLLOWS) {
 		suchThatResult = processFollows(suchThatClause);
@@ -139,17 +156,6 @@ QueryResult* QueryEvaluator::processSuchThat(Clause* suchThatClause) {
 	else if (relation == REL_USES) {
 		suchThatResult = processUses(suchThatClause);
 	}
-
-	if (suchThatResult->getIsExist()) {
-		return suchThatResult;
-	}
-
-	if (suchThatResult->isArg1ResultEmpty() && suchThatResult->isArg2ResultEmpty()) {
-		return emptyResult;
-	}
-	else {
-		_qt->setSuchThatResult(suchThatResult);
-	}
 	return suchThatResult;
 }
 
@@ -163,10 +169,10 @@ QueryResult* QueryEvaluator::processPattern(Clause* patternClause) {
 
 	list<int> synAssignStatements = getList(synAssignType);
 	
-	QueryResult* qr;
+	QueryResult* qr = NULL;
 
 	// synAssign is the synonym
-	qr->insertSynonym(synAssign);
+	//qr->insertSynonym(synAssign);
 
 	if (arg1Type == ARGTYPE_STRING) {
 		// arg1 must be valid varName
@@ -184,6 +190,7 @@ QueryResult* QueryEvaluator::processPattern(Clause* patternClause) {
 
 			// if arg1ModifiedBy (made up of assign stmts in ite 1) is non empty, add them all
 			// to pattern results
+			qr = new QueryResult();
 			qr->setIsExist(true);
 			for (list<int>::iterator it = arg1ModifiedBy.begin(); it != arg1ModifiedBy.end(); it++) {
 				qr->insertPatternResult(to_string(*it));
@@ -205,6 +212,7 @@ QueryResult* QueryEvaluator::processPattern(Clause* patternClause) {
 				return qr;
 			}
 			// if assignList not empty, add everything to pattern result
+			qr = new QueryResult();
 			qr->setIsExist(true);
 			for (list<int>::iterator it = assignList.begin(); it != assignList.end(); it++) {
 				qr->insertPatternResult(to_string(*it));
@@ -216,14 +224,14 @@ QueryResult* QueryEvaluator::processPattern(Clause* patternClause) {
 		}
 	}
 	else {
-		//arg1 is a variable synonym
-		qr->insertSynonym(arg1);
+		//arg1 is a variable 
 		list<string> varList;
 		// varList = PKB.getVarList();
 		if (varList.empty()) {
 			return qr;
 		}
-
+		qr = new QueryResult();
+		qr->setArgToSynonymMapping(PARAM_ARG1, arg1);
 		if (arg2Type == ARGTYPE_ANY) {
 			// since synAssignStatements not empty, can assume that query is true
 			// as something is modified for sure
@@ -257,7 +265,7 @@ QueryResult* QueryEvaluator::processFollows(Clause* followClause) {
 	string arg1Type = followClause->getArgType().at(0);
 	string arg2Type = followClause->getArgType().at(1);
 
-	QueryResult* qr;
+	QueryResult* qr = NULL;
 
 	if (arg1Type == ARGTYPE_CONSTANT) {
 		// If arg1 not valid stmt, return empty QueryResult
@@ -284,12 +292,15 @@ QueryResult* QueryEvaluator::processFollows(Clause* followClause) {
 		}
 		else {
 			// Arg2 is a synonym
-			qr->insertSynonym(arg2);
+			//qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 
 			// If program does not have any statements of arg2Type,
 			// then this relationship evaluates to false
-			if (synonymStatementsArg2.empty()) return qr;
+			if (synonymStatementsArg2.empty()) {
+				return qr;
+			}
 
 			// Check if any of the statement in synonymStatementsArg2 list is a follower of arg1
 			// If found, add to arg2ResultList and set query to true
@@ -316,7 +327,8 @@ QueryResult* QueryEvaluator::processFollows(Clause* followClause) {
 		}
 		else {
 			// arg2 is a synonym
-			qr->insertSynonym(arg2);
+			//qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2;
 			synonymStatementsArg2 = getList(arg2Type);
 
@@ -336,12 +348,15 @@ QueryResult* QueryEvaluator::processFollows(Clause* followClause) {
 	}
 	else {
 		// arg1 is a synonym
-		qr->insertSynonym(arg1);
+		//qr->insertSynonym(arg1);
+		qr->setArgToSynonymMapping(PARAM_ARG1, arg1);
 		list<int> synonymStatementsArg1;
 		synonymStatementsArg1 = getList(arg1Type);
 
 		// If no statements of arg1type exist, query is false
-		if (synonymStatementsArg1.empty()) return qr;
+		if (synonymStatementsArg1.empty()) {
+			return qr;
+		}
 
 		if (arg2Type == ARGTYPE_CONSTANT) {
 			// If arg2 not valid stmt, query is false
@@ -373,7 +388,8 @@ QueryResult* QueryEvaluator::processFollows(Clause* followClause) {
 			// if same synonym, return empty result
 			// if (arg2 == arg1) return qr;
 
-			qr->insertSynonym(arg2);
+			//qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2;
 			synonymStatementsArg2 = getList(arg2Type);
 
@@ -405,7 +421,7 @@ QueryResult* QueryEvaluator::processFollowsT(Clause* followTClause) {
 	string arg1Type = followTClause->getArgType().at(0);
 	string arg2Type = followTClause->getArgType().at(1);
 
-	QueryResult* qr;
+	QueryResult* qr = NULL;
 
 	if (arg1Type == ARGTYPE_CONSTANT) {
 		// arg1 must be valid stmt
@@ -433,7 +449,8 @@ QueryResult* QueryEvaluator::processFollowsT(Clause* followTClause) {
 		}
 		else {
 			// arg2 is synonym
-			qr->insertSynonym(arg2);
+			//qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) {
 				return qr;
@@ -470,7 +487,8 @@ QueryResult* QueryEvaluator::processFollowsT(Clause* followTClause) {
 		}
 		else {
 			// arg2 is synonym
-			qr->insertSynonym(arg2);
+			//qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) return qr;
 
@@ -490,7 +508,8 @@ QueryResult* QueryEvaluator::processFollowsT(Clause* followTClause) {
 	}
 	else {
 		// arg1 is synonym
-		qr->insertSynonym(arg1);
+		//qr->insertSynonym(arg1);
+		qr->setArgToSynonymMapping(PARAM_ARG1, arg1);
 		list<int> synonymStatementsArg1 = getList(arg1Type);
 		if (synonymStatementsArg1.empty()) {
 			return qr;
@@ -527,7 +546,8 @@ QueryResult* QueryEvaluator::processFollowsT(Clause* followTClause) {
 				return qr;
 			}
 
-			qr->insertSynonym(arg2);
+			//qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) {
 				return qr;
@@ -556,7 +576,7 @@ QueryResult* QueryEvaluator::processParent(Clause* parentClause) {
 	string arg1Type = parentClause->getArgType().at(0);
 	string arg2Type = parentClause->getArgType().at(1);
 
-	QueryResult* qr;
+	QueryResult* qr = NULL;
 
 	if (arg1Type == ARGTYPE_CONSTANT)
 	{
@@ -584,7 +604,8 @@ QueryResult* QueryEvaluator::processParent(Clause* parentClause) {
 		else
 		{
 			// Arg2 is a synonym
-			qr->insertSynonym(arg2);
+			//qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) return qr;
 
@@ -617,7 +638,8 @@ QueryResult* QueryEvaluator::processParent(Clause* parentClause) {
 		else
 		{
 			// Arg2 is a synonym
-			qr->insertSynonym(arg2);
+			//qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) return qr;
 
@@ -636,7 +658,8 @@ QueryResult* QueryEvaluator::processParent(Clause* parentClause) {
 
 		// assume validator already check arg1Type == CONTAINER
 
-		qr->insertSynonym(arg1);
+		//qr->insertSynonym(arg1);
+		qr->setArgToSynonymMapping(PARAM_ARG1, arg1);
 		list<int> synonymStatementsArg1 = getList(arg1Type);
 		if (synonymStatementsArg1.empty()) return qr;
 
@@ -670,7 +693,8 @@ QueryResult* QueryEvaluator::processParent(Clause* parentClause) {
 			
 			// corner case. p(x,x)
 			// if (arg1 == arg2) return qr;
-			qr->insertSynonym(arg2);
+			//qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) return qr;
 
@@ -695,7 +719,7 @@ QueryResult* QueryEvaluator::processParentT(Clause* parentTClause) {
 	string arg1Type = parentTClause->getArgType().at(0);
 	string arg2Type = parentTClause->getArgType().at(1);
 
-	QueryResult* qr;
+	QueryResult* qr = NULL;
 
 	if (arg1Type == ARGTYPE_CONSTANT) {
 		//arg1 must be valid stmt
@@ -724,7 +748,8 @@ QueryResult* QueryEvaluator::processParentT(Clause* parentTClause) {
 		}
 		else {
 			// arg2 is synonym
-			qr->insertSynonym(arg2);
+			//qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) {
 				return qr;
@@ -760,7 +785,8 @@ QueryResult* QueryEvaluator::processParentT(Clause* parentTClause) {
 		}
 		else {
 			// arg2 is synonym
-			qr->insertSynonym(arg2);
+			//qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) {
 				return qr;
@@ -782,7 +808,7 @@ QueryResult* QueryEvaluator::processParentT(Clause* parentTClause) {
 	}
 	else {
 		// arg1 is synonym
-		qr->insertSynonym(arg1);
+		qr->setArgToSynonymMapping(PARAM_ARG1, arg1);
 		list<int> synonymStatementsArg1 = getList(arg1Type);
 		if (synonymStatementsArg1.empty()) {
 			return qr;
@@ -817,7 +843,7 @@ QueryResult* QueryEvaluator::processParentT(Clause* parentTClause) {
 				return qr;
 			}
 
-			qr->insertSynonym(arg2);
+			qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 			if (synonymStatementsArg2.empty()) {
 				return qr;
@@ -846,7 +872,7 @@ QueryResult* QueryEvaluator::processModifies(Clause* modifiesClause) {
 	string arg1Type = modifiesClause->getArgType().at(0);
 	string arg2Type = modifiesClause->getArgType().at(1);
 	
-	QueryResult* qr;
+	QueryResult* qr = NULL;
 
 	if (arg2Type == ARGTYPE_STRING) {
 		// arg2 must be valid var
@@ -875,7 +901,7 @@ QueryResult* QueryEvaluator::processModifies(Clause* modifiesClause) {
 		}
 		else {
 			// arg1 is a synonym
-			qr->insertSynonym(arg1);
+			qr->setArgToSynonymMapping(PARAM_ARG1, arg1);
 			list<int> synonymStatementsArg1 = getList(arg1Type); //For now, this should only be assign
 			if (synonymStatementsArg1.empty()) {
 				return qr;
@@ -890,7 +916,7 @@ QueryResult* QueryEvaluator::processModifies(Clause* modifiesClause) {
 	}
 	else if (arg2Type == ARGTYPE_VARIABLE) {
 		// arg2 is a variable synonym
-		qr->insertSynonym(arg2);
+		qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 		list<string> allVarList;
 		// allVarList = PKB.getVarList();
 		if (allVarList.empty()) {
@@ -925,7 +951,7 @@ QueryResult* QueryEvaluator::processModifies(Clause* modifiesClause) {
 		}
 		else {
 			// arg1 is a synonym
-			qr->insertSynonym(arg1);
+			qr->setArgToSynonymMapping(PARAM_ARG1, arg1);
 			list<int> synonymStatementsArg1 = getList(arg1Type);
 			if (synonymStatementsArg1.empty()) {
 				return qr;
@@ -973,7 +999,7 @@ QueryResult* QueryEvaluator::processModifies(Clause* modifiesClause) {
 		}
 		else {
 			// arg1 is a synonym. as of now, this should only be assign type statements
-			qr->insertSynonym(arg1);
+			qr->setArgToSynonymMapping(PARAM_ARG1, arg1);;
 			list<int> synonymStatementsArg1 = getList(arg1Type);
 			if (synonymStatementsArg1.empty()) {
 				return qr;
@@ -1001,7 +1027,7 @@ QueryResult* QueryEvaluator::processUses(Clause* usesClause) {
 	string arg1Type = usesClause->getArgType().at(0);
 	string arg2Type = usesClause->getArgType().at(1);
 
-	QueryResult* qr;
+	QueryResult* qr = NULL;
 
 	if (arg2Type == ARGTYPE_STRING) {
 		// arg2 must be valid var
@@ -1031,7 +1057,7 @@ QueryResult* QueryEvaluator::processUses(Clause* usesClause) {
 		}
 		else {
 			// arg1 is a synonym. at this point in time, should just be assign type statements
-			qr->insertSynonym(arg1);
+			qr->setArgToSynonymMapping(PARAM_ARG1, arg1);
 			list<int> synonymStatementsArg1 = getList(arg1Type);
 			if (synonymStatementsArg1.empty()) {
 				return qr;
@@ -1046,7 +1072,7 @@ QueryResult* QueryEvaluator::processUses(Clause* usesClause) {
 	}
 	else if (arg2Type == ARGTYPE_VARIABLE) {
 		// arg2 is a variable synonym
-		qr->insertSynonym(arg2);
+		qr->setArgToSynonymMapping(PARAM_ARG2, arg2);
 		list<string> allVarList;
 		// allVarList = PKB.getVarlist();
 		if (allVarList.empty()) {
@@ -1087,7 +1113,7 @@ QueryResult* QueryEvaluator::processUses(Clause* usesClause) {
 		}
 		else {
 			// arg1 is a synonym (can be assign or while)
-			qr->insertSynonym(arg1);
+			qr->setArgToSynonymMapping(PARAM_ARG1, arg1);
 			list<int> synonymStatementsArg1 = getList(arg1Type);
 			if (synonymStatementsArg1.empty()) {
 				return qr;
@@ -1137,7 +1163,7 @@ QueryResult* QueryEvaluator::processUses(Clause* usesClause) {
 		}
 		else {
 			// arg1 is a synonym
-			qr->insertSynonym(arg1);
+			qr->setArgToSynonymMapping(PARAM_ARG1, arg1);
 			list<int> synonymStatementsArg1 = getList(arg1Type);
 			if (synonymStatementsArg1.empty()) {
 				return qr;

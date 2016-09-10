@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <unordered_map>
 
 using namespace std;
 
@@ -16,6 +17,7 @@ public:
 	vector<string> getArg1ResultList();
 	vector<string> getArg2ResultList();
 	vector<string> getPatternResultList();
+	string getSynonym(string arg);
 	bool getIsExist();
 	bool isQueryExistential();
 	bool isSynonymExist(string syn);
@@ -24,6 +26,7 @@ public:
 	bool isPatternResultEmpty();
 
 	// Setter
+	void setArgToSynonymMapping(string arg, string synonym);
 	void setArg1ResultList(vector<string> resultList);
 	void setArg2ResultList(vector<string> resultList);
 	void setPatternResultList(vector<string> resultList);
@@ -38,6 +41,7 @@ private:
 	vector<string> _arg1ResultList;
 	vector<string> _arg2ResultList;
 	vector<string> _patternResultList;
+	unordered_map<string, string> _argToSynonymMapping;
 
 	bool _isExist;
 

@@ -12,8 +12,8 @@ using namespace std;
 class QueryEvaluator {
 
 public:
-	// Default constructor
 	QueryEvaluator();
+	~QueryEvaluator();
 	QueryEvaluator(QueryTable);
 	QueryTable* evaluate();
 

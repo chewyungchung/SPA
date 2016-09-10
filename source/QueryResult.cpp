@@ -4,11 +4,17 @@
 
 using namespace std;
 
+const string PARAM_ARG1 = "ARG1";
+const string PARAM_ARG2 = "ARG2";
+const string PARAM_PATTERN = "PATTERN";
+const string PARAM_EMPTY_STRING = "";
+
 // Default constructor
 QueryResult::QueryResult() {
 	_isExist = false;
-	// Empty synonym list
-	// Empty result list
+	_argToSynonymMapping[PARAM_ARG1] = PARAM_EMPTY_STRING;
+	_argToSynonymMapping[PARAM_ARG2] = PARAM_EMPTY_STRING;
+	_argToSynonymMapping[PARAM_PATTERN] = PARAM_EMPTY_STRING;
 }
 
 vector<string> QueryResult::getSynonymList() {
@@ -27,6 +33,15 @@ vector<string> QueryResult::getPatternResultList() {
 	return _patternResultList;
 }
 
+string QueryResult::getSynonym(string arg) {
+	if (arg == PARAM_ARG1 || arg == PARAM_ARG2 || arg == PARAM_PATTERN) {
+		return _argToSynonymMapping[arg];
+	}
+	else {
+		return "wrong input";
+	}
+}
+
 void QueryResult::setArg1ResultList(vector<string> resultList) {
 	_arg1ResultList = resultList;
 }
@@ -41,6 +56,12 @@ void QueryResult::setPatternResultList(vector<string> resultList) {
 
 void QueryResult::insertSynonym(string syn) {
 	_synonymList.push_back(syn);
+}
+
+void QueryResult::setArgToSynonymMapping(string arg, string synonym) {
+	if (arg == PARAM_ARG1 || arg == PARAM_ARG2 || arg == PARAM_PATTERN) {
+		_argToSynonymMapping[arg] = synonym;
+	}
 }
 
 void QueryResult::insertArg1Result(string item) {

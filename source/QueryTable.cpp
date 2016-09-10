@@ -3,7 +3,12 @@
 // Default
 QueryTable::QueryTable()
 {
-
+	_selectClause = NULL;
+	_suchThatClause = NULL;
+	_patternClause = NULL;
+	_selectResult = NULL;
+	_suchThatResult = NULL;
+	_patternResult = NULL;
 }
 
 // Overloaded Constructor
@@ -11,6 +16,17 @@ QueryTable::QueryTable(Clause* selectClause, Clause* suchThatClause, Clause* pat
 	_selectClause = selectClause;
 	_suchThatClause = suchThatClause;
 	_patternClause = patternClause;
+}
+
+// Destructor
+QueryTable::~QueryTable() {
+	// Free all pointers
+	delete _selectClause;
+	delete _suchThatClause;
+	delete _patternClause;
+	delete _selectResult;
+	delete _suchThatResult;
+	delete _patternResult;
 }
 
 Clause* QueryTable::getSelectClause()
@@ -54,42 +70,75 @@ string QueryTable::getSynType(string syn)
 }
 
 bool QueryTable::isSuchThatAvail() {
-	return _isSuchThatAvail;
+	if (_suchThatClause != NULL) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 bool QueryTable::isPatternAvail() {
-	return _isPatternAvail;
+	if (_patternClause != NULL) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 bool QueryTable::isSelectResultEmpty()
 {
+	if (_selectResult != NULL) {
+		return true;
+	}
+	else {
+		return false;
+	}
+	/*
 	if (!(_selectResult->isArg1ResultEmpty()) && !(_selectResult->isArg2ResultEmpty())) {
 		return true;
 	}
 	else {
 		return false;
 	}
-
+	*/
 }
 
 bool QueryTable::isSuchThatResultEmpty()
 {
+	if (_suchThatResult != NULL) {
+		return true;
+	}
+	else {
+		return false;
+	}
+	/*
 	if (!_suchThatResult->isArg1ResultEmpty() && !_suchThatResult->isArg2ResultEmpty()) {
 		return true;
 	}
 	else {
 		return false;
 	}
+	*/
 }
 
 bool QueryTable::isPatternResultEmpty()
 {
+	if (_patternResult != NULL) {
+		return true;
+	}
+	else {
+		return false;
+	}
+	/*
 	if (!_patternResult->isArg1ResultEmpty() && !_patternResult->isArg2ResultEmpty()) {
 		return true;
 	}
 	else {
 		return false;
 	}
+	*/
 }
 
 void QueryTable::setSelectClause(Clause* selectClause)
