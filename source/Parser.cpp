@@ -10,11 +10,11 @@ using namespace std;
 
 #include "Parser.h"
 #include "Tokenizer.h"
-#include "../source/PKB.h"
+#include "PKB.h"
 
-Parser::Parser(FILE f)
+Parser::Parser(string fileName)
 {
-	Tokenizer tk(f);
+	Tokenizer tk(fileName);
 	stmtLine = 1;
 	parentStack.push(NO_PARENT_FLAG);
 	followsMaxNestingLevel = 1;
@@ -32,7 +32,7 @@ void Parser::match(string token)
 {
 	if (next_token == token)
 	{
-		next_token = tk.getToken();
+		next_token = tk.getNextToken();
 	}
 	else
 	{
@@ -43,7 +43,7 @@ void Parser::match(string token)
 
 void Parser::parseProgram()
 {
-	next_token = tk.getToken();
+	next_token = tk.getNextToken();
 	parseProcedure();
 }
 
@@ -81,7 +81,7 @@ void Parser::parseStmtLst()
 
 void Parser::parseWhileStmt()
 {
-	PKB.addParent(stmtLine, parentStack.top());
+	PKB.addParent(parentStack.top(), stmtLine);
 	parentStack.push(stmtLine);
 
 	PKB.addFollows(stmtLine, followsStack.top());
@@ -104,7 +104,7 @@ void Parser::parseWhileStmt()
 
 void Parser::parseAssignStmt()
 {
-	PKB.addParent(stmtLine, parentStack.top());
+	PKB.addParent(parentStack.top(), stmtLine);
 	PKB.addFollows(stmtLine, followsStack.top());
 
 	string varName = next_token;
