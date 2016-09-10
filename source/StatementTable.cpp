@@ -25,17 +25,22 @@ void StatementTable::addStatement(int stmtNum, string stmtType)
 	}
 }
 
-int StatementTable::getAssignCount()
+list<int> StatementTable::getAssignList()
 {
-	return assignList.size();
+	return assignList;
 }
 
-int StatementTable::getWhileCount()
+list<int> StatementTable::getWhileList()
 {
-	return whileList.size();
+	return whileList;
 }
 
-int StatementTable::getTotalCount()
+list<int> StatementTable::getStmtList()
+{
+	return allStmtList;
+}
+
+int StatementTable::getStatementCount()
 {
 	return allStmtList.size();
 }

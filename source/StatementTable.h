@@ -16,8 +16,9 @@ public:
 	StatementTable();
 	~StatementTable();
 	void addStatement(int stmtNum, string stmtType);
-	int getWhileCount();
-	int getAssignCount();
-	int getTotalCount();
+	list<int> getAssignList();
+	list<int> getWhileList();
+	list<int> getStmtList();
+	int getStatementCount();
 };
 
