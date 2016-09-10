@@ -32,6 +32,7 @@
     <ClInclude Include="..\source\ModUsesTablebyStmt.h" />
     <ClInclude Include="..\source\ModUsesTablebyVariable.h" />
     <ClInclude Include="..\source\ParentTable.h" />
+    <ClInclude Include="..\source\Parser.h" />
     <ClInclude Include="..\source\PKB.h" />
     <ClInclude Include="..\source\QueryEvaluator.h" />
     <ClInclude Include="..\source\QueryResult.h" />
