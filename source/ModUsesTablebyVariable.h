@@ -1,7 +1,6 @@
 #pragma once
 
 #include <list>
-#include <vector>
 #include <string>
 #include <unordered_map>
 
@@ -16,11 +15,11 @@ private:
 public:
 	ModUsesTablebyVariable();
 	~ModUsesTablebyVariable();
-	void addModified(string var, list<int> stmtNum);
-	void addUses(string var, list<int> stmtNum);
+	unordered_map<string, list<int>> getModTable();
+	unordered_map<string, list<int>> getUsesTable();
+	void addModifies(string var, int stmtNum);
+	void addUses(string var, int stmtNum);
 	bool isValidVar(string varName);
-	bool isModified(int stmtNum, string varName);
-	bool isUsed(int stmtNum, string varName);
 	list<int> getModifiedBy(string varName);
 	list<int> getUsedBy(string varName);
 	list<string> getAllModVar();
