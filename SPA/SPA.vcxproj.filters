@@ -16,6 +16,22 @@
     <Filter Include="Source Files\Front End">
       <UniqueIdentifier>{97773cdc-8d7e-472c-a4e3-9b869f831e62}</UniqueIdentifier>
     </Filter>
+
+    <ClCompile Include="..\source\Clause.cpp" />
+    <ClCompile Include="..\source\DesignExtractor.cpp" />
+    <ClCompile Include="..\source\Parser.cpp" />
+    <ClCompile Include="..\source\PKB.cpp" />
+    <ClCompile Include="..\source\QueryEvaluator.cpp" />
+    <ClCompile Include="..\source\QueryResult.cpp" />
+    <ClCompile Include="..\source\QueryTable.cpp" />
+    <ClCompile Include="..\source\SharedUtility.cpp" />
+    <ClCompile Include="..\source\TNode.cpp" />
+    <ClCompile Include="..\source\Tokenizer.cpp" />
+    <ClCompile Include="..\source\FollowsTable.cpp" />
+    <ClCompile Include="..\source\ModUsesTablebyStmt.cpp" />
+    <ClCompile Include="..\source\ModUsesTablebyVariable.cpp" />
+    <ClCompile Include="..\source\ParentTable.cpp" />
+
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\PKB.cpp">
@@ -50,26 +66,18 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\source\PKB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\TNode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryEvaluator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\Clause.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\SharedUtility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryResult.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ClInclude Include="..\source\Clause.h" />
+    <ClInclude Include="..\source\FollowsTable.h" />
+    <ClInclude Include="..\source\ModUsesTablebyStmt.h" />
+    <ClInclude Include="..\source\ModUsesTablebyVariable.h" />
+    <ClInclude Include="..\source\ParentTable.h" />
+    <ClInclude Include="..\source\PKB.h" />
+    <ClInclude Include="..\source\QueryEvaluator.h" />
+    <ClInclude Include="..\source\QueryResult.h" />
+    <ClInclude Include="..\source\QueryTable.h" />
+    <ClInclude Include="..\source\SharedUtility.h" />
+    <ClInclude Include="..\source\TNode.h" />
+    <ClInclude Include="..\source\Tokenizer.h" />
+    <ClInclude Include="..\source\Parser.h" />
   </ItemGroup>
 </Project>

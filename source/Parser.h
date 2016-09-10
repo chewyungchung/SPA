@@ -14,7 +14,7 @@ class Parser
 {
 
 public:
-	Parser(FILE f);
+	Parser(string fileName);
 	void process();
 
 private:
@@ -31,9 +31,10 @@ private:
 	int followsMaxNestingLevel;
 	stack<int> followsStack;
 
-	// SIMPLE language flags
+	// SIMPLE language flags and stmtTypes
 	string PROCEDURE_FLAG = "procedure";
 	string WHILE_FLAG = "while";
+	string ASSIGN_FLAG = "assign";
 	string EQUAL_FLAG = "=";
 	string SEMICOLON_FLAG = ";";
 	string LEFT_BRACES = "{";
@@ -45,5 +46,5 @@ private:
 	void parseStmtLst();
 	void parseWhileStmt();
 	void parseAssignStmt();
-
+	bool isConstant(string s);
 };

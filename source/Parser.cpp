@@ -10,11 +10,11 @@ using namespace std;
 
 #include "Parser.h"
 #include "Tokenizer.h"
-#include "../source/PKB.h"
+#include "PKB.h"
 
-Parser::Parser(FILE f)
+Parser::Parser(string fileName)
 {
-	Tokenizer tk(f);
+	Tokenizer tk(fileName);
 	stmtLine = 1;
 	parentStack.push(NO_PARENT_FLAG);
 	followsMaxNestingLevel = 1;
@@ -32,7 +32,7 @@ void Parser::match(string token)
 {
 	if (next_token == token)
 	{
-		next_token = tk.getToken();
+		next_token = tk.getNextToken();
 	}
 	else
 	{
@@ -43,7 +43,7 @@ void Parser::match(string token)
 
 void Parser::parseProgram()
 {
-	next_token = tk.getToken();
+	next_token = tk.getNextToken();
 	parseProcedure();
 }
 
@@ -81,38 +81,65 @@ void Parser::parseStmtLst()
 
 void Parser::parseWhileStmt()
 {
-	PKB.addParent(stmtLine, parentStack.top());
+	// Populate statement table
+	PKB.addStatement(stmtLine, WHILE_FLAG);
+
+	// Populate parent for current while stmt and set current while stmt as current parent
+	PKB.addParent(parentStack.top(), stmtLine);
 	parentStack.push(stmtLine);
 
+	// Populate follows for current while stmt and enter into new nesting level
 	PKB.addFollows(stmtLine, followsStack.top());
 	followsMaxNestingLevel++;
 	followsStack.push(followsMaxNestingLevel);
 
+	// Populate uses table for control variable
 	match(WHILE_FLAG);
 	PKB.addUsesbyVar(next_token, stmtLine);
 	PKB.addUsesbyStmt(stmtLine, next_token);
 
+	// Recurse on stmtLine
 	match(LEFT_BRACES);
 	stmtLine++;
 	parseStmtLst();
 	match(RIGHT_BRACES);
 	stmtLine++;
 
+	// Exiting from while loop: remove from current parent and exit nesting level
 	parentStack.pop();
 	followsStack.pop();
 }
 
 void Parser::parseAssignStmt()
 {
-	PKB.addParent(stmtLine, parentStack.top());
+	// Populate statement table
+	PKB.addStatement(stmtLine, ASSIGN_FLAG);
+
+	// Populate parent and follows for this assign stmt
+	PKB.addParent(parentStack.top(), stmtLine);
 	PKB.addFollows(stmtLine, followsStack.top());
 
-	string varName = next_token;
-	PKB.addModifiesbyVar(next_token, stmtLine);
-	PKB.addModifiesbyStmt(stmtLine, next_token);
-	match(varName);
+	// Populate mod table with LHS variable
+	string LHS = next_token;
+	PKB.addModifiesbyVar(LHS, stmtLine);
+	PKB.addModifiesbyStmt(stmtLine, LHS);
+
+	// Move to RHS and populate uses(var)/const table accordingly
+	match(LHS);
 	match(EQUAL_FLAG);
-	varName = next_token;
-	PKB.addUsesbyVar(next_token, stmtLine);
-	PKB.addUsesbyStmt(stmtLine, next_token);
+	string RHS = next_token;
+	if (isConstant(RHS))
+	{
+		PKB.addConstant(RHS, stmtLine);
+	}
+	else
+	{
+		PKB.addUsesbyVar(RHS, stmtLine);
+		PKB.addUsesbyStmt(stmtLine,RHS);
+	}
+}
+
+bool Parser::isConstant(string s)
+{
+	return isdigit(s.at(0));
 }
