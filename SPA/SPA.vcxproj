@@ -21,8 +21,8 @@
     <ClCompile Include="..\source\PKB.cpp" />
     <ClCompile Include="..\source\QueryEvaluator.cpp" />
     <ClCompile Include="..\source\QueryResult.cpp" />
+    <ClCompile Include="..\source\QueryResultProjector.cpp" />
     <ClCompile Include="..\source\QueryTable.cpp" />
-    <ClCompile Include="..\source\SharedUtility.cpp" />
     <ClCompile Include="..\source\TNode.cpp" />
     <ClCompile Include="..\source\Tokenizer.cpp" />
   </ItemGroup>
@@ -32,11 +32,12 @@
     <ClInclude Include="..\source\ModUsesTablebyStmt.h" />
     <ClInclude Include="..\source\ModUsesTablebyVariable.h" />
     <ClInclude Include="..\source\ParentTable.h" />
+    <ClInclude Include="..\source\Parser.h" />
     <ClInclude Include="..\source\PKB.h" />
     <ClInclude Include="..\source\QueryEvaluator.h" />
     <ClInclude Include="..\source\QueryResult.h" />
+    <ClInclude Include="..\source\QueryResultProjector.h" />
     <ClInclude Include="..\source\QueryTable.h" />
-    <ClInclude Include="..\source\SharedUtility.h" />
     <ClInclude Include="..\source\TNode.h" />
     <ClInclude Include="..\source\Tokenizer.h" />
   </ItemGroup>
