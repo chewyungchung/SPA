@@ -81,24 +81,26 @@ void Parser::parseStmtLst()
 
 void Parser::parseWhileStmt()
 {
-	// Populate statement table
+	// Populate StatementTable
 	PKB.addStatement(stmtLine, WHILE_FLAG);
 
-	// Populate parent for current while stmt and set current while stmt as current parent
+	// Populate ParentTable for current while stmt and set current while stmt as current parent
 	PKB.addParent(parentStack.top(), stmtLine);
 	parentStack.push(stmtLine);
 
-	// Populate follows for current while stmt and enter into new nesting level
+	// Populate FollowsTable for current while stmt and enter into new nesting level
 	PKB.addFollows(stmtLine, followsStack.top());
 	followsMaxNestingLevel++;
 	followsStack.push(followsMaxNestingLevel);
 
-	// Populate uses table for control variable
+	// Populate UsesTable for control variable
+	// This involves adding current stmtLine as well as any parent/parent* stmtLines
 	match(WHILE_FLAG);
 	PKB.addUsesbyVar(next_token, stmtLine);
 	PKB.addUsesbyStmt(stmtLine, next_token);
+	addAllParentsOfUsedVariable(next_token);
 
-	// Recurse on stmtLine
+	// Recurse on stmtLst
 	match(LEFT_BRACES);
 	stmtLine++;
 	parseStmtLst();
@@ -112,30 +114,36 @@ void Parser::parseWhileStmt()
 
 void Parser::parseAssignStmt()
 {
-	// Populate statement table
+	// Populate StatementTable
 	PKB.addStatement(stmtLine, ASSIGN_FLAG);
 
-	// Populate parent and follows for this assign stmt
+	// Populate ParentTable and FollowsTable for this assign stmt
 	PKB.addParent(parentStack.top(), stmtLine);
 	PKB.addFollows(stmtLine, followsStack.top());
 
 	// Populate mod table with LHS variable
+	// This involves adding current stmtLine as well as any parent/parent* stmtLines
 	string LHS = next_token;
 	PKB.addModifiesbyVar(LHS, stmtLine);
 	PKB.addModifiesbyStmt(stmtLine, LHS);
+	addAllParentsOfModifiedVariable(next_token);
 
 	// Move to RHS and populate uses(var)/const table accordingly
+	// Involves adding current stmtLine as well as any parent/parent* stmtLines
 	match(LHS);
 	match(EQUAL_FLAG);
 	string RHS = next_token;
 	if (isConstant(RHS))
 	{
-		PKB.addConstant(RHS, stmtLine);
+		int RHSConstant = stoi(RHS);
+		PKB.addConstant(RHSConstant, stmtLine);
+		addAllParentsOfUsedConstant(RHSConstant);
 	}
 	else
 	{
 		PKB.addUsesbyVar(RHS, stmtLine);
 		PKB.addUsesbyStmt(stmtLine,RHS);
+		addAllParentsOfUsedVariable(next_token);
 	}
 }
 
@@ -143,3 +151,65 @@ bool Parser::isConstant(string s)
 {
 	return isdigit(s.at(0));
 }
+
+void Parser::addAllParentsOfUsedVariable(string v)
+{
+	stack<int> tempStack;
+	int temp;
+	while (parentStack.top != NO_PARENT_FLAG)
+	{
+		temp = parentStack.top();
+		PKB.addUsesbyVar(v, temp);
+		PKB.addUsesbyStmt(temp, v);
+		parentStack.pop();
+		tempStack.push(temp);
+	}
+	while (!tempStack.empty())
+	{
+		temp = tempStack.top();
+		parentStack.push(temp);
+		tempStack.pop();
+	}
+}
+
+void Parser::addAllParentsOfModifiedVariable(string v)
+{
+	stack<int> tempStack;
+	int temp;
+	while (parentStack.top != NO_PARENT_FLAG)
+	{
+		temp = parentStack.top();
+		PKB.addModifiesbyVar(v, temp);
+		PKB.addModifiesbyStmt(temp, v);
+		parentStack.pop();
+		tempStack.push(temp);
+	}
+	while (!tempStack.empty())
+	{
+		temp = tempStack.top();
+		parentStack.push(temp);
+		tempStack.pop();
+	}
+}
+
+void Parser::addAllParentsOfUsedConstant(int c)
+{
+	stack<int> tempStack;
+	int temp;
+	while (parentStack.top != NO_PARENT_FLAG)
+	{
+		temp = parentStack.top();
+		PKB.addConstant(c, temp);
+		parentStack.pop();
+		tempStack.push(temp);
+	}
+	while (!tempStack.empty())
+	{
+		temp = tempStack.top();
+		parentStack.push(temp);
+		tempStack.pop();
+	}
+}
+
+
+

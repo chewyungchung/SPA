@@ -47,4 +47,7 @@ private:
 	void parseWhileStmt();
 	void parseAssignStmt();
 	bool isConstant(string s);
+	void addAllParentsOfUsedVariable(string v);
+	void addAllParentsOfModifiedVariable(string v);
+	void addAllParentsOfUsedConstant(int c);
 };
