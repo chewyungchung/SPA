@@ -82,22 +82,22 @@ void Parser::parseStmtLst()
 void Parser::parseWhileStmt()
 {
 	// Populate StatementTable
-	PKB.addStatement(stmtLine, WHILE_FLAG);
+	PKB::getPKB()->addStatement(stmtLine, WHILE_FLAG);
 
 	// Populate ParentTable for current while stmt and set current while stmt as current parent
-	PKB.addParent(parentStack.top(), stmtLine);
+	PKB::getPKB()->addParent(parentStack.top(), stmtLine);
 	parentStack.push(stmtLine);
 
 	// Populate FollowsTable for current while stmt and enter into new nesting level
-	PKB.addFollows(stmtLine, followsStack.top());
+	PKB::getPKB()->addFollows(stmtLine, followsStack.top());
 	followsMaxNestingLevel++;
 	followsStack.push(followsMaxNestingLevel);
 
 	// Populate UsesTable for control variable
 	// This involves adding current stmtLine as well as any parent/parent* stmtLines
 	match(WHILE_FLAG);
-	PKB.addUsesbyVar(next_token, stmtLine);
-	PKB.addUsesbyStmt(stmtLine, next_token);
+	PKB::getPKB()->addUses(next_token, stmtLine);
+	PKB::getPKB()->addUses(stmtLine, next_token);
 	addAllParentsOfUsedVariable(next_token);
 
 	// Recurse on stmtLst
@@ -115,17 +115,17 @@ void Parser::parseWhileStmt()
 void Parser::parseAssignStmt()
 {
 	// Populate StatementTable
-	PKB.addStatement(stmtLine, ASSIGN_FLAG);
+	PKB::getPKB()->addStatement(stmtLine, ASSIGN_FLAG);
 
 	// Populate ParentTable and FollowsTable for this assign stmt
-	PKB.addParent(parentStack.top(), stmtLine);
-	PKB.addFollows(stmtLine, followsStack.top());
+	PKB::getPKB()->addParent(parentStack.top(), stmtLine);
+	PKB::getPKB()->addFollows(stmtLine, followsStack.top());
 
 	// Populate mod table with LHS variable
 	// This involves adding current stmtLine as well as any parent/parent* stmtLines
 	string LHS = next_token;
-	PKB.addModifiesbyVar(LHS, stmtLine);
-	PKB.addModifiesbyStmt(stmtLine, LHS);
+	PKB::getPKB()->addModifies(LHS, stmtLine);
+	PKB::getPKB()->addModifies(stmtLine, LHS);
 	addAllParentsOfModifiedVariable(next_token);
 
 	// Move to RHS and populate uses(var)/const table accordingly
@@ -136,13 +136,13 @@ void Parser::parseAssignStmt()
 	if (isConstant(RHS))
 	{
 		int RHSConstant = stoi(RHS);
-		PKB.addConstant(RHSConstant, stmtLine);
+		PKB::getPKB()->addConstant(RHSConstant, stmtLine);
 		addAllParentsOfUsedConstant(RHSConstant);
 	}
 	else
 	{
-		PKB.addUsesbyVar(RHS, stmtLine);
-		PKB.addUsesbyStmt(stmtLine,RHS);
+		PKB::getPKB()->addUses(RHS, stmtLine);
+		PKB::getPKB()->addUses(stmtLine,RHS);
 		addAllParentsOfUsedVariable(next_token);
 	}
 }
@@ -159,8 +159,8 @@ void Parser::addAllParentsOfUsedVariable(string v)
 	while (parentStack.top != NO_PARENT_FLAG)
 	{
 		temp = parentStack.top();
-		PKB.addUsesbyVar(v, temp);
-		PKB.addUsesbyStmt(temp, v);
+		PKB::getPKB()->addUses(v, temp);
+		PKB::getPKB()->addUses(temp, v);
 		parentStack.pop();
 		tempStack.push(temp);
 	}
@@ -179,8 +179,8 @@ void Parser::addAllParentsOfModifiedVariable(string v)
 	while (parentStack.top != NO_PARENT_FLAG)
 	{
 		temp = parentStack.top();
-		PKB.addModifiesbyVar(v, temp);
-		PKB.addModifiesbyStmt(temp, v);
+		PKB::getPKB()->addModifies(v, temp);
+		PKB::getPKB()->addModifies(temp, v);
 		parentStack.pop();
 		tempStack.push(temp);
 	}
@@ -199,7 +199,7 @@ void Parser::addAllParentsOfUsedConstant(int c)
 	while (parentStack.top != NO_PARENT_FLAG)
 	{
 		temp = parentStack.top();
-		PKB.addConstant(c, temp);
+		PKB::getPKB()->addConstant(c, temp);
 		parentStack.pop();
 		tempStack.push(temp);
 	}
