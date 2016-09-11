@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include "QueryTable.h";
+#include "QueryTable.h"
 #include "QueryToken.h"
 #include "QueryTokenizer.h"
 #include "RelationTable.h"

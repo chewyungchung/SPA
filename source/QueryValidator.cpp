@@ -101,6 +101,7 @@ void QueryValidator::matchSelectResult() {
 		vector<string> selectArg1({ "BOOLEAN" });
 		Clause selectClause("SELECT", selectArg1, selectArg1);
 		_qt->setSelectClause(&selectClause);
+		match("BOOLEAN");
 	}
 	else {
 		// If not BOOLEAN, should be a synonym. Match it
