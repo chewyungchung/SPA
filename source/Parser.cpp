@@ -82,21 +82,21 @@ void Parser::parseStmtLst()
 void Parser::parseWhileStmt()
 {
 	// Populate statement table
-	PKB.addStatement(stmtLine, WHILE_FLAG);
+	PKB::getPKB()->addStatement(stmtLine, WHILE_FLAG);
 
 	// Populate parent for current while stmt and set current while stmt as current parent
-	PKB.addParent(parentStack.top(), stmtLine);
+	PKB::getPKB()->addParent(parentStack.top(), stmtLine);
 	parentStack.push(stmtLine);
 
 	// Populate follows for current while stmt and enter into new nesting level
-	PKB.addFollows(stmtLine, followsStack.top());
+	PKB::getPKB()->addFollows(stmtLine, followsStack.top());
 	followsMaxNestingLevel++;
 	followsStack.push(followsMaxNestingLevel);
 
 	// Populate uses table for control variable
 	match(WHILE_FLAG);
-	PKB.addUsesbyVar(next_token, stmtLine);
-	PKB.addUsesbyStmt(stmtLine, next_token);
+	PKB::getPKB()->addUses(next_token, stmtLine);
+	PKB::getPKB()->addUses(stmtLine, next_token);
 
 	// Recurse on stmtLine
 	match(LEFT_BRACES);
@@ -113,16 +113,16 @@ void Parser::parseWhileStmt()
 void Parser::parseAssignStmt()
 {
 	// Populate statement table
-	PKB.addStatement(stmtLine, ASSIGN_FLAG);
+	PKB::getPKB()->addStatement(stmtLine, ASSIGN_FLAG);
 
 	// Populate parent and follows for this assign stmt
-	PKB.addParent(parentStack.top(), stmtLine);
-	PKB.addFollows(stmtLine, followsStack.top());
+	PKB::getPKB()->addParent(parentStack.top(), stmtLine);
+	PKB::getPKB()->addFollows(stmtLine, followsStack.top());
 
 	// Populate mod table with LHS variable
 	string LHS = next_token;
-	PKB.addModifiesbyVar(LHS, stmtLine);
-	PKB.addModifiesbyStmt(stmtLine, LHS);
+	PKB::getPKB()->addModifies(LHS, stmtLine);
+	PKB::getPKB()->addModifies(stmtLine, LHS);
 
 	// Move to RHS and populate uses(var)/const table accordingly
 	match(LHS);
@@ -130,12 +130,12 @@ void Parser::parseAssignStmt()
 	string RHS = next_token;
 	if (isConstant(RHS))
 	{
-		PKB.addConstant(RHS, stmtLine);
+		PKB::getPKB()->addConstant(RHS, stmtLine);
 	}
 	else
 	{
-		PKB.addUsesbyVar(RHS, stmtLine);
-		PKB.addUsesbyStmt(stmtLine,RHS);
+		PKB::getPKB()->addUses(RHS, stmtLine);
+		PKB::getPKB()->addUses(stmtLine,RHS);
 	}
 }
 
