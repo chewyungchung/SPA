@@ -11,7 +11,7 @@
 
 using namespace std;
 
-static const string arr[] = { "{", "}", ";", "=" };
+static const string arr[] = { "{", "}", ";", "=", "+" };
 
 // Empty default constructor
 Tokenizer::Tokenizer() {
