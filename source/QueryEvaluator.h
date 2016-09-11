@@ -14,7 +14,7 @@ class QueryEvaluator {
 public:
 	QueryEvaluator();
 	~QueryEvaluator();
-	QueryEvaluator(QueryTable);
+	QueryEvaluator(QueryTable*);
 	QueryTable* evaluate();
 
 private:
