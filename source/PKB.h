@@ -37,20 +37,21 @@ public:
 	static PKB* getPKB();
 	static void resetPKB();
 	
+	void addParent(int lineNum, int lineOfParent);
 	int getParentOf(int stmt);
-	// vector<int> getParentStar(int stmt);
+	list<int> getParentStar(int stmt);
 	list<int> getChildrenOf(int stmt);
 	bool isParentEmpty();
 	bool isParentOf(int parentStmt, int childStmt);
-	// bool isParentStar(int stmt1, int stmt2);
+	bool isParentStar(int parent, int child);
 	
 	int getFollowedFrom(int stmt);
 	int getFollower(int stmt);
-	// vector<int> getFollowedFromStar(int stmt);
-	// vector<int> getFollowerStar(int stmt);
+	list<int> getFollowedFromStar(int stmt);
+	list<int> getFollowerStar(int stmt);
 	bool isFollowEmpty();
 	bool isValidFollows(int followedFrom, int follower);
-	// bool isFollowsStar(int stmt1, int stmt2);
+	bool isFollowsStar(int stmt1, int stmt2);
 	
 	void addModifies(int stmtNum, string var);
 	void addUses(int stmtNum, string var);
