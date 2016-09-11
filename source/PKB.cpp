@@ -9,7 +9,9 @@ using namespace std;
 
 #include "PKB.h"
 #include "TNode.h"
+#include "ModUsesTablebyStmt.h"
 #include "ModUsesTablebyVariable.h"
+#include "StatementTable.h"
 #include "FollowsTable.h"
 #include "ParentTable.h"
 
@@ -23,7 +25,9 @@ TNode* PKB::getRootAST (PROC p){
 
 PKB::PKB() {
 	instance = new PKB;
+	M_U_TableByStmt = new ModUsesTablebyStmt;
 	M_U_TableByVar = new ModUsesTablebyVariable;
+	S_Table = new StatementTable;
 	F_Table = new FollowsTable;
 	P_Table = new ParentTable;
 }
@@ -98,59 +102,88 @@ bool PKB::isFollowsStar(int stmt1, int stmt2) {
 	return false;
 }
 */
-list<int> PKB::getUsedBy(string name) {
-	return M_U_TableByVar->getUsedBy(name);
-}
-/*
-vector<string> PKB::getUses(int stmt) {
-	return vector<string>();
+
+/* ModUsesTablebyStatement*/
+
+void PKB::addModifies(int stmtNum, string var) {
+	M_U_TableByStmt->addModifies(stmtNum, var);
 }
 
-vector<int, vector<string>> PKB::getAllUses() {
-	return vector<int, vector<string>>();
-}
-*/
-bool PKB::isUsed(int stmt, string name) {
-	return M_U_TableByVar->isUsed(stmt, name);
+void PKB::addUses(int stmtNum, string var) {
+	M_U_TableByStmt->addUses(stmtNum, var);
 }
 
-list<int> PKB::getModifiedBy(string name) {
-	return M_U_TableByVar->getModifiedBy(name);
-}
-/*
-vector<string> PKB::getModifies(int stmt) {
-	return vector<string>();
+bool PKB::isValidStmt(int stmtNum) {
+	return M_U_TableByStmt->isValidStmt(stmtNum);
 }
 
-vector<int, vector<string>> PKB::getAllModifies() {
-	return vector<int, vector<string>>();
-}
-*/
-bool PKB::isModified(int stmt, string name) {
-	return M_U_TableByVar->isModified(stmt, name);
-}
-/*
-vector<int> PKB::getAssignList() {
-	return vector<int>();
+bool PKB::isModified(int stmtNum, string varName) {
+	return M_U_TableByStmt->isModified(stmtNum, varName);
 }
 
-vector<int> PKB::getWhileList() {
-	return vector<int>();
+bool PKB::isUsed(int stmtNum, string varName) {
+	return M_U_TableByStmt->isUsed(stmtNum, varName);
 }
 
-vector<string> PKB::getVarList() {
-	return vector<string>();
+list<string> PKB::getModifiedBy(int stmtNum) {
+	return M_U_TableByStmt->getModifiedBy(stmtNum);
+}
+
+list<string> PKB::getUsedBy(int stmtNum) {
+	return M_U_TableByStmt->getUsedBy(stmtNum);
+}
+
+/* ModUsesTablebyVariable*/
+
+void PKB::addModifies(string var, int stmtNum) {
+	M_U_TableByVar->addModifies(var, stmtNum);
+}
+
+void PKB::addUses(string var, int stmtNum) {
+	M_U_TableByVar->addUses(var, stmtNum);
+}
+
+bool PKB::isValidVar(string varName) {
+	return M_U_TableByVar->isValidVar(varName);
+}
+
+list<int> PKB::getModifiedBy(string varName) {
+	return M_U_TableByVar->getModifiedBy(varName);
+}
+
+list<int> PKB::getUsedBy(string varName) {
+	return M_U_TableByVar->getUsedBy(varName);
+}
+
+list<string> PKB::getAllModVar() {
+	return M_U_TableByVar->getAllModVar();
+}
+
+list<string> PKB::getAllUsedVar() {
+	return M_U_TableByVar->getAllUsedVar();
+}
+
+list<string> PKB::getVarList() {
+	return M_U_TableByVar->getVarList();
+}
+
+/* Statement Table */
+void PKB::addStatement(int stmtNum, string stmtType) {
+	S_Table->addStatement(stmtNum, stmtType);
+}
+
+list<int> PKB::getAssignList() {
+	return S_Table->getAssignList();
+}
+
+list<int> PKB::getWhileList() {
+	return S_Table->getWhileList();
+}
+
+list<int> PKB::getStmtList() {
+	return S_Table->getStmtList();
 }
 
 int PKB::getStatementCount() {
-	return 0;
+	return S_Table->getStatementCount();
 }
-
-bool PKB::isValidStmt(int stmt) {
-	return false;
-}
-
-vector<int> PKB::getConstantList(){
-	return vector<int>();
-}
-*/
