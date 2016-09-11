@@ -12,14 +12,18 @@ typedef short PROC;
 class TNode;
 
 class VarTable;  // no need to #include "VarTable.h" as all I need is pointer
+class ModUsesTablebyStmt;
 class ModUsesTablebyVariable;
+class StatementTable;
 class FollowsTable;
 class ParentTable;
 
 class PKB {
 
 private:
+	ModUsesTablebyStmt* M_U_TableByStmt;
 	ModUsesTablebyVariable* M_U_TableByVar;
+	StatementTable* S_Table;
 	FollowsTable* F_Table;
 	ParentTable* P_Table;
 	PKB();
@@ -48,24 +52,30 @@ public:
 	bool isValidFollows(int followedFrom, int follower);
 	// bool isFollowsStar(int stmt1, int stmt2);
 	
-	list<int> getUsedBy(string name);
-	// vector<string> getUses(int stmt);
-	// vector<int, vector<string> > getAllUses();
-	bool isUsed(int stmt, string name);
-	list<int> getModifiedBy(string name);
-	// vector<string> getModifies(int stmt);
-	// vector<int, vector<string> > getAllModifies();
-	bool isModified(int stmt, string name);
-	/*
-	vector<int> getAssignList();
-	vector<int> getWhileList();
+	void addModifies(int stmtNum, string var);
+	void addUses(int stmtNum, string var);
+	bool isValidStmt(int stmtNum);
+	bool isModified(int stmtNum, string varName);
+	bool isUsed(int stmtNum, string varName);
+	list<string> getModifiedBy(int stmtNum);
+	list<string> getUsedBy(int stmtNum);
 
-	vector<string> getVarList();
-
-	int getStatementCount();
-	bool isValidStmt(int stmt);
-	vector<int> getConstantList();
-	bool isValidVar(string name);
+	void addModifies(string var, int stmtNum);
+	void addUses(string var, int stmtNum);
+	bool isValidVar(string varName);
+	list<int> getModifiedBy(string varName);
+	list<int> getUsedBy(string varName);
+	list<string> getAllModVar();
 	list<string> getAllUsedVar();
+	list<string> getVarList();
+
+	void addStatement(int stmtNum, string stmtType);
+	list<int> getAssignList();
+	list<int> getWhileList();
+	list<int> getStmtList();
+	int getStatementCount();
+
+	/*
+	vector<int> getConstantList();
 	*/
 };
