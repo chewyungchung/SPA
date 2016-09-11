@@ -100,6 +100,7 @@ bool FollowsTable::isValidFollows(int from, int to)
 	}
 	catch (out_of_range& oor) {
 		cerr << "Out of range error: " << oor.what() << "\n";
+		return false;
 	}
 }
 
@@ -121,6 +122,7 @@ bool FollowsTable::isFollowsStar(int from, int to)
 	}
 	catch (out_of_range& oor) {
 		cerr << "Out of range error: " << oor.what() << "\n";
+		return false;
 	}
 }
 
