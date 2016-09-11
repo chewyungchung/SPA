@@ -132,6 +132,8 @@ void Parser::parseAssignStmt()
 	// Involves adding current stmtLine as well as any parent/parent* stmtLines
 	match(LHS);
 	match(EQUAL_FLAG);
+	parseAssignRHS();
+
 	string RHS = next_token;
 	if (isConstant(RHS))
 	{
@@ -146,6 +148,34 @@ void Parser::parseAssignStmt()
 		addAllParentsOfUsedVariable(next_token);
 	}
 }
+
+void Parser::parseAssignRHS()
+{
+	string RHS = next_token;
+	if (isConstant(RHS))
+	{
+		int RHSConstant = stoi(RHS);
+		PKB::getPKB()->addConstant(RHSConstant, stmtLine);
+		addAllParentsOfUsedConstant(RHSConstant);
+	}
+	else
+	{
+		PKB::getPKB()->addUses(RHS, stmtLine);
+		PKB::getPKB()->addUses(stmtLine, RHS);
+		addAllParentsOfUsedVariable(next_token);
+	}
+	match(RHS);
+	if (next_token == PLUS_FLAG)
+	{
+		match(next_token);
+		parseAssignRHS();
+	}
+	else
+	{
+		return;
+	}
+}
+
 
 bool Parser::isConstant(string s)
 {
@@ -210,6 +240,3 @@ void Parser::addAllParentsOfUsedConstant(int c)
 		tempStack.pop();
 	}
 }
-
-
-

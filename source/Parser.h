@@ -36,6 +36,7 @@ private:
 	string WHILE_FLAG = "while";
 	string ASSIGN_FLAG = "assign";
 	string EQUAL_FLAG = "=";
+	string PLUS_FLAG = "+";
 	string SEMICOLON_FLAG = ";";
 	string LEFT_BRACES = "{";
 	string RIGHT_BRACES = "}";
@@ -46,6 +47,7 @@ private:
 	void parseStmtLst();
 	void parseWhileStmt();
 	void parseAssignStmt();
+	void parseAssignRHS();
 	bool isConstant(string s);
 	void addAllParentsOfUsedVariable(string v);
 	void addAllParentsOfModifiedVariable(string v);
