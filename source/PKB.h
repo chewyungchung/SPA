@@ -17,6 +17,7 @@ class ModUsesTablebyVariable;
 class StatementTable;
 class FollowsTable;
 class ParentTable;
+class ConstantTable;
 
 class PKB {
 
@@ -26,6 +27,7 @@ private:
 	StatementTable* S_Table;
 	FollowsTable* F_Table;
 	ParentTable* P_Table;
+	ConstantTable* C_Table;
 	PKB();
 	~PKB();
 	static PKB* instance;
@@ -77,7 +79,6 @@ public:
 	list<int> getStmtList();
 	int getStatementCount();
 
-	/*
-	vector<int> getConstantList();
-	*/
+	void addConstant(int constant, int stmt);
+	list<int> getConstantList();
 };

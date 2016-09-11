@@ -14,6 +14,7 @@ using namespace std;
 #include "StatementTable.h"
 #include "FollowsTable.h"
 #include "ParentTable.h"
+#include "ConstantTable.h"
 
 int PKB::setProcToAST(PROC p, TNode* r) {
 	return NULL;
@@ -30,6 +31,7 @@ PKB::PKB() {
 	S_Table = new StatementTable;
 	F_Table = new FollowsTable;
 	P_Table = new ParentTable;
+	C_Table = new ConstantTable;
 }
 
 PKB::~PKB() {
@@ -197,8 +199,11 @@ int PKB::getStatementCount() {
 	return S_Table->getStatementCount();
 }
 
-/*
-vector<int> PKB::getConstantList(){
-	return vector<int>();
+void PKB::addConstant(int constant, int stmt)
+{
+	C_Table->addConstant(constant, stmt);
 }
-*/
+
+list<int> PKB::getConstantList(){
+	return C_Table->getConstantList();;
+}
