@@ -81,24 +81,26 @@ void Parser::parseStmtLst()
 
 void Parser::parseWhileStmt()
 {
-	// Populate statement table
-	PKB.addStatement(stmtLine, WHILE_FLAG);
+	// Populate StatementTable
+	PKB::getPKB()->addStatement(stmtLine, WHILE_FLAG);
 
-	// Populate parent for current while stmt and set current while stmt as current parent
-	PKB.addParent(parentStack.top(), stmtLine);
+	// Populate ParentTable for current while stmt and set current while stmt as current parent
+	PKB::getPKB()->addParent(parentStack.top(), stmtLine);
 	parentStack.push(stmtLine);
 
-	// Populate follows for current while stmt and enter into new nesting level
-	PKB.addFollows(stmtLine, followsStack.top());
+	// Populate FollowsTable for current while stmt and enter into new nesting level
+	PKB::getPKB()->addFollows(stmtLine, followsStack.top());
 	followsMaxNestingLevel++;
 	followsStack.push(followsMaxNestingLevel);
 
-	// Populate uses table for control variable
+	// Populate UsesTable for control variable
+	// This involves adding current stmtLine as well as any parent/parent* stmtLines
 	match(WHILE_FLAG);
-	PKB.addUsesbyVar(next_token, stmtLine);
-	PKB.addUsesbyStmt(stmtLine, next_token);
+	PKB::getPKB()->addUses(next_token, stmtLine);
+	PKB::getPKB()->addUses(stmtLine, next_token);
+	addAllParentsOfUsedVariable(next_token);
 
-	// Recurse on stmtLine
+	// Recurse on stmtLst
 	match(LEFT_BRACES);
 	stmtLine++;
 	parseStmtLst();
@@ -112,34 +114,129 @@ void Parser::parseWhileStmt()
 
 void Parser::parseAssignStmt()
 {
-	// Populate statement table
-	PKB.addStatement(stmtLine, ASSIGN_FLAG);
+	// Populate StatementTable
+	PKB::getPKB()->addStatement(stmtLine, ASSIGN_FLAG);
 
-	// Populate parent and follows for this assign stmt
-	PKB.addParent(parentStack.top(), stmtLine);
-	PKB.addFollows(stmtLine, followsStack.top());
+	// Populate ParentTable and FollowsTable for this assign stmt
+	PKB::getPKB()->addParent(parentStack.top(), stmtLine);
+	PKB::getPKB()->addFollows(stmtLine, followsStack.top());
 
 	// Populate mod table with LHS variable
+	// This involves adding current stmtLine as well as any parent/parent* stmtLines
 	string LHS = next_token;
-	PKB.addModifiesbyVar(LHS, stmtLine);
-	PKB.addModifiesbyStmt(stmtLine, LHS);
+	PKB::getPKB()->addModifies(LHS, stmtLine);
+	PKB::getPKB()->addModifies(stmtLine, LHS);
+	addAllParentsOfModifiedVariable(next_token);
 
 	// Move to RHS and populate uses(var)/const table accordingly
+	// Involves adding current stmtLine as well as any parent/parent* stmtLines
 	match(LHS);
 	match(EQUAL_FLAG);
+	parseAssignRHS();
+
 	string RHS = next_token;
 	if (isConstant(RHS))
 	{
-		PKB.addConstant(RHS, stmtLine);
+		int RHSConstant = stoi(RHS);
+		PKB::getPKB()->addConstant(RHSConstant, stmtLine);
+		addAllParentsOfUsedConstant(RHSConstant);
 	}
 	else
 	{
-		PKB.addUsesbyVar(RHS, stmtLine);
-		PKB.addUsesbyStmt(stmtLine,RHS);
+		PKB::getPKB()->addUses(RHS, stmtLine);
+		PKB::getPKB()->addUses(stmtLine,RHS);
+		addAllParentsOfUsedVariable(next_token);
 	}
 }
+
+void Parser::parseAssignRHS()
+{
+	string RHS = next_token;
+	if (isConstant(RHS))
+	{
+		int RHSConstant = stoi(RHS);
+		PKB::getPKB()->addConstant(RHSConstant, stmtLine);
+		addAllParentsOfUsedConstant(RHSConstant);
+	}
+	else
+	{
+		PKB::getPKB()->addUses(RHS, stmtLine);
+		PKB::getPKB()->addUses(stmtLine, RHS);
+		addAllParentsOfUsedVariable(next_token);
+	}
+	match(RHS);
+	if (next_token == PLUS_FLAG)
+	{
+		match(next_token);
+		parseAssignRHS();
+	}
+	else
+	{
+		return;
+	}
+}
+
 
 bool Parser::isConstant(string s)
 {
 	return isdigit(s.at(0));
+}
+
+void Parser::addAllParentsOfUsedVariable(string v)
+{
+	stack<int> tempStack;
+	int temp;
+	while (parentStack.top != NO_PARENT_FLAG)
+	{
+		temp = parentStack.top();
+		PKB::getPKB()->addUses(v, temp);
+		PKB::getPKB()->addUses(temp, v);
+		parentStack.pop();
+		tempStack.push(temp);
+	}
+	while (!tempStack.empty())
+	{
+		temp = tempStack.top();
+		parentStack.push(temp);
+		tempStack.pop();
+	}
+}
+
+void Parser::addAllParentsOfModifiedVariable(string v)
+{
+	stack<int> tempStack;
+	int temp;
+	while (parentStack.top != NO_PARENT_FLAG)
+	{
+		temp = parentStack.top();
+		PKB::getPKB()->addModifies(v, temp);
+		PKB::getPKB()->addModifies(temp, v);
+		parentStack.pop();
+		tempStack.push(temp);
+	}
+	while (!tempStack.empty())
+	{
+		temp = tempStack.top();
+		parentStack.push(temp);
+		tempStack.pop();
+	}
+}
+
+void Parser::addAllParentsOfUsedConstant(int c)
+{
+	stack<int> tempStack;
+	int temp;
+	while (parentStack.top != NO_PARENT_FLAG)
+	{
+		temp = parentStack.top();
+		PKB::getPKB()->addConstant(c, temp);
+		parentStack.pop();
+		tempStack.push(temp);
+	}
+	while (!tempStack.empty())
+	{
+		temp = tempStack.top();
+		parentStack.push(temp);
+		tempStack.pop();
+	}
 }
