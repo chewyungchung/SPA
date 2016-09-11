@@ -37,7 +37,7 @@ public:
 	static PKB* getPKB();
 	static void resetPKB();
 	
-	void addParent(int lineNum, int lineOfParent);
+	void addParent(int lineOfParent, int lineNum);
 	int getParentOf(int stmt);
 	list<int> getParentStar(int stmt);
 	list<int> getChildrenOf(int stmt);
@@ -45,6 +45,7 @@ public:
 	bool isParentOf(int parentStmt, int childStmt);
 	bool isParentStar(int parent, int child);
 	
+	void addFollows(int lineNum, int nesting);
 	int getFollowedFrom(int stmt);
 	int getFollower(int stmt);
 	list<int> getFollowedFromStar(int stmt);

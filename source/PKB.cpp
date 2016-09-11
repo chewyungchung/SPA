@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+	
 using namespace std;
 
 #include "PKB.h"
@@ -49,6 +49,10 @@ void PKB::resetPKB() {
 	instance = NULL; // so that getPKB still works.
 }
 
+void PKB::addParent(int lineOfParent, int lineNum) {
+	P_Table->addParent(lineOfParent, lineNum);
+}
+
 int PKB::getParentOf(int stmt) {
 	return P_Table->getParentOf(stmt);
 }
@@ -72,6 +76,12 @@ bool PKB::isParentOf(int parentStmt, int childStmt)
 
 bool PKB::isParentStar(int parent, int child) {
 	return P_Table->isParentStar(parent, child);
+}
+
+/* The 'Follows' table*/
+
+void PKB::addFollows(int lineNum, int nestingIndex) {
+	F_Table->addFollows(lineNum, nestingIndex);
 }
 
 int PKB::getFollowedFrom(int stmt) {
