@@ -6,7 +6,7 @@ class QueryResultProjector {
 public:
 	QueryResultProjector();
 	~QueryResultProjector();
-	QueryResultProjector(QueryTable);
+	QueryResultProjector(QueryTable*);
 	list<string> getResults();
 
 	// Check between all clauses

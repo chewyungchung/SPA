@@ -4,25 +4,24 @@
 #include <string>
 #include <algorithm>
 
-const string REL_FOLLOWS = "FOLLOWS";
-const string REL_FOLLOWS_STAR = "FOLLOWS*";
-const string REL_PARENT = "PARENT";
-const string REL_PARENT_STAR = "PARENT*";
-const string REL_MODIFIES = "MODIFIES";
-const string REL_USES = "USES";
+const string REL_FOLLOWS = "follows";
+const string REL_FOLLOWS_STAR = "follows*";
+const string REL_PARENT = "parent";
+const string REL_PARENT_STAR = "parent*";
+const string REL_MODIFIES = "modifies";
+const string REL_USES = "uses";
 
 const string STRING_ASSIGN_PATTERN = "ASSIGNPATTERN";
 
-const string ARGTYPE_CONSTANT = "CONSTANT";
-const string ARGTYPE_SYN = "SYN";
-const string ARGTYPE_ANY = "ANY";
-const string ARGTYPE_BOOLEAN = "BOOLEAN";
-const string ARGTYPE_VARIABLE = "VARIABLE";
-const string ARGTYPE_ASSIGN = "ASSIGN";
-const string ARGTYPE_WHILE = "WHILE";
-const string ARGTYPE_STRING = "STRING";
-const string ARGTYPE_STMT = "STATEMENT";
-const string ARGTYPE_PROG_LINE = "PROG_LINE";
+const string ARGTYPE_CONSTANT = "constant";
+const string ARGTYPE_ANY = "any";
+const string ARGTYPE_BOOLEAN = "boolean";
+const string ARGTYPE_VARIABLE = "variable";
+const string ARGTYPE_ASSIGN = "assign";
+const string ARGTYPE_WHILE = "while";
+const string ARGTYPE_STRING = "string";
+const string ARGTYPE_STMT = "stmt";
+const string ARGTYPE_PROG_LINE = "prog_line";
 
 const string PARAM_ARG1 = "ARG1";
 const string PARAM_ARG2 = "ARG2";
@@ -38,11 +37,17 @@ QueryEvaluator::~QueryEvaluator() {
 	delete _qt;
 }
 
-QueryEvaluator::QueryEvaluator(QueryTable qt) {
-	_qt = &qt;
+QueryEvaluator::QueryEvaluator(QueryTable* qt) {
+	_qt = qt;
 }
 
 QueryTable* QueryEvaluator::evaluate() {
+	// Check if the QueryTable given by validator is NULL
+	// If (yes), return NULL. Else proceed.
+	if (_qt == NULL) {
+		return NULL;
+	}
+
 	// Process all such that and pattern clause, and finally select clause
 	_qt->setSuchThatResult(processSuchThat(_qt->getSuchThatClause())); 
 	_qt->setPatternResult(processPattern(_qt->getPatternClause()));
@@ -895,6 +900,8 @@ QueryResult* QueryEvaluator::processModifies(Clause* modifiesClause) {
 			return qr;
 		}
 		else if (arg1Type == ARGTYPE_ANY) {
+			// Actually, an illegal argument for final iteration because it will be ambiguous
+			// Legal in iteration1
 			// at this point, if arg2ModifiedBy is not empty, this query is true;
 			qr->setIsExist(true);
 			return qr;
@@ -902,7 +909,7 @@ QueryResult* QueryEvaluator::processModifies(Clause* modifiesClause) {
 		else {
 			// arg1 is a synonym
 			qr->setArgToSynonymMapping(PARAM_ARG1, arg1);
-			list<int> synonymStatementsArg1 = getList(arg1Type); //For now, this should only be assign
+			list<int> synonymStatementsArg1 = getList(arg1Type); //For now, this should only be assign|while
 			if (synonymStatementsArg1.empty()) {
 				return qr;
 			}
