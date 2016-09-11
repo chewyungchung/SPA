@@ -25,11 +25,17 @@ QueryResultProjector::~QueryResultProjector() {
 	delete _qt;
 }
 
-QueryResultProjector::QueryResultProjector(QueryTable qt) {
-	_qt = &qt;
+QueryResultProjector::QueryResultProjector(QueryTable* qt) {
+	_qt = qt;
 }
 list<string> QueryResultProjector::getResults() {
 	list<string> finalResult;
+
+	// Check if the QueryTable returned by the QueryEvaluator is a NULL ptr
+	// If (YES), return an empty list. Else, proceed to process.
+	if (_qt == NULL) {
+		return finalResult;
+	}
 
 	// Retrieve all the results from the QueryTable
 	QueryResult *selectResult = (_qt->getSelectResult());
