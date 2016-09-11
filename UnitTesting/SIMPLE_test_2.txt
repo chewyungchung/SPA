@@ -1,7 +1,7 @@
 procedure ABC
 {
-	x=1;
-	b=2;
+	x = 1;
+	b = 2;
 	while i 
 	{
 		apple = orange;
