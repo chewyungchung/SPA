@@ -88,6 +88,7 @@ QueryResult* QueryEvaluator::processSelect(Clause* selectClause) {
 		// Need to check in projector. qr->isExist will not be validated
 		qr = new QueryResult();
 		qr->setArgToSynonymMapping(PARAM_ARG1, PARAM_BOOLEAN);
+		qr->setIsExist(true);
 		return qr;
 	}
 	else if (expectedResultType == ARGTYPE_CONSTANT) {

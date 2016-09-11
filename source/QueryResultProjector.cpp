@@ -52,6 +52,14 @@ list<string> QueryResultProjector::getResults() {
 		_patternExist = true;
 	}
 
+	// Corner: Select BOOLEAN
+	if (_selectExist && !_suchThatExist && !_patternExist) {
+		if (getClauseSynonym(CLAUSE_SELECT, selectResult).at(0) == "BOOLEAN") {
+			finalResult.push_back("TRUE");
+			return finalResult;
+		}
+	}
+
 	// If no results exist for the select clause, empty result is returned regardless
 	if (_selectExist) {
 		return finalResult;

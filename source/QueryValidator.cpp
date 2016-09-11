@@ -71,6 +71,12 @@ void QueryValidator::matchDeclaration() {
 
 void QueryValidator::matchDeclarationVar(string entity) {
 	string synonym = _nextToken.getTokenName();
+
+	// Make sure synonym is IDENT, else invalid synonym name
+	if (_nextToken.getTokenType() != IDENT) {
+		throw(QueryException("Invalid Query : Unexpected synonym that begins with '" + _nextToken.getTokenName() + "'"));
+	}
+
 	// Update syn to entity map
 	_synToEntityMap[synonym] = entity;
 	match(synonym);
