@@ -87,7 +87,12 @@ bool FollowsTable::isValidFollows(int from, int to)
 		int nestingAtTo = tableStmtWise.at(to);
 
 		if (nestingAtFrom == nestingAtTo) {
-			for (unordered_map<int, int>::iterator iter = ++tableStmtWise.find(from);
+			int subsequentStmt = from + 1;
+			unordered_map<int, int>::iterator i = tableStmtWise.find(subsequentStmt);
+			if (i == tableStmtWise.end()) {
+				return false;
+			}
+			for (unordered_map<int, int>::iterator iter = i;
 			iter != tableStmtWise.find(to);
 				++iter) {
 				if (iter->second == nestingAtFrom) {
