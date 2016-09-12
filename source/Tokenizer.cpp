@@ -29,7 +29,9 @@ Tokenizer::Tokenizer(string filename) {
 	while (getline(infile, line)) {
 		int length = line.length();
 		for (int i = 0; i < length; i++) {
-			if (find(specials.begin(), specials.end(), line[i]) != specials.end()) {
+			string iLine = string(1, line[i]);
+			string str(iLine);
+			if (find(specials.begin(), specials.end(), iLine) != specials.end()) {
 				if (token.length() != 0) {
 					tokens.push_back(token);
 				}

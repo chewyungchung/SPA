@@ -179,14 +179,17 @@ void Parser::parseAssignRHS()
 
 bool Parser::isConstant(string s)
 {
-	return isdigit(s.at(0));
+	if (isdigit(s.at(0))) {
+		return true;
+	}
+	return false;
 }
 
 void Parser::addAllParentsOfUsedVariable(string v)
 {
 	stack<int> tempStack;
 	int temp;
-	while (parentStack.top != NO_PARENT_FLAG)
+	while (parentStack.top() != NO_PARENT_FLAG)
 	{
 		temp = parentStack.top();
 		PKB::getPKB()->addUses(v, temp);
@@ -206,7 +209,7 @@ void Parser::addAllParentsOfModifiedVariable(string v)
 {
 	stack<int> tempStack;
 	int temp;
-	while (parentStack.top != NO_PARENT_FLAG)
+	while (parentStack.top() != NO_PARENT_FLAG)
 	{
 		temp = parentStack.top();
 		PKB::getPKB()->addModifies(v, temp);
@@ -226,7 +229,7 @@ void Parser::addAllParentsOfUsedConstant(int c)
 {
 	stack<int> tempStack;
 	int temp;
-	while (parentStack.top != NO_PARENT_FLAG)
+	while (parentStack.top() != NO_PARENT_FLAG)
 	{
 		temp = parentStack.top();
 		PKB::getPKB()->addConstant(c, temp);
