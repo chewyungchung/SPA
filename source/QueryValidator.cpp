@@ -103,6 +103,9 @@ void QueryValidator::matchSelect() {
 	while (_nextToken.getTokenName() == "such" || _nextToken.getTokenName() == "pattern") {
 		matchClause();
 	}
+	if (_nextToken.getTokenName() != "") {
+		throw (QueryException("Invalid Query!"));
+	}
 }
 
 void QueryValidator::matchSelectResult() {
@@ -160,6 +163,7 @@ void QueryValidator::matchPatternAssign() {
 	// factor : var_name | const_value
 	string synAssign = _nextToken.getTokenName();
 	string synAssignType;
+	bool arg2MatchFactor = false;
 	pair<int, string> arg1, arg2;
 	// Check the syn to entity map and verify if it is "assign" or not. If NOT, ERROR!!!!!!!!!!!!!!!!
 	if (_synToEntityMap[synAssign] == "assign") {
@@ -176,7 +180,12 @@ void QueryValidator::matchPatternAssign() {
 			arg2 = matchFactor();
 			match("\"");
 			match("_");
+			arg2MatchFactor = true;
 		}
+		if (!arg2MatchFactor) {
+			arg2 = pair<int, string>(UNDERSCORE, "_");
+		}
+
 		match(")");
 
 		// Validate arg1 & arg2
@@ -197,7 +206,7 @@ void QueryValidator::matchPatternAssign() {
 			isArg1Valid = _relTable.isArg1Valid("patternAssign", "string");
 			arg1Type = "string";
 		}
-		if (arg2.first == STRING || arg2.first == INTEGER) {
+		if (arg2.first == IDENT || arg2.first == INTEGER) {
 			isArg2Valid = _relTable.isArg2Valid("patternAssign", "string");
 			arg2Type = "string";
 		}

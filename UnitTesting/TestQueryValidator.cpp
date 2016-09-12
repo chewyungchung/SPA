@@ -508,7 +508,7 @@ namespace UnitTesting {
 
 		// ClauseCount: 1 (PATTERN)
 		// Valid Select argument and Valid Pattern arguments
-		TEST_METHOD(testOneClauseUses) {
+		TEST_METHOD(testOneClausePattern) {
 			string queryString = "assign a; variable v; while w; constant c; stmt s; Select a pattern a(_,_)";
 			QueryValidator qv(queryString);
 			QueryTable qt = qv.parse();
@@ -520,30 +520,77 @@ namespace UnitTesting {
 			Assert::AreEqual(selectClause.getArg().at(0), (string)"a");
 			Assert::AreEqual(selectClause.getArgType().at(0), (string)"assign");
 			Assert::AreEqual(patternClause.getRelation(), (string)"patternAssign");
-			Assert::AreEqual(patternClause.getArg().at(0), (string)"1");
-			Assert::AreEqual(patternClause.getArg().at(1), (string)"x");
+			Assert::AreEqual(patternClause.getArg().at(0), (string)"_");
+			Assert::AreEqual(patternClause.getArg().at(1), (string)"_");
 			Assert::AreEqual(patternClause.getArg().at(2), (string)"a");
-			Assert::AreEqual(patternClause.getArgType().at(0), (string)"constant");
+			Assert::AreEqual(patternClause.getArgType().at(0), (string)"any");
+			Assert::AreEqual(patternClause.getArgType().at(1), (string)"any");
+			Assert::AreEqual(patternClause.getArgType().at(2), (string)"assign");
+
+			queryString = "assign a1b2c3; variable d4; while e5; constant c6; stmt salm0n3lla; Select salm0n3lla pattern a1b2c3(d4,_\"x\"_)";
+			qv = QueryValidator(queryString);
+			qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), false);
+			selectClause = qt.getSelectClause();
+			Assert::AreEqual(selectClause.isClauseNull(), false);
+			patternClause = qt.getPatternClause();
+			Assert::AreEqual(patternClause.isClauseNull(), false);
+			Assert::AreEqual(selectClause.getArg().at(0), (string)"salm0n3lla");
+			Assert::AreEqual(selectClause.getArgType().at(0), (string)"stmt");
+			Assert::AreEqual(patternClause.getRelation(), (string)"patternAssign");
+			Assert::AreEqual(patternClause.getArg().at(0), (string)"d4");
+			Assert::AreEqual(patternClause.getArg().at(1), (string)"x");
+			Assert::AreEqual(patternClause.getArg().at(2), (string)"a1b2c3");
+			Assert::AreEqual(patternClause.getArgType().at(0), (string)"variable");
 			Assert::AreEqual(patternClause.getArgType().at(1), (string)"string");
 			Assert::AreEqual(patternClause.getArgType().at(2), (string)"assign");
 
-			queryString = "assign a1b2c3; variable d4; while e5; constant c6; stmt s; Select e5 such that Uses(_,_)";
+			queryString = "assign a1b2c3; variable d4; while e5; constant c6; stmt salm0n3lla; Select d4 pattern a1b2c3(\"y\",_\"10\"_)";
 			qv = QueryValidator(queryString);
 			qt = qv.parse();
 			Assert::AreEqual(qt.isNullQuery(), false);
 			selectClause = qt.getSelectClause();
 			Assert::AreEqual(selectClause.isClauseNull(), false);
-			suchThatClause = qt.getSuchThatClause();
-			Assert::AreEqual(suchThatClause.isClauseNull(), false);
-			Assert::AreEqual(selectClause.getArg().at(0), (string)"e5");
-			Assert::AreEqual(selectClause.getArgType().at(0), (string)"while");
-			Assert::AreEqual(suchThatClause.getRelation(), (string)"uses");
-			Assert::AreEqual(suchThatClause.getArg().at(0), (string)"_");
-			Assert::AreEqual(suchThatClause.getArg().at(1), (string)"_");
-			Assert::AreEqual(suchThatClause.getArgType().at(0), (string)"any");
-			Assert::AreEqual(suchThatClause.getArgType().at(1), (string)"any");
+			patternClause = qt.getPatternClause();
+			Assert::AreEqual(patternClause.isClauseNull(), false);
+			Assert::AreEqual(selectClause.getArg().at(0), (string)"d4");
+			Assert::AreEqual(selectClause.getArgType().at(0), (string)"variable");
+			Assert::AreEqual(patternClause.getRelation(), (string)"patternAssign");
+			Assert::AreEqual(patternClause.getArg().at(0), (string)"y");
+			Assert::AreEqual(patternClause.getArg().at(1), (string)"10");
+			Assert::AreEqual(patternClause.getArg().at(2), (string)"a1b2c3");
+			Assert::AreEqual(patternClause.getArgType().at(0), (string)"string");
+			Assert::AreEqual(patternClause.getArgType().at(1), (string)"string");
+			Assert::AreEqual(patternClause.getArgType().at(2), (string)"assign");
+		}
 
-			queryString = "assign a1b2c3; variable d4; while e5; constant c6; stmt salm0n3lla; Select c6 such that Uses(a1b2c3,d4)";
+		TEST_METHOD(testTwoClauseValidQuery) {
+			string queryString = "assign a1b2c3; variable d4; while e5; constant c6; stmt salm0n3lla; Select d4 such that Follows*(a1b2c3, e5) pattern a1b2c3(\"y\",_\"10\"_)";
+			QueryValidator qv(queryString);
+			QueryTable qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), false);
+			Clause selectClause = qt.getSelectClause();
+			Assert::AreEqual(selectClause.isClauseNull(), false);
+			Clause suchThatClause = qt.getSuchThatClause();
+			Assert::AreEqual(suchThatClause.isClauseNull(), false);
+			Clause patternClause = qt.getPatternClause();
+			Assert::AreEqual(patternClause.isClauseNull(), false);
+			Assert::AreEqual(selectClause.getArg().at(0), (string)"d4");
+			Assert::AreEqual(selectClause.getArgType().at(0), (string)"variable");
+			Assert::AreEqual(suchThatClause.getRelation(), (string)"follows*");
+			Assert::AreEqual(suchThatClause.getArg().at(0), (string)"a1b2c3");
+			Assert::AreEqual(suchThatClause.getArgType().at(0), (string)"assign");
+			Assert::AreEqual(suchThatClause.getArg().at(1), (string)"e5");
+			Assert::AreEqual(suchThatClause.getArgType().at(1), (string)"while");
+			Assert::AreEqual(patternClause.getRelation(), (string)"patternAssign");
+			Assert::AreEqual(patternClause.getArg().at(0), (string)"y");
+			Assert::AreEqual(patternClause.getArg().at(1), (string)"10");
+			Assert::AreEqual(patternClause.getArg().at(2), (string)"a1b2c3");
+			Assert::AreEqual(patternClause.getArgType().at(0), (string)"string");
+			Assert::AreEqual(patternClause.getArgType().at(1), (string)"string");
+			Assert::AreEqual(patternClause.getArgType().at(2), (string)"assign");
+
+			queryString = "assign a1b2c3; variable d4; while e5; constant c6; stmt salm0n3lla; Select d4 such that Parent*(e5, salm0n3lla) pattern a1b2c3(d4,_\"on3l0ngstr1ng\"_)";
 			qv = QueryValidator(queryString);
 			qt = qv.parse();
 			Assert::AreEqual(qt.isNullQuery(), false);
@@ -551,29 +598,109 @@ namespace UnitTesting {
 			Assert::AreEqual(selectClause.isClauseNull(), false);
 			suchThatClause = qt.getSuchThatClause();
 			Assert::AreEqual(suchThatClause.isClauseNull(), false);
+			patternClause = qt.getPatternClause();
+			Assert::AreEqual(patternClause.isClauseNull(), false);
+			Assert::AreEqual(selectClause.getArg().at(0), (string)"d4");
+			Assert::AreEqual(selectClause.getArgType().at(0), (string)"variable");
+			Assert::AreEqual(suchThatClause.getRelation(), (string)"parent*");
+			Assert::AreEqual(suchThatClause.getArg().at(0), (string)"e5");
+			Assert::AreEqual(suchThatClause.getArgType().at(0), (string)"while");
+			Assert::AreEqual(suchThatClause.getArg().at(1), (string)"salm0n3lla");
+			Assert::AreEqual(suchThatClause.getArgType().at(1), (string)"stmt");
+			Assert::AreEqual(patternClause.getRelation(), (string)"patternAssign");
+			Assert::AreEqual(patternClause.getArg().at(0), (string)"d4");
+			Assert::AreEqual(patternClause.getArg().at(1), (string)"on3l0ngstr1ng");
+			Assert::AreEqual(patternClause.getArg().at(2), (string)"a1b2c3");
+			Assert::AreEqual(patternClause.getArgType().at(0), (string)"variable");
+			Assert::AreEqual(patternClause.getArgType().at(1), (string)"string");
+			Assert::AreEqual(patternClause.getArgType().at(2), (string)"assign");
+
+			queryString = "assign a1b2c3, aquaman, as0n; variable d4,vict0ry; while e5; constant c6; stmt salm0n3lla; Select c6 such that Modifies(salm0n3lla, _) pattern as0n(vict0ry,_\"on3l0ngstr1ng\"_)";
+			qv = QueryValidator(queryString);
+			qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), false);
+			selectClause = qt.getSelectClause();
+			Assert::AreEqual(selectClause.isClauseNull(), false);
+			suchThatClause = qt.getSuchThatClause();
+			Assert::AreEqual(suchThatClause.isClauseNull(), false);
+			patternClause = qt.getPatternClause();
+			Assert::AreEqual(patternClause.isClauseNull(), false);
 			Assert::AreEqual(selectClause.getArg().at(0), (string)"c6");
 			Assert::AreEqual(selectClause.getArgType().at(0), (string)"constant");
-			Assert::AreEqual(suchThatClause.getRelation(), (string)"uses");
-			Assert::AreEqual(suchThatClause.getArg().at(0), (string)"a1b2c3");
-			Assert::AreEqual(suchThatClause.getArg().at(1), (string)"d4");
-			Assert::AreEqual(suchThatClause.getArgType().at(0), (string)"assign");
-			Assert::AreEqual(suchThatClause.getArgType().at(1), (string)"variable");
+			Assert::AreEqual(suchThatClause.getRelation(), (string)"modifies");
+			Assert::AreEqual(suchThatClause.getArg().at(0), (string)"salm0n3lla");
+			Assert::AreEqual(suchThatClause.getArgType().at(0), (string)"stmt");
+			Assert::AreEqual(suchThatClause.getArg().at(1), (string)"_");
+			Assert::AreEqual(suchThatClause.getArgType().at(1), (string)"any");
+			Assert::AreEqual(patternClause.getRelation(), (string)"patternAssign");
+			Assert::AreEqual(patternClause.getArg().at(0), (string)"vict0ry");
+			Assert::AreEqual(patternClause.getArg().at(1), (string)"on3l0ngstr1ng");
+			Assert::AreEqual(patternClause.getArg().at(2), (string)"as0n");
+			Assert::AreEqual(patternClause.getArgType().at(0), (string)"variable");
+			Assert::AreEqual(patternClause.getArgType().at(1), (string)"string");
+			Assert::AreEqual(patternClause.getArgType().at(2), (string)"assign");
+		}
 
-			queryString = "assign a1b2c3; variable d4; while e5; constant c6; stmt salm0n3lla; Select a1b2c3 such that Uses(a1b2c3,\"10\")";
+		TEST_METHOD(testSyntaxError) {
+			string queryString = "wr0ng";
+			QueryValidator qv(queryString);
+			QueryTable qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), true);
+
+			queryString = "pattern such that Select";
+			qv = QueryValidator(queryString);
+			qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), true);
+
+			queryString = "while w; assine a; assasin a; Serect BOOREAN";
+			qv = QueryValidator(queryString);
+			qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), true);
+
+			queryString = "assign a1b2c3, aquaman, as0n; variable d4,vict0ry; while e5; constant c6; stmt salm0n3lla; Select c6 such that Modifies(salm0n3lla, _) puttern as0n(vict0ry,_\"on3l0ngstr1ng\"_)";
+			qv = QueryValidator(queryString);
+			qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), true);
+
+			queryString = "assign abc; while w123; Select w123 such dat pattern abc(_,_)";
+			qv = QueryValidator(queryString);
+			qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), true);
+		}
+
+		TEST_METHOD(testValidStrangeDeclaration) {
+			string queryString = "assign a; assign b; assign c; assign d; Select d";
+			QueryValidator qv(queryString);
+			QueryTable qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), false);
+			Clause selectClause = qt.getSelectClause();
+			Assert::AreEqual(selectClause.isClauseNull(), false);
+			Assert::AreEqual(selectClause.getArg().at(0), (string)"d");
+			Assert::AreEqual(selectClause.getArgType().at(0), (string)"assign");
+
+			queryString = "      assign     farAssign   ;    Select    farAssign   such			that    Follows(1,2)   pattern   farAssign(_,_\"str1ng\"_)";
 			qv = QueryValidator(queryString);
 			qt = qv.parse();
 			Assert::AreEqual(qt.isNullQuery(), false);
 			selectClause = qt.getSelectClause();
 			Assert::AreEqual(selectClause.isClauseNull(), false);
-			suchThatClause = qt.getSuchThatClause();
-			Assert::AreEqual(suchThatClause.isClauseNull(), false);
-			Assert::AreEqual(selectClause.getArg().at(0), (string)"a1b2c3");
+			Assert::AreEqual(selectClause.getArg().at(0), (string)"farAssign");
 			Assert::AreEqual(selectClause.getArgType().at(0), (string)"assign");
-			Assert::AreEqual(suchThatClause.getRelation(), (string)"uses");
-			Assert::AreEqual(suchThatClause.getArg().at(0), (string)"a1b2c3");
-			Assert::AreEqual(suchThatClause.getArg().at(1), (string)"10");
-			Assert::AreEqual(suchThatClause.getArgType().at(0), (string)"assign");
-			Assert::AreEqual(suchThatClause.getArgType().at(1), (string)"string");
+			Clause suchThatClause = qt.getSuchThatClause();
+			Assert::AreEqual(suchThatClause.isClauseNull(), false);
+			Assert::AreEqual(suchThatClause.getRelation(), (string)"follows");
+			Assert::AreEqual(suchThatClause.getArg().at(0), (string)"1");
+			Assert::AreEqual(suchThatClause.getArg().at(1), (string)"2");
+			Assert::AreEqual(suchThatClause.getArgType().at(0), (string)"constant");
+			Assert::AreEqual(suchThatClause.getArgType().at(1), (string)"constant");
+			Clause patternClause = qt.getPatternClause();
+			Assert::AreEqual(patternClause.isClauseNull(), false);
+			Assert::AreEqual(patternClause.getArg().at(0), (string)"_");
+			Assert::AreEqual(patternClause.getArg().at(1), (string)"str1ng");
+			Assert::AreEqual(patternClause.getArg().at(2), (string)"farAssign");
+			Assert::AreEqual(patternClause.getArgType().at(0), (string)"any");
+			Assert::AreEqual(patternClause.getArgType().at(1), (string)"string");
+			Assert::AreEqual(patternClause.getArgType().at(2), (string)"assign");
 		}
 	};
 }
