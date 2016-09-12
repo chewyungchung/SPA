@@ -57,7 +57,7 @@ void QueryValidator::matchDeclaration() {
 	if (_nextToken.getTokenName() != "Select") {
 		// Check if the next token are any of the accepted design entities
 		// Iteration 1: 'stmt' | 'assign' | 'while' | 'variable' | 'constant' | 'prog_line'
-		for (vector<string>::const_iterator it = DESIGN_ENTITIES.begin(); it != DESIGN_ENTITIES.end(); it++) {
+		for (vector<string>::const_iterator it = DESIGN_ENTITIES.begin(); it != DESIGN_ENTITIES.end();) {
 			if (_nextToken.getTokenName() == *it) {
 				match(*it);
 				matchDeclarationVar(*it);
@@ -159,9 +159,11 @@ void QueryValidator::matchPatternAssign() {
 	// expression-spec : ‘_’ ‘"’ factor ‘"’ ‘_’ | ‘_’
 	// factor : var_name | const_value
 	string synAssign = _nextToken.getTokenName();
+	string synAssignType;
 	pair<int, string> arg1, arg2;
 	// Check the syn to entity map and verify if it is "assign" or not. If NOT, ERROR!!!!!!!!!!!!!!!!
 	if (_synToEntityMap[synAssign] == "assign") {
+		synAssignType = _synToEntityMap[synAssign];
 		match(synAssign);
 		match("(");
 		pair<int,string> arg1 = matchEntRef();
@@ -205,8 +207,8 @@ void QueryValidator::matchPatternAssign() {
 		}
 
 		if (isArg1Valid && isArg2Valid) {
-			vector<string> patternArg({ arg1.second, arg2.second });
-			vector<string> patternArgType({ arg1Type,arg2Type });
+			vector<string> patternArg({ arg1.second, arg2.second, synAssign });
+			vector<string> patternArgType({ arg1Type,arg2Type, synAssignType });
 			Clause patternClause("patternAssign", patternArg, patternArgType);
 			_qt.setPatternClause(patternClause);
 		}
@@ -235,10 +237,10 @@ void QueryValidator::matchRelation() {
 		relation += "*";
 		_nextToken = getToken();
 	}
-	if (relation == "Follow") {
+	if (relation == "Follows") {
 		matchFollow();
 	}
-	else if (relation == "Follow*") {
+	else if (relation == "Follows*") {
 		matchFollowStar();
 	}
 	else if (relation == "Parent") {
