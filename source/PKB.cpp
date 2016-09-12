@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+	
 using namespace std;
 
 #include "PKB.h"
@@ -14,6 +14,7 @@ using namespace std;
 #include "StatementTable.h"
 #include "FollowsTable.h"
 #include "ParentTable.h"
+#include "ConstantTable.h"
 
 int PKB::setProcToAST(PROC p, TNode* r) {
 	return NULL;
@@ -30,6 +31,7 @@ PKB::PKB() {
 	S_Table = new StatementTable;
 	F_Table = new FollowsTable;
 	P_Table = new ParentTable;
+	C_Table = new ConstantTable;
 }
 
 PKB::~PKB() {
@@ -49,14 +51,18 @@ void PKB::resetPKB() {
 	instance = NULL; // so that getPKB still works.
 }
 
+void PKB::addParent(int lineOfParent, int lineNum) {
+	P_Table->addParent(lineOfParent, lineNum);
+}
+
 int PKB::getParentOf(int stmt) {
 	return P_Table->getParentOf(stmt);
 }
-/*
-vector<int> PKB::getParentStar(int stmt) {
-	return vector<int>();
+
+list<int> PKB::getParentStar(int stmt) {	
+	return P_Table->getParentStar(stmt);
 }
-*/
+
 list<int> PKB::getChildrenOf(int stmt) {
 	return P_Table->getChildrenOf(stmt);
 }
@@ -69,11 +75,17 @@ bool PKB::isParentOf(int parentStmt, int childStmt)
 {
 	return P_Table->isParentOf(parentStmt, childStmt);
 }
-/*
-bool PKB::isParentStar(int stmt1, int stmt2) {
-	return false;
+
+bool PKB::isParentStar(int parent, int child) {
+	return P_Table->isParentStar(parent, child);
 }
-*/
+
+/* The 'Follows' table*/
+
+void PKB::addFollows(int lineNum, int nestingIndex) {
+	F_Table->addFollows(lineNum, nestingIndex);
+}
+
 int PKB::getFollowedFrom(int stmt) {
 	return F_Table->getFollowedFrom(stmt);
 }
@@ -81,15 +93,15 @@ int PKB::getFollowedFrom(int stmt) {
 int PKB::getFollower(int stmt) {
 	return F_Table->getFollower(stmt);
 }
-/*
-vector<int> PKB::getFollowedFromStar(int stmt) {
-	return vector<int>();
+
+list<int> PKB::getFollowedFromStar(int stmt) {
+	return F_Table->getFollowedFromStar(stmt);
 }
 
-vector<int> PKB::getFollowerStar(int stmt) {
-	return vector<int>();
+list<int> PKB::getFollowerStar(int stmt) {
+	return F_Table->getFollowerStar(stmt);
 }
-*/
+
 bool PKB::isFollowEmpty() {
 	return F_Table->isFollowEmpty();
 }
@@ -97,11 +109,10 @@ bool PKB::isFollowEmpty() {
 bool PKB::isValidFollows(int followedFrom, int follower) {
 	return F_Table->isValidFollows(followedFrom, follower);
 }
-/*
+
 bool PKB::isFollowsStar(int stmt1, int stmt2) {
-	return false;
+	return F_Table->isFollowsStar(stmt1, stmt2);
 }
-*/
 
 /* ModUsesTablebyStatement*/
 
@@ -186,4 +197,13 @@ list<int> PKB::getStmtList() {
 
 int PKB::getStatementCount() {
 	return S_Table->getStatementCount();
+}
+
+void PKB::addConstant(int constant, int stmt)
+{
+	C_Table->addConstant(constant, stmt);
+}
+
+list<int> PKB::getConstantList(){
+	return C_Table->getConstantList();;
 }

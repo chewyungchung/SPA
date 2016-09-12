@@ -442,7 +442,7 @@ QueryResult* QueryEvaluator::processFollowsT(Clause* followTClause) {
 			// if (!PKB1.isValidStmt(stoi(arg2)))return qr;
 
 			//if arg2 in arg1FollowerStar list, true and return
-			if (find(arg1FollowerStar.begin(), arg1FollowerStar.end(), arg2) != arg1FollowerStar.end()) {
+			if (find(arg1FollowerStar.begin(), arg1FollowerStar.end(), stoi(arg2)) != arg1FollowerStar.end()) {
 				qr->setIsExist(true);
 			}
 			return qr;
@@ -741,7 +741,7 @@ QueryResult* QueryEvaluator::processParentT(Clause* parentTClause) {
 			// if (!PKB.isValidStmt(stoi(arg2))) return qr;
 
 			// check if arg2 is in arg1Children. If yes, query is true
-			if (find(arg1Children.begin(), arg1Children.end(), arg2) != arg1Children.end()) {
+			if (find(arg1Children.begin(), arg1Children.end(), stoi(arg2)) != arg1Children.end()) {
 				qr->setIsExist(true);
 			}
 			return qr;
@@ -894,7 +894,7 @@ QueryResult* QueryEvaluator::processModifies(Clause* modifiesClause) {
 			// if (!PKB.isValidStmt(stoi(arg1))) return qr;
 
 			// check if arg1 in arg2ModifiedBy list
-			if (find(arg2ModifiedBy.begin(), arg2ModifiedBy.end(), arg1) != arg2ModifiedBy.end()) {
+			if (find(arg2ModifiedBy.begin(), arg2ModifiedBy.end(), stoi(arg1)) != arg2ModifiedBy.end()) {
 				qr->setIsExist(true);
 			}
 			return qr;
@@ -1052,7 +1052,7 @@ QueryResult* QueryEvaluator::processUses(Clause* usesClause) {
 			// if (!PKB.isValidStmt(arg1)) return qr;
 
 			// check if arg1 is in arg2UsedBy
-			if (find(arg2UsedBy.begin(), arg2UsedBy.end(), arg1) != arg2UsedBy.end()) {
+			if (find(arg2UsedBy.begin(), arg2UsedBy.end(), stoi(arg1)) != arg2UsedBy.end()) {
 				qr->setIsExist(true);
 			}
 			return qr;

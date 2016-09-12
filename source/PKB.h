@@ -17,6 +17,7 @@ class ModUsesTablebyVariable;
 class StatementTable;
 class FollowsTable;
 class ParentTable;
+class ConstantTable;
 
 class PKB {
 
@@ -26,6 +27,7 @@ private:
 	StatementTable* S_Table;
 	FollowsTable* F_Table;
 	ParentTable* P_Table;
+	ConstantTable* C_Table;
 	PKB();
 	~PKB();
 	static PKB* instance;
@@ -37,20 +39,22 @@ public:
 	static PKB* getPKB();
 	static void resetPKB();
 	
+	void addParent(int lineOfParent, int lineNum);
 	int getParentOf(int stmt);
-	// vector<int> getParentStar(int stmt);
+	list<int> getParentStar(int stmt);
 	list<int> getChildrenOf(int stmt);
 	bool isParentEmpty();
 	bool isParentOf(int parentStmt, int childStmt);
-	// bool isParentStar(int stmt1, int stmt2);
+	bool isParentStar(int parent, int child);
 	
+	void addFollows(int lineNum, int nesting);
 	int getFollowedFrom(int stmt);
 	int getFollower(int stmt);
-	// vector<int> getFollowedFromStar(int stmt);
-	// vector<int> getFollowerStar(int stmt);
+	list<int> getFollowedFromStar(int stmt);
+	list<int> getFollowerStar(int stmt);
 	bool isFollowEmpty();
 	bool isValidFollows(int followedFrom, int follower);
-	// bool isFollowsStar(int stmt1, int stmt2);
+	bool isFollowsStar(int stmt1, int stmt2);
 	
 	void addModifies(int stmtNum, string var);
 	void addUses(int stmtNum, string var);
@@ -75,7 +79,6 @@ public:
 	list<int> getStmtList();
 	int getStatementCount();
 
-	/*
-	vector<int> getConstantList();
-	*/
+	void addConstant(int constant, int stmt);
+	list<int> getConstantList();
 };
