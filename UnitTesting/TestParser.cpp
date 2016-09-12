@@ -17,6 +17,8 @@ namespace UnitTesting
 	TEST_CLASS(TestParser)
 	{
 	public:
+		TEST_METHOD(a) {
+		}
 
 		TEST_METHOD(testTokenizer)
 		{
@@ -43,17 +45,18 @@ namespace UnitTesting
 			expectedVec = { "procedure", "ABC", "{",
 							"x", "=", "1", ";",
 							"b", "=", "2", ";",
-							"y", "=", "x", "+", "1", ";"
+							"y", "=", "x", "+", "i", ";",
 							"while", "i", "{",
 							"while", "z", "{",
-							"good", "=", "b2y", ";", " }",
+							"good", "=", "b2y", ";", "}",
 							"apple", "=", "orange", ";", "}", "}"};
 			vecToListHelper(expectedVec, expectedList);
 			
 			list<string>::iterator it = expectedList.begin();
 			
 			for (; it != expectedList.end(); ++it) {
-				Assert::AreEqual(*it, tk.getNextToken());
+				string token = tk.getNextToken();
+				Assert::AreEqual(*it, token);
 			}
 		}
 		

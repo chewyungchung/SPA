@@ -15,13 +15,13 @@ static const string arr[] = { "{", "}", ";", "=", "+" };
 
 // Empty default constructor
 Tokenizer::Tokenizer() {
-
 }
 
 // Overloaded constructor
 Tokenizer::Tokenizer(string filename) {
 	vector<string> specials(arr, arr + sizeof(arr) / sizeof(arr[0]));
 	char whitespace = ' ';
+	char tab = '\t';
 
 	ifstream infile(filename);
 	string line;
@@ -40,11 +40,13 @@ Tokenizer::Tokenizer(string filename) {
 				ss << line[i];
 				ss >> token;
 				tokens.push_back(token);
+				token = "";
 			}
-			else if (line[i] == whitespace) {
+			else if (line[i] == whitespace || line[i] == tab) {
 				if (token.length() != 0) {
 					tokens.push_back(token);
 				}
+				token = "";
 			}
 			else {
 				token += line[i];
@@ -55,7 +57,7 @@ Tokenizer::Tokenizer(string filename) {
 
 string Tokenizer::getNextToken() {
 	if (tokens.empty()) {
-		return NULL;
+		return "";
 	}
 	else {
 		string output = tokens.front();
