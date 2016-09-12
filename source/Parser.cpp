@@ -14,7 +14,7 @@ using namespace std;
 
 Parser::Parser(string fileName)
 {
-	Tokenizer tk(fileName);
+	tk = new Tokenizer(fileName);
 	stmtLine = 1;
 	parentStack.push(NO_PARENT_FLAG);
 	followsMaxNestingLevel = 1;
@@ -32,7 +32,7 @@ void Parser::match(string token)
 {
 	if (next_token == token)
 	{
-		next_token = tk.getNextToken();
+		next_token = tk->getNextToken();
 	}
 	else
 	{
@@ -43,7 +43,7 @@ void Parser::match(string token)
 
 void Parser::parseProgram()
 {
-	next_token = tk.getNextToken();
+	next_token = tk->getNextToken();
 	parseProcedure();
 }
 

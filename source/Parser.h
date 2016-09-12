@@ -18,7 +18,7 @@ public:
 	void process();
 
 private:
-	Tokenizer tk;
+	Tokenizer * tk;
 	string next_token;
 	string procName;
 	int stmtLine;

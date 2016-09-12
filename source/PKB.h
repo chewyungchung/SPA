@@ -31,11 +31,12 @@ private:
 	PKB();
 	~PKB();
 	static PKB* instance;
+
 public:
+
 	static VarTable* varTable; 
 	static int setProcToAST(PROC p, TNode* r);
 	static TNode* getRootAST (PROC p);
-
 	static PKB* getPKB();
 	static void resetPKB();
 	
@@ -81,5 +82,5 @@ public:
 
 	void addConstant(int constant, int stmt);
 	list<int> getConstantList();
-	list<int> PKB::getStmtlineByConstant(int c);
+	list<int> getStmtlineByConstant(int c);
 };

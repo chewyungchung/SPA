@@ -16,6 +16,8 @@ using namespace std;
 #include "ParentTable.h"
 #include "ConstantTable.h"
 
+PKB* PKB::instance = NULL;
+
 int PKB::setProcToAST(PROC p, TNode* r) {
 	return NULL;
 }
@@ -25,7 +27,7 @@ TNode* PKB::getRootAST (PROC p){
 }
 
 PKB::PKB() {
-	instance = new PKB;
+	instance = new PKB();
 	M_U_TableByStmt = new ModUsesTablebyStmt;
 	M_U_TableByVar = new ModUsesTablebyVariable;
 	S_Table = new StatementTable;
