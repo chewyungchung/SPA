@@ -2,16 +2,20 @@
 #include "QueryException.h"
 
 QueryValidator::QueryValidator() {
+	_qt = QueryTable(false);
+}
+
+QueryValidator::~QueryValidator() {
 
 }
 
 QueryValidator::QueryValidator(string query) {
 	_queryString = query;
 	_tokenizer = QueryTokenizer(query);
-	_qt = new QueryTable();
+	
 }
 
-QueryTable* QueryValidator::parse() {
+QueryTable QueryValidator::parse() {
 	try {
 		matchDeclaration();
 		matchSelect();
@@ -20,7 +24,7 @@ QueryTable* QueryValidator::parse() {
 		// Output error message onto console. Purely debug for now
 		cout << e.what() << endl;
 		// Return a null pointer to indicate that an invalid query has been sent in
-		return NULL;
+		return QueryTable(true);
 	}
 	return _qt;
 }
@@ -106,7 +110,7 @@ void QueryValidator::matchSelectResult() {
 		// Could declare SelectClause here and init it in QueryTable to return
 		vector<string> selectArg1({ "BOOLEAN" });
 		Clause selectClause("SELECT", selectArg1, selectArg1);
-		_qt->setSelectClause(&selectClause);
+		_qt.setSelectClause(selectClause);
 		match("BOOLEAN");
 	}
 	else {
@@ -120,7 +124,7 @@ void QueryValidator::matchSelectResult() {
 			vector<string> selectArg1({ syn });
 			vector<string> selectArgType({ _synToEntityMap[syn] });
 			Clause selectClause("select", selectArg1, selectArgType);
-			_qt->setSelectClause(&selectClause);
+			_qt.setSelectClause(selectClause);
 		}
 		match(syn);
 	}
@@ -204,7 +208,7 @@ void QueryValidator::matchPatternAssign() {
 			vector<string> patternArg({ arg1.second, arg2.second });
 			vector<string> patternArgType({ arg1Type,arg2Type });
 			Clause patternClause("patternAssign", patternArg, patternArgType);
-			_qt->setPatternClause(&patternClause);
+			_qt.setPatternClause(patternClause);
 		}
 	}
 	else {
@@ -300,7 +304,7 @@ void QueryValidator::matchFollow() {
 		vector<string> followsArg({ arg1.second,arg2.second });
 		vector<string> followsArgType ({ arg1Type,arg2Type });
 		Clause followClause("follows", followsArg, followsArgType);
-		_qt->setSuchThatClause(&followClause);
+		_qt.setSuchThatClause(followClause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for follows"));
@@ -353,7 +357,7 @@ void QueryValidator::matchFollowStar() {
 		vector<string> followsStarArg({ arg1.second,arg2.second });
 		vector<string> followsStarArgType({ arg1Type,arg2Type });
 		Clause followStarClause("follows*", followsStarArg, followsStarArgType);
-		_qt->setSuchThatClause(&followStarClause);
+		_qt.setSuchThatClause(followStarClause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for follows*"));
@@ -405,7 +409,7 @@ void QueryValidator::matchParent() {
 		vector<string> parentArg({ arg1.second,arg2.second });
 		vector<string> parentArgType({ arg1Type,arg2Type });
 		Clause parentClause("parent", parentArg, parentArgType);
-		_qt->setSuchThatClause(&parentClause);
+		_qt.setSuchThatClause(parentClause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for parent"));
@@ -458,7 +462,7 @@ void QueryValidator::matchParentStar() {
 		vector<string> parentStarArg({ arg1.second,arg2.second });
 		vector<string> parentStarArgType({ arg1Type,arg2Type });
 		Clause parentStarClause("parent*", parentStarArg, parentStarArgType);
-		_qt->setSuchThatClause(&parentStarClause);
+		_qt.setSuchThatClause(parentStarClause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for parent*"));
@@ -510,7 +514,7 @@ void QueryValidator::matchModifies() {
 		vector<string> modifiesArg({ arg1.second,arg2.second });
 		vector<string> modifiesArgType({ arg1Type,arg2Type });
 		Clause modifiesClause("modifies", modifiesArg, modifiesArgType);
-		_qt->setSuchThatClause(&modifiesClause);
+		_qt.setSuchThatClause(modifiesClause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for modifies"));
@@ -563,7 +567,7 @@ void QueryValidator::matchUses() {
 		vector<string> usesArg({ arg1.second,arg2.second });
 		vector<string> usesArgType({ arg1Type,arg2Type });
 		Clause usesClause("uses", usesArg, usesArgType);
-		_qt->setSuchThatClause(&usesClause);
+		_qt.setSuchThatClause(usesClause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for uses"));
