@@ -10,8 +10,8 @@ RelationTable::RelationTable() {
 	vector<string> arg2Type;
 
 	// Follow & Follow*
-	arg1Type = { "stmt", "assign", "while", "constant", "_" };
-	arg2Type = { "stmt", "assign", "while", "constant", "_" };
+	arg1Type = { "stmt", "assign", "while", "constant", "_", "prog_line" };
+	arg2Type = { "stmt", "assign", "while", "constant", "_", "prog_line" };
 	Relation follow(2, arg1Type, arg2Type);
 	_relationTable["follows"] = follow;
 	_relationTable["follows*"] = follow;
@@ -23,6 +23,7 @@ RelationTable::RelationTable() {
 	arg2Type = { "stmt", "assign", "prog_line", "while", "constant", "_" };
 	Relation parent(2, arg1Type, arg2Type);
 	_relationTable["parent"] = parent;
+	_relationTable["parent*"] = parent;
 	arg1Type.clear();
 	arg2Type.clear();
 

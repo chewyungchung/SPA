@@ -24,6 +24,7 @@ public:
 	bool isArg1ResultEmpty();
 	bool isArg2ResultEmpty();
 	bool isPatternResultEmpty();
+	bool isResultNull();
 
 	// Setter
 	void setArgToSynonymMapping(string arg, string synonym);
@@ -44,5 +45,6 @@ private:
 	unordered_map<string, string> _argToSynonymMapping;
 
 	bool _isExist;
+	bool _isNull;
 
 };

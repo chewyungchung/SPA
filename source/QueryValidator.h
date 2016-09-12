@@ -19,8 +19,9 @@ const vector<string> DESIGN_ENTITIES({
 class QueryValidator{
 public:
 	QueryValidator();
+	~QueryValidator();
 	QueryValidator(string entity);
-	QueryTable* parse();
+	QueryTable parse();
 	
 	QueryToken getToken();
 	void match(string token);
@@ -46,7 +47,7 @@ public:
 	pair<int,string> matchEntRef();
 
 private:
-	QueryTable* _qt;
+	QueryTable _qt;
 	QueryToken _nextToken;
 	QueryTokenizer _tokenizer;
 	RelationTable _relTable;

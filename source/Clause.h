@@ -16,11 +16,12 @@ public:
 	string getRelation();
 	vector<string> getArg();
 	vector<string> getArgType();
+	bool isClauseNull();
 
 private:
 	string _relation;
 	vector<string> _arg;
 	vector<string> _argType;
-
-	 
+	
+	bool _isNull;
 };
