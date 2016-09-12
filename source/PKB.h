@@ -81,4 +81,5 @@ public:
 
 	void addConstant(int constant, int stmt);
 	list<int> getConstantList();
+	list<int> PKB::getStmtlineByConstant(int c);
 };

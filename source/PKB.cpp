@@ -207,3 +207,7 @@ void PKB::addConstant(int constant, int stmt)
 list<int> PKB::getConstantList(){
 	return C_Table->getConstantList();;
 }
+
+list<int> PKB::getStmtlineByConstant(int c) {
+	return C_Table->getStmtlineByConstant(c);
+}
