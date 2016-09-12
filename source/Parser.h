@@ -15,6 +15,7 @@ class Parser
 
 public:
 	Parser(string fileName);
+	~Parser();
 	void process();
 
 private:

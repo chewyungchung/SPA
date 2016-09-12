@@ -16,7 +16,22 @@ using namespace std;
 #include "ParentTable.h"
 #include "ConstantTable.h"
 
-PKB* PKB::instance = NULL;
+
+//PKB* PKB::instance = new PKB;
+//ModUsesTablebyStmt* PKB::M_U_TableByStmt = new ModUsesTablebyStmt;
+//ModUsesTablebyVariable* PKB::M_U_TableByVar = new ModUsesTablebyVariable;
+//StatementTable* PKB::S_Table = new StatementTable;
+//FollowsTable* PKB::F_Table = new FollowsTable;
+//ParentTable* PKB::P_Table = new ParentTable;
+//ConstantTable* PKB::C_Table = new ConstantTable;
+
+PKB* PKB::instance = new PKB();
+ModUsesTablebyStmt* PKB::M_U_TableByStmt = new ModUsesTablebyStmt();
+ModUsesTablebyVariable* PKB::M_U_TableByVar = new ModUsesTablebyVariable();
+StatementTable* PKB::S_Table = new StatementTable();
+FollowsTable* PKB::F_Table = new FollowsTable();
+ParentTable* PKB::P_Table = new ParentTable();
+ConstantTable* PKB::C_Table = new ConstantTable();
 
 int PKB::setProcToAST(PROC p, TNode* r) {
 	return NULL;
@@ -27,17 +42,34 @@ TNode* PKB::getRootAST (PROC p){
 }
 
 PKB::PKB() {
-	instance = new PKB();
-	M_U_TableByStmt = new ModUsesTablebyStmt;
-	M_U_TableByVar = new ModUsesTablebyVariable;
-	S_Table = new StatementTable;
-	F_Table = new FollowsTable;
-	P_Table = new ParentTable;
-	C_Table = new ConstantTable;
+	//instance = new PKB();
+	//M_U_TableByStmt = new ModUsesTablebyStmt();
+	//M_U_TableByVar = new ModUsesTablebyVariable();
+	//S_Table = new StatementTable();
+	//F_Table = new FollowsTable();
+	//P_Table = new ParentTable();
+	//C_Table = new ConstantTable();
 }
 
 PKB::~PKB() {
+}
+
+void PKB::destroyInstance() {
+	delete M_U_TableByStmt;
 	delete M_U_TableByVar;
+	delete S_Table;
+	delete F_Table;
+	delete P_Table;
+	delete C_Table;
+	delete instance;
+
+	instance = new PKB();
+	M_U_TableByStmt = new ModUsesTablebyStmt();
+	M_U_TableByVar = new ModUsesTablebyVariable();
+	S_Table = new StatementTable();
+	F_Table = new FollowsTable();
+	P_Table = new ParentTable();
+	C_Table = new ConstantTable();
 }
 
 PKB * PKB::getPKB()

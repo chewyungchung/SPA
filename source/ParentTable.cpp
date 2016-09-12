@@ -21,7 +21,7 @@ void ParentTable::addParent(int parent, int child) {
 	unordered_map<int, int>::iterator it = TableChildWise.find(parent);
 
 	while (it != TableChildWise.end()) { // if the parent is itself a child
-		int parentAsChild = TableChildWise[parent];
+		int parentAsChild = it->second;
 		TableChildWiseStar[child].push_back(parentAsChild); // parent-star has been found; track it
 		it = TableChildWise.find(parentAsChild);
 	}	

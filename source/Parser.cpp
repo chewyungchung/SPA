@@ -21,6 +21,11 @@ Parser::Parser(string fileName)
 	followsStack.push(followsMaxNestingLevel);
 }
 
+Parser::~Parser()
+{
+	delete tk;
+}
+
 
 void Parser::process()
 {
@@ -66,9 +71,9 @@ void Parser::parseStmtLst()
 	else
 	{
 		parseAssignStmt();
+		match(SEMICOLON_FLAG);
+		stmtLine++;
 	}
-	match(SEMICOLON_FLAG);
-	stmtLine++;
 	if (next_token == RIGHT_BRACES)
 	{
 		return;
@@ -96,16 +101,18 @@ void Parser::parseWhileStmt()
 	// Populate UsesTable for control variable
 	// This involves adding current stmtLine as well as any parent/parent* stmtLines
 	match(WHILE_FLAG);
-	PKB::getPKB()->addUses(next_token, stmtLine);
-	PKB::getPKB()->addUses(stmtLine, next_token);
-	addAllParentsOfUsedVariable(next_token);
-
+	string controlVar = next_token;
+	PKB::getPKB()->addUses(controlVar, stmtLine);
+	PKB::getPKB()->addUses(stmtLine, controlVar);
+	addAllParentsOfUsedVariable(controlVar);
+	
 	// Recurse on stmtLst
+	match(controlVar);
 	match(LEFT_BRACES);
 	stmtLine++;
 	parseStmtLst();
 	match(RIGHT_BRACES);
-	stmtLine++;
+	//stmtLine++;
 
 	// Exiting from while loop: remove from current parent and exit nesting level
 	parentStack.pop();
@@ -126,27 +133,13 @@ void Parser::parseAssignStmt()
 	string LHS = next_token;
 	PKB::getPKB()->addModifies(LHS, stmtLine);
 	PKB::getPKB()->addModifies(stmtLine, LHS);
-	addAllParentsOfModifiedVariable(next_token);
+	addAllParentsOfModifiedVariable(LHS);
 
 	// Move to RHS and populate uses(var)/const table accordingly
 	// Involves adding current stmtLine as well as any parent/parent* stmtLines
 	match(LHS);
 	match(EQUAL_FLAG);
 	parseAssignRHS();
-
-	string RHS = next_token;
-	if (isConstant(RHS))
-	{
-		int RHSConstant = stoi(RHS);
-		PKB::getPKB()->addConstant(RHSConstant, stmtLine);
-		addAllParentsOfUsedConstant(RHSConstant);
-	}
-	else
-	{
-		PKB::getPKB()->addUses(RHS, stmtLine);
-		PKB::getPKB()->addUses(stmtLine,RHS);
-		addAllParentsOfUsedVariable(next_token);
-	}
 }
 
 void Parser::parseAssignRHS()
@@ -162,7 +155,7 @@ void Parser::parseAssignRHS()
 	{
 		PKB::getPKB()->addUses(RHS, stmtLine);
 		PKB::getPKB()->addUses(stmtLine, RHS);
-		addAllParentsOfUsedVariable(next_token);
+		addAllParentsOfUsedVariable(RHS);
 	}
 	match(RHS);
 	if (next_token == PLUS_FLAG)

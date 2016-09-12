@@ -22,6 +22,7 @@ unordered_map<string, list<int>> ModUsesTablebyVariable::getUsesTable()
 	return varUsesTable;
 }
 
+
 void ModUsesTablebyVariable::addModifies(string varName, int stmtNum)
 {
 	unordered_map<string, list<int>>::iterator it = varModTable.find(varName);
@@ -34,9 +35,13 @@ void ModUsesTablebyVariable::addModifies(string varName, int stmtNum)
 	}
 	else {
 		mStmtList = it->second;
-		mStmtList.push_back(stmtNum);
+		bool found = find(mStmtList.begin(), mStmtList.end(), stmtNum) != mStmtList.end();
+		if (!found) {
+			it->second.push_back(stmtNum);
+		}
 	}
 }
+
 
 void ModUsesTablebyVariable::addUses(string varName, int stmtNum)
 {
@@ -50,7 +55,10 @@ void ModUsesTablebyVariable::addUses(string varName, int stmtNum)
 	}
 	else {
 		uStmtList = it->second;
-		uStmtList.push_back(stmtNum);
+		bool found = find(uStmtList.begin(), uStmtList.end(), stmtNum) != uStmtList.end();
+		if (!found) {
+			it->second.push_back(stmtNum);
+		}
 	}
 }
 

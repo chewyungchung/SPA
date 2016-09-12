@@ -15,11 +15,11 @@ StatementTable::~StatementTable()
 
 void StatementTable::addStatement(int stmtNum, string stmtType)
 {
-	if (stmtType == "ASSIGN") {
+	if (stmtType == "assign") {
 		assignList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
 	}
-	else if (stmtType == "WHILE") {
+	else if (stmtType == "while") {
 		whileList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
 	}

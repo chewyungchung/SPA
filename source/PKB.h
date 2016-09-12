@@ -22,12 +22,12 @@ class ConstantTable;
 class PKB {
 
 private:
-	ModUsesTablebyStmt* M_U_TableByStmt;
-	ModUsesTablebyVariable* M_U_TableByVar;
-	StatementTable* S_Table;
-	FollowsTable* F_Table;
-	ParentTable* P_Table;
-	ConstantTable* C_Table;
+	static ModUsesTablebyStmt* M_U_TableByStmt;
+	static ModUsesTablebyVariable* M_U_TableByVar;
+	static StatementTable* S_Table;
+	static FollowsTable* F_Table;
+	static ParentTable* P_Table;
+	static ConstantTable* C_Table;
 	PKB();
 	~PKB();
 	static PKB* instance;
@@ -38,6 +38,7 @@ public:
 	static int setProcToAST(PROC p, TNode* r);
 	static TNode* getRootAST (PROC p);
 	static PKB* getPKB();
+	static void destroyInstance();
 	static void resetPKB();
 	
 	void addParent(int lineOfParent, int lineNum);

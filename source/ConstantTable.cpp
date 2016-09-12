@@ -7,10 +7,9 @@ ConstantTable::ConstantTable() {
 }
 
 void ConstantTable::addConstant(int constant, int stmtline) {
-	std::unordered_map<int, list<int>>::const_iterator index = constantTable.find(constant);
+	std::unordered_map<int, list<int>>::iterator index = constantTable.find(constant);
 	if (index != constantTable.end()) {
-		list<int> x = index->second;
-		x.push_back(stmtline);
+		index->second.push_back(stmtline);
 	}
 	else {
 		constantList.push_back(constant);
@@ -25,7 +24,7 @@ list<int> ConstantTable::getConstantList(void) {
 }
 
 list<int> ConstantTable::getStmtlineByConstant(int constant) {
-	std::unordered_map<int, list<int>>::const_iterator index = constantTable.find(constant);
+	std::unordered_map<int, list<int>>::iterator index = constantTable.find(constant);
 	if (index != constantTable.end()) {
 		return index->second;
 	}
