@@ -114,6 +114,9 @@
     <ClCompile Include="..\source\Tokenizer.cpp">
       <Filter>Source Files\Front End</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\StatementTable.cpp">
+      <Filter>Source Files\PKB</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\Clause.h">
@@ -172,6 +175,9 @@
     </ClInclude>
     <ClInclude Include="..\source\QueryValidator.h">
       <Filter>Header Files\QueryProcessor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\StatementTable.h">
+      <Filter>Header Files\PKB</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
