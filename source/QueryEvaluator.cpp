@@ -181,7 +181,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_CONSTANT) {
-			// TO BE IMPLEMENTED
+			
 		}
 		else {
 			// arg2Type is a string --> For now it can only be a variable
@@ -189,8 +189,20 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 			if (!PKB::getPKB()->isValidVar(arg2)) {
 				return qr;
 			}
+			// Get the list of statements that modifies arg1
+			list<int> arg1ModifiedBy = PKB::getPKB()->getModifiedBy(arg1);
+			if (arg1ModifiedBy.empty()) {
+				return qr;
+			}
 
-
+			// For each statement that modifies arg1, check if any of them uses arg2
+			for (list<int>::iterator it = arg1ModifiedBy.begin(); it != arg1ModifiedBy.end(); it++) {
+				if (PKB::getPKB()->isUsed(*it, arg2)) {
+					qr.setIsExist(true);
+					qr.insertPatternResult(to_string(*it));
+				}
+			}
+			return qr;
 		}
 	}
 	else if (arg1Type == ARGTYPE_ANY) {
@@ -201,8 +213,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 			if (assignList.empty()) {
 				return qr;
 			}
-			// If assignList not empty, add everything to pattern result
-			;
+			// If assignList not empty, add everything to pattern 
 			qr.setIsExist(true);
 			for (list<int>::iterator it = assignList.begin(); it != assignList.end(); it++) {
 				qr.insertPatternResult(to_string(*it));
@@ -210,11 +221,29 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_CONSTANT) {
-			// TO BE IMPLEMENTED
+			// TO BE IMPLEMENTED ONCE CONSTANT TABLE MERGED
+		}
+		else {
+			// arg2Type is a string --> For now it can only be a variable
+			// Check if arg2 is a valid var
+			if (!PKB::getPKB()->isValidVar(arg2)) {
+				return qr;
+			}
+			// Get the list of statements that uses arg2
+			list<int> arg2UsedBy = PKB::getPKB()->getUsedBy(arg2);
+			if (arg2UsedBy.empty()) {
+				return qr;
+			}
+			else {
+				for (list<int>::iterator it = arg2UsedBy.begin(); it != arg2UsedBy.end(); it++) {
+					qr.setIsExist(true);
+					qr.insertPatternResult(to_string(*it));
+				}
+			}
 		}
 	}
 	else {
-		// arg1 is a variable 
+		// arg1 is a variable synonym
 		list<string> varList = PKB::getPKB()->getVarList();
 		if (varList.empty()) {
 			return qr;
@@ -244,6 +273,35 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 		else if (arg2Type == ARGTYPE_CONSTANT) {
 			// TO BE IMPLEMENTED
 		}
+		else {
+			// arg2Type is a string --> For now it can only be a variable
+			// Check if arg2 is a valid var
+			if (!PKB::getPKB()->isValidVar(arg2)) {
+				return qr;
+			}
+			
+			// For each variable, get the list of statements that modifies them, then check for each of those statement, if they uses arg2
+			for (list<string>::iterator it1 = varList.begin(); it1 != varList.end(); it1++) {
+				list<int> arg1ModifiedBy = PKB::getPKB()->getModifiedBy(*it1);
+				bool outerIteratorIsValidResult = false;
+				if (arg1ModifiedBy.empty()) {
+					return qr;
+				}
+				else {
+					for (list<int>::iterator it2 = arg1ModifiedBy.begin(); it2 != arg1ModifiedBy.end(); it2++) {
+						if (PKB::getPKB()->isUsed(*it2, *it1)) {
+							outerIteratorIsValidResult = true;
+							qr.setIsExist(true);
+							break;
+						}
+					}
+					if (outerIteratorIsValidResult) {
+						qr.insertPatternResult(*it1);
+					}
+				}
+			}
+			return;
+		}
 	}
 	return qr;
 }
@@ -267,6 +325,11 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 			return qr;
 		}
 		if (arg2Type == ARGTYPE_CONSTANT) {
+			// If arg2 <= arg1, impossibru
+			if (arg2 <= arg1) {
+				return qr;
+			}
+
 			// If arg2 not valid stmt, return empty QueryResult
 			if (!PKB::getPKB()->isValidStmt(stoi(arg2))) {
 				return qr;
@@ -282,7 +345,7 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 			return qr;
 		}
 		else {
-			// Arg2 is a synonym
+			// arg2 is a synonym
 			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
 			list<int> synonymStatementsArg2 = getList(arg2Type);
 
