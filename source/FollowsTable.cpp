@@ -59,11 +59,12 @@ int FollowsTable::getFollower(int stmt)
 			}
 		}
 
-		if (r.size() != 1) {
+		if (r.size() > 1) {
 			throw logic_error("There are more than 1 statements that follow the given statement");
 		}
 
-		return r.at(0);
+	    int result = r.at(0);
+		return result;
 	}
 	catch (out_of_range& oor) {
 		cerr << "Out of range error: " << oor.what() << "\n";
@@ -78,7 +79,7 @@ bool FollowsTable::isFollowEmpty()
 
 bool FollowsTable::isValidFollows(int from, int to)
 {
-	if (to >= from) {
+	if (from >= to) {
 		return false;
 	}
 
