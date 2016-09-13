@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
+#include <iterator>
 #include "PKB.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -140,46 +141,45 @@ namespace UnitTesting
 			expected = { 1, 5 };
 			Assert::IsTrue(actual == expected);
 
-			//actual = PKB::getPKB()->getUsedBy("i");
-			//expected = { 1, 2 };
-			//Assert::IsTrue(actual == expected);
+			actual = PKB::getPKB()->getUsedBy("i");
+			expected = { 1, 2 };
+			Assert::IsTrue(actual == expected);
 
-			//actual = PKB::getPKB()->getUsedBy("d");
-			//expected = { 2 };
-			//Assert::IsTrue(actual == expected);
+			actual = PKB::getPKB()->getUsedBy("d");
+			expected = { 2 };
+			Assert::IsTrue(actual == expected);
 
-			//actual = PKB::getPKB()->getUsedBy("e");
-			//expected = { 5 };
-			//Assert::IsTrue(actual == expected);
+			actual = PKB::getPKB()->getUsedBy("e");
+			expected = { 5 };
+			Assert::IsTrue(actual == expected);
 
-			//actual = PKB::getPKB()->getUsedBy("invalid");
-			//expected = {};
-			//Assert::IsTrue(actual == expected);
+			actual = PKB::getPKB()->getUsedBy("invalid");
+			expected = {};
+			Assert::IsTrue(actual == expected);
 
-			///* all the variables from the mod and uses table should be valid */
-			//Assert::IsTrue(PKB::getPKB()->isValidVar("a"));
-			//Assert::IsTrue(PKB::getPKB()->isValidVar("b"));
-			//Assert::IsTrue(PKB::getPKB()->isValidVar("c"));
-			//Assert::IsTrue(PKB::getPKB()->isValidVar("z"));
-			//Assert::IsTrue(PKB::getPKB()->isValidVar("xyz"));
-			//Assert::IsTrue(PKB::getPKB()->isValidVar("i"));
-			//Assert::IsTrue(PKB::getPKB()->isValidVar("d"));
-			//Assert::IsTrue(PKB::getPKB()->isValidVar("e"));
+			/* all the variables from the mod and uses table should be valid */
+			Assert::IsTrue(PKB::getPKB()->isValidVar("a"));
+			Assert::IsTrue(PKB::getPKB()->isValidVar("b"));
+			Assert::IsTrue(PKB::getPKB()->isValidVar("c"));
+			Assert::IsTrue(PKB::getPKB()->isValidVar("z"));
+			Assert::IsTrue(PKB::getPKB()->isValidVar("xyz"));
+			Assert::IsTrue(PKB::getPKB()->isValidVar("i"));
+			Assert::IsTrue(PKB::getPKB()->isValidVar("d"));
+			Assert::IsTrue(PKB::getPKB()->isValidVar("e"));
 
-			//actualVarList = PKB::getPKB()->getAllModVar();
-			//expectedVarList = { "a", "b", "c", "z", "xyz" };
-			//Assert::IsTrue(actual == expected);
+			actualVarList = PKB::getPKB()->getAllModVar();
+			expectedVarList = { "a", "b", "c", "z", "xyz" };
+			Assert::IsTrue(actual == expected);
 
-			///* clear the existing modVarList and check if the assertion is
-			//correct for the case where the list is empty */
+			/* clear the existing modVarList and check if the assertion is
+			correct for the case where the list is empty */
+			actualVarList = PKB::getPKB()->getAllUsedVar();
+			expectedVarList = { "a", "i", "d", "e" };
+			Assert::IsTrue(actual == expected);
 
-			//actualVarList = PKB::getPKB()->getAllUsedVar();
-			//expectedVarList = { "a", "i", "d", "e" };
-			//Assert::IsTrue(actual == expected);
-
-			//actualVarList = PKB::getPKB()->getVarList();
-			//expectedVarList = { "a", "b", "c", "z", "xyz", "i", "d", "e" };
-			//Assert::IsTrue(actual == expected);
+			actualVarList = PKB::getPKB()->getVarList();
+			expectedVarList = { "a", "b", "c", "z", "xyz", "i", "d", "e" };
+			Assert::IsTrue(actual == expected);
 		}
 
 
@@ -217,5 +217,71 @@ namespace UnitTesting
 		//Assert::IsTrue(PKB::getPKB()->isValidStmt(5));
 		//Assert::IsFalse(PKB::getPKB()->isValidStmt(11));
 		//}
+
+	private:
+
+		bool listCmpHelper(list<string> list1, list<string> list2)
+		{
+			if (list1.size() != list2.size())
+			{
+				return false;
+			}
+			else
+			{
+				list<string>::iterator it = list1.begin();
+				for (; it != list1.end(); ++it)
+				{
+					if (find(list2.begin(), list2.end(), *it) == list2.end())
+					{
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+
+		bool listCmpHelper(list<int> list1, list<int> list2)
+		{
+			if (list1.size() != list2.size())
+			{
+				return false;
+			}
+			else
+			{
+				list<int>::iterator it = list1.begin();
+				for (; it != list1.end(); ++it)
+				{
+					if (find(list2.begin(), list2.end(), *it) == list2.end())
+					{
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+
+		// Swap with empty vector to free memory
+		void clearVector(vector<string> v)
+		{
+			vector<string>().swap(v);
+		}
+
+		void clearVector(vector<int> v)
+		{
+			vector<int>().swap(v);
+		}
+				
+		void vecToListHelper(vector<string> v, list<string> & s)
+		{
+			s.clear();
+			copy(v.begin(), v.end(), back_inserter(s));
+		}
+
+		void vecToListHelper(vector<int> v, list<int> & s)
+		{
+			s.clear();
+			copy(v.begin(), v.end(), back_inserter(s));
+		}
+
 	};
 }

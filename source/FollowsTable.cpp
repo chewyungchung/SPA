@@ -112,7 +112,7 @@ bool FollowsTable::isValidFollows(int from, int to)
 
 bool FollowsTable::isFollowsStar(int from, int to)
 {
-	if (to >= from) {
+	if (from >= to) {
 		return false;
 	}
 

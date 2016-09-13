@@ -18,6 +18,12 @@ namespace UnitTesting
 	{
 	public:
 
+		// Free PKB and all tables static ptr
+		TEST_METHOD_CLEANUP(destroyPKB)
+		{
+			PKB::destroyInstance();
+		}
+
 		TEST_METHOD(TestTokenizer1)
 		{
 			Tokenizer tk("SIMPLE_test_1.txt");
@@ -103,6 +109,9 @@ namespace UnitTesting
 		
 		TEST_METHOD(TestFollowsTable)
 		{
+			// Test if FollowsTable is empty before being populated
+			Assert::IsTrue(PKB::getPKB()->isFollowEmpty());
+
 			Parser p("SIMPLE_test_2.txt");
 			p.process();
 			/*
@@ -147,7 +156,8 @@ namespace UnitTesting
 			PKB::getPKB()->addFollows(12, 5);
 			*/
 			const int NO_STMT = -1;
-			const int FALSE = -1;
+			list<int> expectedList;
+			vector<int> expectedVec;
 
 			 //Follows(_, x), where x is first statement in each nesting level
 			 //Should return NO_STMT
@@ -173,6 +183,12 @@ namespace UnitTesting
 			Assert::AreEqual(11, PKB::getPKB()->getFollower(8));
 			Assert::AreEqual(10, PKB::getPKB()->getFollower(9));
 
+			// Correct Follows relationship, using isValidFollows API
+			Assert::IsTrue(PKB::getPKB()->isValidFollows(1, 2));
+			Assert::IsTrue(PKB::getPKB()->isValidFollows(2, 3));
+			Assert::IsTrue(PKB::getPKB()->isValidFollows(3, 6));
+			Assert::IsTrue(PKB::getPKB()->isValidFollows(8, 11));
+
 			// Incorrect Follows relationships (same nesting level, not in sequence)
 			Assert::AreNotEqual(3, PKB::getPKB()->getFollower(1));
 			Assert::AreNotEqual(11, PKB::getPKB()->getFollower(7));
@@ -185,66 +201,112 @@ namespace UnitTesting
 			Assert::AreNotEqual(4, PKB::getPKB()->getFollower(3));
 			Assert::AreNotEqual(7, PKB::getPKB()->getFollower(5));
 
-			PKB::destroyInstance();
+			// Correct Follows* relationships (Follows(s1, s2))
+			Assert::IsTrue(PKB::getPKB()->isFollowsStar(1, 2));
+			Assert::IsTrue(PKB::getPKB()->isFollowsStar(3, 6));
+			Assert::IsTrue(PKB::getPKB()->isFollowsStar(8, 11));
+
+			// Correct Follows* relationships (statements are not consecutive)
+			Assert::IsTrue(PKB::getPKB()->isFollowsStar(1, 6));
+			Assert::IsTrue(PKB::getPKB()->isFollowsStar(7, 11));
+
+			// Incorrect Follows* relationships (statements wrong order)
+			Assert::IsFalse(PKB::getPKB()->isFollowsStar(6, 1));
+
+			// Incorrect Follows* relationships (different nesting level)
+			Assert::IsFalse(PKB::getPKB()->isFollowsStar(3, 5));
+			Assert::IsFalse(PKB::getPKB()->isFollowsStar(7, 9));
+
+			// Correct Follows*(_, s) relationships
+			// Select s such that Follows*(s, 3): 1, 2
+			clearVector(expectedVec);
+			expectedVec = { 1, 2 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getFollowedFromStar(3), expectedList));
+
+			// Select s such that Follows*(s, 6): 1, 2, 3
+			clearVector(expectedVec);
+			expectedVec = { 1, 2, 3 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getFollowedFromStar(6), expectedList));
+
+			// Select s such that Follows*(s, 11): 7, 8
+			clearVector(expectedVec);
+			expectedVec = { 7, 8 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getFollowedFromStar(11), expectedList));
+
+			// Correct Follows*(s, _) relationships
+			// Select s such that Follows*(1, s): 2, 3, 6
+			clearVector(expectedVec);
+			expectedVec = { 2, 3, 6 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getFollowerStar(1), expectedList));
+
+			clearVector(expectedVec);
+			expectedVec = { 8, 11 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getFollowerStar(7), expectedList));
+
 		}
 
-		//TEST_METHOD(TestParentTable)
-		//{
-		//	Parser p("SIMPLE_test_2.txt");
-		//	p.process();
-		//	/*
-		//		procedure ABC
-		//		{
-		//	1		x = 1;
-		//	2		b = 2;
-		//	3		while i
-		//			{
-		//	4			apple = orange;
-		//	5			banana = pear;
-		//			}
-		//	6		while x
-		//			{
-		//	7			s = t;
-		//	8			while y
-		//				{
-		//	9				r = 2;
-		//	10				mango = durian;
-		//				}
-		//	11			while z
-		//				{
-		//	12				papaya = watermelon;
-		//				}
-		//			}
-		//		}
-		//	*/
+		TEST_METHOD(TestParentTable)
+		{
+			Parser p("SIMPLE_test_2.txt");
+			p.process();
+			/*
+				procedure ABC
+				{
+			1		x = 1;
+			2		b = 2;
+			3		while i
+					{
+			4			apple = orange;
+			5			banana = pear;
+					}
+			6		while x
+					{
+			7			s = t;
+			8			while y
+						{
+			9				r = 2;
+			10				mango = durian;
+						}
+			11			while z
+						{
+			12				papaya = watermelon;
+						}
+					}
+				}
+			*/
 
-		//	const int NO_PARENT = -1;
-		//	const int FALSE = -1;
+			const int NO_PARENT = -1;
+			const int FALSE = -1;
 
-		//	// Parent(_, x), where x is not in any container
-		//	// Should return NO_PARENT
-		//	Assert::AreEqual(PKB::getPKB()->getParentOf(1), NO_PARENT);
-		//	Assert::AreEqual(PKB::getPKB()->getParentOf(2), NO_PARENT);
-		//	Assert::AreEqual(PKB::getPKB()->getParentOf(3), NO_PARENT);
-		//	Assert::AreEqual(PKB::getPKB()->getParentOf(6), NO_PARENT);
+			// Parent(_, x), where x is not in any container
+			// Should return NO_PARENT
+			Assert::AreEqual(PKB::getPKB()->getParentOf(1), NO_PARENT);
+			Assert::AreEqual(PKB::getPKB()->getParentOf(2), NO_PARENT);
+			Assert::AreEqual(PKB::getPKB()->getParentOf(3), NO_PARENT);
+			Assert::AreEqual(PKB::getPKB()->getParentOf(6), NO_PARENT);
 
-		//	// Correct Parent relationships
-		//	Assert::AreEqual(PKB::getPKB()->getParentOf(4), 3);
-		//	Assert::AreEqual(PKB::getPKB()->getParentOf(5), 3);
-		//	Assert::AreEqual(PKB::getPKB()->getParentOf(7), 6);
-		//	Assert::AreEqual(PKB::getPKB()->getParentOf(9), 8);
-		//	Assert::AreEqual(PKB::getPKB()->getParentOf(12), 11);
+			// Correct Parent relationships
+			Assert::AreEqual(PKB::getPKB()->getParentOf(4), 3);
+			Assert::AreEqual(PKB::getPKB()->getParentOf(5), 3);
+			Assert::AreEqual(PKB::getPKB()->getParentOf(7), 6);
+			Assert::AreEqual(PKB::getPKB()->getParentOf(9), 8);
+			Assert::AreEqual(PKB::getPKB()->getParentOf(12), 11);
 
-		//	// Incorrect Parent relationships (container stmt does not match parent)
-		//	Assert::AreNotEqual(PKB::getPKB()->getParentOf(4), 6);
-		//	Assert::AreNotEqual(PKB::getPKB()->getParentOf(7), 3);
-		//	Assert::AreNotEqual(PKB::getPKB()->getParentOf(12), 8);
+			// Incorrect Parent relationships (container stmt does not match parent)
+			Assert::AreNotEqual(PKB::getPKB()->getParentOf(4), 6);
+			Assert::AreNotEqual(PKB::getPKB()->getParentOf(7), 3);
+			Assert::AreNotEqual(PKB::getPKB()->getParentOf(12), 8);
 
-		//	// Incorrect Parent relationships 
-		//	// (not direct parent, i.e. Parent* holds but not Parent)
-		//	Assert::AreNotEqual(PKB::getPKB()->getParentOf(10), 6);
-		//	Assert::AreNotEqual(PKB::getPKB()->getParentOf(12), 6);
-		//}
+			// Incorrect Parent relationships 
+			// (not direct parent, i.e. Parent* holds but not Parent)
+			Assert::AreNotEqual(PKB::getPKB()->getParentOf(10), 6);
+			Assert::AreNotEqual(PKB::getPKB()->getParentOf(12), 6);
+		}
 
 		TEST_METHOD(TestModifiesTable)
 		{
@@ -317,8 +379,6 @@ namespace UnitTesting
 			expectedVec = { "r", "x", "mango" };
 			vecToListHelper(expectedVec, expectedList);
 			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getModifiedBy(8), expectedList));
-
-			PKB::destroyInstance();
 		}
 
 		TEST_METHOD(TestUsesTable)
@@ -386,8 +446,6 @@ namespace UnitTesting
 			expectedVec = { "x", "t", "y", "durian", "z", "watermelon" };
 			vecToListHelper(expectedVec, expectedList);
 			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getUsedBy(6), expectedList));
-
-			PKB::destroyInstance();
 		}
 
 		TEST_METHOD(TestConstantTable)
@@ -436,8 +494,6 @@ namespace UnitTesting
 			expectedVec = { 6, 8, 9 };
 			vecToListHelper(expectedVec, expectedList);
 			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getStmtlineByConstant(2), expectedList));
-
-			PKB::destroyInstance();
 		}
 
 		TEST_METHOD(TestStatementTable)
@@ -485,8 +541,6 @@ namespace UnitTesting
 			expectedVec = { 3, 6, 8, 12 };
 			vecToListHelper(expectedVec, expectedList);
 			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getWhileList(), expectedList));
-
-			PKB::destroyInstance();
 		}
 
 	private:

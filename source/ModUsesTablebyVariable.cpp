@@ -51,7 +51,7 @@ void ModUsesTablebyVariable::addUses(string varName, int stmtNum)
 	/* if key is not found, add key-value pair into modifiesTable */
 	if (it == varUsesTable.end()) {
 		uStmtList.push_back(stmtNum);
-		varModTable.insert(pair<string, list<int>>(varName, uStmtList));
+		varUsesTable.insert(pair<string, list<int>>(varName, uStmtList));
 	}
 	else {
 		uStmtList = it->second;
@@ -67,7 +67,7 @@ bool ModUsesTablebyVariable::isValidVar(string varName)
 	unordered_map<string, list<int>>::iterator it1 = varUsesTable.find(varName);
 	unordered_map<string, list<int>>::iterator it2 = varModTable.find(varName);
 
-	if (it1 != varUsesTable.end() && it2 != varModTable.end()) {
+	if (it1 != varUsesTable.end() || it2 != varModTable.end()) {
 		return true;
 	}
 	else {
