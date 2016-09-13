@@ -1,0 +1,14 @@
+procedure ABC
+{
+	x=1;
+	b =   2;
+	y = x + i;
+	while i 
+	{
+		while   z
+		{
+			good = b2y;
+		}
+		apple = orange;
+	}
+}

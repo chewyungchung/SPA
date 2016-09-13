@@ -7,9 +7,10 @@ using namespace std;
 
 class ConstantTable {
 public:
-	void addConstant(int, int);
-	list<int> getConstantList(void);
-	list<int> getStmtlineByConstant(int); //input: constant, output: stmtline
+	ConstantTable();
+	void addConstant(int constant, int stmtline);
+	list<int> getConstantList();
+	list<int> getStmtlineByConstant(int constant); //input: constant, output: stmtline
 
 private:
 	unordered_map<int, list<int>> constantTable;

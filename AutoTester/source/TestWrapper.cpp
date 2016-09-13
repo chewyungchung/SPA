@@ -1,3 +1,4 @@
+/*
 #include "TestWrapper.h"
 #include "PKB.h"
 #include "Parser.h"
@@ -42,3 +43,4 @@ void TestWrapper::evaluate(std::string query, std::list<std::string>& results){
   // each result must be a string.
 	results = qp.getResults();
 }
+*/

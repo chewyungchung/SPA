@@ -1,0 +1,24 @@
+procedure XYZ
+{
+	x=1;
+	x=z;
+	while i 
+	{
+		apple = orange;
+		banana = pear;
+	}
+	while x
+	{
+		s = t;
+		while y
+		{
+			r = 2;
+			x = y;
+			mango = durian;
+		}
+		while z
+		{
+			papaya = watermelon;
+		}
+	}
+}
