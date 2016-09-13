@@ -19,7 +19,7 @@ namespace UnitTesting {
 	TEST_CLASS(TestQueryEvaluator) {
 		TEST_METHOD(testBasicEvaluateSelect) {
 			string query = "stmt s; assign a; while w; constant c; prog_line n; Select s"; // 1,2,3,4,5,6,7,8,9
-			Parser parser("yc_sample_src.txt");
+			Parser parser("C:\\Users\\Einlanz\\Documents\\GitSPA\\Release\\Sample-Source.txt");
 			parser.process();
 			QueryValidator qv(query);
 			QueryTable qt = qv.parse();
@@ -112,7 +112,7 @@ namespace UnitTesting {
 
 		TEST_METHOD(testEvaluateFollow) {
 			string query = "stmt s; assign a; while w; constant c; prog_line n; Select a such that Follows(1,1)";	 // false, corner case
-			Parser parser("yc_sample_src.txt");
+			Parser parser("C:\\Users\\Einlanz\\Documents\\GitSPA\\Release\\Sample-Source.txt");
 			parser.process();
 			QueryValidator qv(query);
 			QueryTable qt = qv.parse();

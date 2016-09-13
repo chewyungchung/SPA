@@ -20,30 +20,22 @@ TestWrapper::TestWrapper() {
 void TestWrapper::parse(std::string filename) {
 	// call your parser to do the parsing
   // ...rest of your code...
-	
 }
 
 // method to evaluating a query
 void TestWrapper::evaluate(std::string query, std::list<std::string>& results){
 // call your evaluator to evaluate the query here
   // ...code to evaluate query...
-	Parser p("C:\\Users\\Pheng Heong\\Downloads\\AutoTester-Aug15-VS2015\\AutoTester-Aug15-VS2015\\AutoTester\\Sample-Source2.txt");
+	Parser p("C:\\Users\\Einlanz\\Documents\\GitSPA\\Release\\Sample-Source.txt");
 	QueryValidator qv = QueryValidator(query);
 	QueryTable qt = qv.parse();
-	
-	QueryEvaluator qe = QueryEvaluator(qt, p.process());
+	cout << endl << "Query is :" << query << endl;
+	QueryEvaluator qe = QueryEvaluator(qt);
 	QueryTable evaluationResults = qe.evaluate();
-	if (bool selectResults = evaluationResults.getSelectResult().isArg1ResultEmpty()) {
-		cout << "empty, man.";
-	}
-	else {
-		cout << "Something here!";
-	}
-
-
 	QueryResultProjector qrp = QueryResultProjector(evaluationResults);
 	list<string> finalResults = qrp.getResults();
 
+	cout << "Size of final results :" << to_string(finalResults.size()) << endl;
   // store the answers to the query in the results list (it is initially empty)
   // each result must be a string.
 	for (auto& str : finalResults) {

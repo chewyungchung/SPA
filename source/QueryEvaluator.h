@@ -4,6 +4,7 @@
 #include "QueryTable.h"
 #include "QueryResult.h"
 #include "PKB.h"
+#include "Parser.h"
 #include <string>
 #include <vector>
 #include <iostream>
@@ -16,14 +17,13 @@ class QueryEvaluator {
 public:
 	QueryEvaluator();
 	~QueryEvaluator();
-	QueryEvaluator(QueryTable, PKB*);
+	QueryEvaluator(QueryTable);
 	QueryTable evaluate();
 
 private:
 	vector<string> _result;
 
 	QueryTable _qt;
-	PKB* _ptr;
 
 	QueryResult processSuchThat(Clause suchThatClause);
 	QueryResult processSelect(Clause selectClause);

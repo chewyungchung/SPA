@@ -18,20 +18,20 @@ using namespace std;
 namespace UnitTesting {
 	TEST_CLASS(TestQueryResultProjector) {
 		TEST_METHOD(testBasicQueryOutput) {
-			Parser parser("yc_sample_src.txt");
+			Parser parser("C:\\Users\\Einlanz\\Documents\\GitSPA\\Release\\Sample-Source.txt");
 			parser.process();
-			string query = "stmt s; assign a; while w; constant c; prog_line n; Select a such that Follows(2,3)"; // true 1,2,3,5,7,8,9
+			string query = "while w; Select w such that Parent(w, 5)"; // 4
 			QueryValidator qv(query);
 			QueryTable qt = qv.parse();
 			QueryEvaluator qe = QueryEvaluator(qt);
 			QueryTable results = qe.evaluate();
 			Assert::AreEqual(results.isSelectResultEmpty(), false);
-			Assert::AreEqual(results.isSuchThatResultEmpty(), true);
+			Assert::AreEqual(results.isSuchThatResultEmpty(), false);
 			Assert::AreEqual(results.isPatternResultEmpty(), true);
 			vector<string> selectResults = results.getSelectResult().getArg1ResultList();
-			Assert::AreEqual(selectResults.size(), (size_t)7);
+			Assert::AreEqual(selectResults.size(), (size_t)1);
 
-			vector<string> expectedResultList = { "1", "2", "3", "5", "7", "8", "9" };
+			vector<string> expectedResultList = { "4"};
 			vector<string>::iterator expectedResultIterator = expectedResultList.begin();
 			for (vector<string>::iterator it = selectResults.begin(); it != selectResults.end() && expectedResultIterator != expectedResultList.end(); it++) {
 				Assert::AreEqual(*it, *expectedResultIterator);
@@ -40,11 +40,39 @@ namespace UnitTesting {
 
 			QueryResultProjector qrp(results);
 			list<string> finalResults = qrp.getResults();
+
+			Assert::AreEqual(finalResults.empty(), false);
+
 			expectedResultIterator = expectedResultList.begin();
-			for (list<string>::iterator it = finalResults.begin(); it != finalResults.end(); it++) {
+			bool enterLooped = false;
+			for (list<string>::iterator it = finalResults.begin(); it != finalResults.end(); ++it) {
 				Assert::AreEqual(*it, *expectedResultIterator);
 				expectedResultIterator++;
+				enterLooped = true;
 			}
+
+			Assert::IsTrue(enterLooped);
+
+
+			query = "while w; Select w such that Parent(w, 6)"; // 4
+			qv = QueryValidator(query);
+			qt = qv.parse();
+			qe = QueryEvaluator(qt);
+			results = qe.evaluate();
+			Assert::AreEqual(results.isSelectResultEmpty(), false);
+			Assert::AreEqual(results.isSuchThatResultEmpty(), true);
+			Assert::AreEqual(results.isPatternResultEmpty(), true);
+			selectResults = results.getSelectResult().getArg1ResultList();
+			vector<string> suchThatResults = results.getSuchThatResult().getArg1ResultList();
+			Assert::AreEqual(selectResults.size(), (size_t)1);
+			Assert::AreEqual(suchThatResults.size(), (size_t)0);
+
+			qrp = QueryResultProjector(results);
+			finalResults = qrp.getResults();
+
+			Assert::AreEqual(finalResults.empty(), true);
+
+			
 		}
 	};
 }
