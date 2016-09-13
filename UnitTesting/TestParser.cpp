@@ -18,7 +18,7 @@ namespace UnitTesting
 	{
 	public:
 
-		TEST_METHOD(TestTokenizer)
+		TEST_METHOD(TestTokenizer1)
 		{
 			Tokenizer tk("SIMPLE_test_1.txt");
 			/*
@@ -56,6 +56,49 @@ namespace UnitTesting
 				string token = tk.getNextToken();
 				Assert::AreEqual(*it, token);
 			}			
+		}
+
+		TEST_METHOD(TestTokenizer2)
+		{
+			Tokenizer tk("SIMPLE_test_2.txt");
+			list<string> expectedList;
+			vector<string> expectedVec;
+			expectedVec = { 
+				"procedure", "ABC", "{", "x", "=", "1", ";", "b", "=", "2", ";", 
+				"while", "i", "{", "apple", "=", "orange", ";", "banana", "=", "pear", 
+				";", "}", "while", "x", "{", "s", "=", "t", ";", "while", "y", "{", 
+				"r", "=", "2", ";", "mango", "=", "durian", ";", "}", "while", "z", "{",
+				"papaya", "=", "watermelon", ";", "}", "}", "}" };
+			vecToListHelper(expectedVec, expectedList);
+
+			list<string>::iterator it = expectedList.begin();
+
+			for (; it != expectedList.end(); ++it) {
+				string token = tk.getNextToken();
+				Assert::AreEqual(*it, token);
+			}
+		}
+
+		TEST_METHOD(TestTokenizer3)
+		{
+			Tokenizer tk("SIMPLE_test_3.txt");
+			list<string> expectedList;
+			vector<string> expectedVec;
+			expectedVec = { 
+				"procedure", "XYZ", "{", "x", "=", "1", ";", "x", "=", "z", ";",
+				"while", "i", "{", "apple", "=", "orange", ";", "banana", "=", "pear",
+				";", "}", "while", "x", "{", "s", "=", "t", ";", "while", "y", "{", "r",
+				"=", "2", ";", "x", "=", "y", ";", "mango", "=", "durian", ";", "}", 
+				"while", "z", "{", "papaya", "=", "watermelon", ";", "}", "}", "}"
+			};
+			vecToListHelper(expectedVec, expectedList);
+
+			list<string>::iterator it = expectedList.begin();
+
+			for (; it != expectedList.end(); ++it) {
+				string token = tk.getNextToken();
+				Assert::AreEqual(*it, token);
+			}
 		}
 		
 		TEST_METHOD(TestFollowsTable)
