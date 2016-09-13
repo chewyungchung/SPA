@@ -81,8 +81,14 @@ void QueryValidator::matchDeclarationVar(string entity) {
 		throw(QueryException("Invalid Query : Unexpected synonym that begins with '" + _nextToken.getTokenName() + "'"));
 	}
 
+	// Check if synonym has already been declared
+	if (_synToEntityMap[synonym] != "") {
+		throw(QueryException("Invalid Query : Synonym '" + synonym + "' has been redeclared"));
+	}
+
 	// Update syn to entity map
 	_synToEntityMap[synonym] = entity;
+	 
 	match(synonym);
 	// Check if next token is end of declaration for this entity type
 	// If not, get more
@@ -102,6 +108,7 @@ void QueryValidator::matchSelect() {
 	// Match 'Such That' | 'Pattern'
 	while (_nextToken.getTokenName() == "such" || _nextToken.getTokenName() == "pattern") {
 		matchClause();
+		restrainCommonSynonym();
 	}
 	if (_nextToken.getTokenName() != "") {
 		throw (QueryException("Invalid Query!"));
@@ -168,6 +175,7 @@ void QueryValidator::matchPatternAssign() {
 	// Check the syn to entity map and verify if it is "assign" or not. If NOT, ERROR!!!!!!!!!!!!!!!!
 	if (_synToEntityMap[synAssign] == "assign") {
 		synAssignType = _synToEntityMap[synAssign];
+		_synToUseCountMap[synAssign] += 1;
 		match(synAssign);
 		match("(");
 		pair<int,string> arg1 = matchEntRef();
@@ -194,6 +202,7 @@ void QueryValidator::matchPatternAssign() {
 		string arg1Type, arg2Type;
 		if (arg1.first == IDENT) {
 			if (_synToEntityMap[arg1.second] != "") {
+				_synToUseCountMap[arg1.second] += 1;
 				isArg1Valid = _relTable.isArg1Valid("patternAssign", _synToEntityMap[arg1.second]);
 				arg1Type = _synToEntityMap[arg1.second];
 			}
@@ -206,9 +215,13 @@ void QueryValidator::matchPatternAssign() {
 			isArg1Valid = _relTable.isArg1Valid("patternAssign", "string");
 			arg1Type = "string";
 		}
-		if (arg2.first == IDENT || arg2.first == INTEGER) {
+		if (arg2.first == IDENT) {;
 			isArg2Valid = _relTable.isArg2Valid("patternAssign", "string");
 			arg2Type = "string";
+		}
+		else if (arg2.first == INTEGER) {
+			isArg2Valid = _relTable.isArg2Valid("patternAssign", "constant");
+			arg2Type = "constant";
 		}
 		else if (arg2.first == UNDERSCORE) {
 			isArg2Valid = _relTable.isArg2Valid("patternAssign", "_");
@@ -284,6 +297,7 @@ void QueryValidator::matchFollow() {
 
 	if (arg1.first == IDENT) {
 		if (_synToEntityMap[arg1.second] != "") {
+			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = _relTable.isArg1Valid("follows", _synToEntityMap[arg1.second]);
 			arg1Type = _synToEntityMap[arg1.second];
 		}
@@ -298,6 +312,7 @@ void QueryValidator::matchFollow() {
 	}
 	if (arg2.first == IDENT) {
 		if (_synToEntityMap[arg2.second] != "") {
+			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = _relTable.isArg2Valid("follows", _synToEntityMap[arg2.second]);
 			arg2Type = _synToEntityMap[arg2.second];
 		}
@@ -337,6 +352,7 @@ void QueryValidator::matchFollowStar() {
 
 	if (arg1.first == IDENT) {
 		if (_synToEntityMap[arg1.second] != "") {
+			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = _relTable.isArg1Valid("follows*", _synToEntityMap[arg1.second]);
 			arg1Type = _synToEntityMap[arg1.second];
 		}
@@ -351,6 +367,7 @@ void QueryValidator::matchFollowStar() {
 	}
 	if (arg2.first == IDENT) {
 		if (_synToEntityMap[arg2.second] != "") {
+			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = _relTable.isArg2Valid("follows*", _synToEntityMap[arg2.second]);
 			arg2Type = _synToEntityMap[arg2.second];
 		}
@@ -389,6 +406,7 @@ void QueryValidator::matchParent() {
 
 	if (arg1.first == IDENT) {
 		if (_synToEntityMap[arg1.second] != "") {
+			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = _relTable.isArg1Valid("parent", _synToEntityMap[arg1.second]);
 			arg1Type = _synToEntityMap[arg1.second];
 		}
@@ -403,6 +421,7 @@ void QueryValidator::matchParent() {
 	}
 	if (arg2.first == IDENT) {
 		if (_synToEntityMap[arg2.second] != "") {
+			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = _relTable.isArg2Valid("parent", _synToEntityMap[arg2.second]);
 			arg2Type = _synToEntityMap[arg2.second];
 		}
@@ -442,6 +461,7 @@ void QueryValidator::matchParentStar() {
 
 	if (arg1.first == IDENT) {
 		if (_synToEntityMap[arg1.second] != "") {
+			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = _relTable.isArg1Valid("parent*", _synToEntityMap[arg1.second]);
 			arg1Type = _synToEntityMap[arg1.second];
 		}
@@ -456,6 +476,7 @@ void QueryValidator::matchParentStar() {
 	}
 	if (arg2.first == IDENT) {
 		if (_synToEntityMap[arg2.second] != "") {
+			_synToUseCountMap[arg1.second] += 1;
 			arg2Valid = _relTable.isArg2Valid("parent*", _synToEntityMap[arg2.second]);
 			arg2Type = _synToEntityMap[arg2.second];
 		}
@@ -494,6 +515,7 @@ void QueryValidator::matchModifies() {
 
 	if (arg1.first == IDENT) {
 		if (_synToEntityMap[arg1.second] != "") {
+			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = _relTable.isArg1Valid("modifies", _synToEntityMap[arg1.second]);
 			arg1Type = _synToEntityMap[arg1.second];
 		}
@@ -508,6 +530,7 @@ void QueryValidator::matchModifies() {
 	}
 	if (arg2.first == IDENT) {
 		if (_synToEntityMap[arg2.second] != "") {
+			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = _relTable.isArg2Valid("modifies", _synToEntityMap[arg2.second]);
 			arg2Type = _synToEntityMap[arg2.second];
 		}
@@ -547,6 +570,7 @@ void QueryValidator::matchUses() {
 
 	if (arg1.first == IDENT) {
 		if (_synToEntityMap[arg1.second] != "") {
+			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = _relTable.isArg1Valid("uses", _synToEntityMap[arg1.second]);
 			arg1Type = _synToEntityMap[arg1.second];
 		}
@@ -561,6 +585,7 @@ void QueryValidator::matchUses() {
 	}
 	if (arg2.first == IDENT) {
 		if (_synToEntityMap[arg2.second] != "") {
+			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = _relTable.isArg2Valid("uses", _synToEntityMap[arg2.second]);
 			arg2Type = _synToEntityMap[arg2.second];
 		}
@@ -640,4 +665,17 @@ pair<int,string> QueryValidator::matchEntRef() {
 		throw(QueryException("Invalid Query : Unexpected token '" + _nextToken.getTokenName() + "'; Expected entRef token"));
 	}
 	return pair<int,string>(tokenType, argument);
+}
+
+void QueryValidator::restrainCommonSynonym() {
+	int commonSynCount = 0;
+	for (map<string, int>::iterator it = _synToUseCountMap.begin(); it != _synToUseCountMap.end(); it++) {
+		if (it->second >= 2) {
+			commonSynCount++;
+		}
+	}
+
+	if (commonSynCount > 1) {
+		throw(QueryException("Invalid Query : Too many common synonym"));
+	}
 }

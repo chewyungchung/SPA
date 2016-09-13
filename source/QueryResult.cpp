@@ -12,6 +12,7 @@ const string PARAM_EMPTY_STRING = "";
 // Default constructor
 QueryResult::QueryResult() {
 	_isExist = false;
+	_isNull = false;
 	_argToSynonymMapping[PARAM_ARG1] = PARAM_EMPTY_STRING;
 	_argToSynonymMapping[PARAM_ARG2] = PARAM_EMPTY_STRING;
 	_argToSynonymMapping[PARAM_PATTERN] = PARAM_EMPTY_STRING;
@@ -44,6 +45,7 @@ string QueryResult::getSynonym(string arg) {
 
 void QueryResult::setArg1ResultList(vector<string> resultList) {
 	_arg1ResultList = resultList;
+	_isNull = false;
 }
 
 void QueryResult::setArg2ResultList(vector<string> resultList) {

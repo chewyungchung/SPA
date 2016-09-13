@@ -42,6 +42,7 @@ public:
 	void matchParentStar();
 	void matchModifies();
 	void matchUses();
+	void restrainCommonSynonym();
 
 	pair<int,string> matchStmtRef();
 	pair<int,string> matchEntRef();
@@ -52,6 +53,7 @@ private:
 	QueryTokenizer _tokenizer;
 	RelationTable _relTable;
 	unordered_map<string, string> _synToEntityMap;
+	map<string, int> _synToUseCountMap;
 	string _queryString;
 
 };

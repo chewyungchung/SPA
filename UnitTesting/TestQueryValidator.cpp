@@ -560,7 +560,7 @@ namespace UnitTesting {
 			Assert::AreEqual(patternClause.getArg().at(1), (string)"10");
 			Assert::AreEqual(patternClause.getArg().at(2), (string)"a1b2c3");
 			Assert::AreEqual(patternClause.getArgType().at(0), (string)"string");
-			Assert::AreEqual(patternClause.getArgType().at(1), (string)"string");
+			Assert::AreEqual(patternClause.getArgType().at(1), (string)"constant");
 			Assert::AreEqual(patternClause.getArgType().at(2), (string)"assign");
 		}
 
@@ -587,7 +587,7 @@ namespace UnitTesting {
 			Assert::AreEqual(patternClause.getArg().at(1), (string)"10");
 			Assert::AreEqual(patternClause.getArg().at(2), (string)"a1b2c3");
 			Assert::AreEqual(patternClause.getArgType().at(0), (string)"string");
-			Assert::AreEqual(patternClause.getArgType().at(1), (string)"string");
+			Assert::AreEqual(patternClause.getArgType().at(1), (string)"constant");
 			Assert::AreEqual(patternClause.getArgType().at(2), (string)"assign");
 
 			queryString = "assign a1b2c3; variable d4; while e5; constant c6; stmt salm0n3lla; Select d4 such that Parent*(e5, salm0n3lla) pattern a1b2c3(d4,_\"on3l0ngstr1ng\"_)";
@@ -663,6 +663,27 @@ namespace UnitTesting {
 			Assert::AreEqual(qt.isNullQuery(), true);
 
 			queryString = "assign abc; while w123; Select w123 such dat pattern abc(_,_)";
+			qv = QueryValidator(queryString);
+			qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), true);
+
+			queryString = "assign a, b, a; Select a";
+			qv = QueryValidator(queryString);
+			qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), true);
+
+			queryString = "assign a, b, c; while x, y, x; Select x";
+			qv = QueryValidator(queryString);
+			qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), true);
+
+			// more than 1 common synonym
+			queryString = "assign a; stmt s; variable v; Select s such that Uses(a, v) pattern a(v,_)";
+			qv = QueryValidator(queryString);
+			qt = qv.parse();
+			Assert::AreEqual(qt.isNullQuery(), true);
+
+			queryString = "assign a, a1; stmt s; variable v; Select s such that Modifies(a1,v) pattern a1(v,_)";
 			qv = QueryValidator(queryString);
 			qt = qv.parse();
 			Assert::AreEqual(qt.isNullQuery(), true);

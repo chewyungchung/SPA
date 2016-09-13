@@ -27,14 +27,10 @@ const string PARAM_ARG2 = "ARG2";
 const string PARAM_PATTERN = "PATTERN";
 const string PARAM_BOOLEAN = "BOOLEAN";
 
-
-// Default Constructor
 QueryEvaluator::QueryEvaluator() {
-
 }
 
 QueryEvaluator::~QueryEvaluator() {
-	//delete _qt;
 }
 
 QueryEvaluator::QueryEvaluator(QueryTable qt) {
@@ -71,7 +67,6 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 		if (varList.empty()) {
 			return qr;
 		}
-		;
 		qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
 		qr.setIsExist(true);
 		for (list<string>::iterator it = varList.begin(); it != varList.end(); it++) {
@@ -79,8 +74,6 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 		}
 	}
 	else if (expectedResultType == ARGTYPE_BOOLEAN) {
-		;
-		qr.setIsExist(true);
 		qr.setArgToSynonymMapping(PARAM_ARG1, PARAM_BOOLEAN);
 		qr.setIsExist(true);
 		return qr;
@@ -90,7 +83,6 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 		if (constantList.empty()) {
 			return qr;
 		}
-		;
 		qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
 		qr.setIsExist(true);
 		for (list<int>::iterator it = constantList.begin(); it != constantList.end(); it++) {
@@ -105,7 +97,6 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 			if (expectedResultStatements.empty()) {
 				return qr;
 			}
-			;
 			qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
 			qr.setIsExist(true);
 			for (list<int>::iterator it = expectedResultStatements.begin(); it != expectedResultStatements.end(); it++) {
@@ -116,7 +107,6 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 		else {
 			// expectedResultType should be either stmt OR progline
 			int statementCount = PKB::getPKB()->getStatementCount(); // Should always be >= 1
-			;
 			qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
 			qr.setIsExist(true);
 			for (int i = 1; i <= statementCount; i++) {
@@ -130,7 +120,6 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 
 QueryResult QueryEvaluator::processSuchThat(Clause suchThatClause) {
 	string relation = suchThatClause.getRelation();
-
 	QueryResult suchThatResult;
 
 	if (relation == REL_FOLLOWS) {
@@ -162,13 +151,21 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 	string synAssign = patternClause.getArg().at(2);
 	string synAssignType = ARGTYPE_ASSIGN;
 	list<int> synAssignStatements = getList(synAssignType);
+
 	QueryResult qr;
+
+	// Check if there are any assign. If none, can return empty
+	if (synAssignStatements.empty()) {
+		return qr;
+	}
 
 	// synAssign is the synonym
 	qr.setArgToSynonymMapping(PARAM_PATTERN, synAssign);
 	if (arg1Type == ARGTYPE_STRING) {
 		// arg1 must be valid varName
-		if (!PKB::getPKB()->isValidVar(arg1)) return qr;
+		if (!PKB::getPKB()->isValidVar(arg1)) {
+			return qr;
+		}
 		if (arg2Type == ARGTYPE_ANY) {
 			// arg2 is any '_'
 			// Check if arg1 is modified by anything
@@ -176,9 +173,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 			if (arg1ModifiedBy.empty()) {
 				return qr;
 			}
-
 			// If arg1ModifiedBy (made up of assign stmts in iteration1) is non empty, add them all to pattern results
-			;
 			qr.setIsExist(true);
 			for (list<int>::iterator it = arg1ModifiedBy.begin(); it != arg1ModifiedBy.end(); it++) {
 				qr.insertPatternResult(to_string(*it));
@@ -187,6 +182,15 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 		}
 		else if (arg2Type == ARGTYPE_CONSTANT) {
 			// TO BE IMPLEMENTED
+		}
+		else {
+			// arg2Type is a string --> For now it can only be a variable
+			// Check if arg2 is a valid var
+			if (!PKB::getPKB()->isValidVar(arg2)) {
+				return qr;
+			}
+
+
 		}
 	}
 	else if (arg1Type == ARGTYPE_ANY) {
@@ -1237,7 +1241,7 @@ list<int> QueryEvaluator::getList(string argType) {
 		wantedList = PKB::getPKB()->getAssignList();
 	}
 	else if (argType == ARGTYPE_WHILE) {
-		wantedList = PKB::getPKB()->getAssignList();
+		wantedList = PKB::getPKB()->getWhileList();
 	}
 	else if (argType == ARGTYPE_STMT || argType == ARGTYPE_PROG_LINE) {
 		wantedList = PKB::getPKB()->getStmtList();

@@ -45,7 +45,7 @@ RelationTable::RelationTable() {
 
 	// Pattern for assign
 	arg1Type = { "variable", "string", "_" };
-	arg2Type = { "string", "_" };
+	arg2Type = { "string", "constant", "_" };
 	Relation patternAssign(2, arg1Type, arg2Type);
 	_relationTable["patternAssign"] = patternAssign;
 	arg1Type.clear();
