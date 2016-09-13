@@ -20,5 +20,6 @@ public:
 	list<int> getWhileList();
 	list<int> getStmtList();
 	int getStatementCount();
+	bool isValidStmt(int stmtNum);
 };
 

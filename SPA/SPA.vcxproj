@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\Clause.cpp" />
+    <ClCompile Include="..\source\ConstantTable.cpp" />
     <ClCompile Include="..\source\DesignExtractor.cpp" />
     <ClCompile Include="..\source\FollowsTable.cpp" />
     <ClCompile Include="..\source\ModUsesTablebyStmt.cpp" />
@@ -42,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\Clause.h" />
+    <ClInclude Include="..\source\ConstantTable.h" />
     <ClInclude Include="..\source\FollowsTable.h" />
     <ClInclude Include="..\source\ModUsesTablebyStmt.h" />
     <ClInclude Include="..\source\ModUsesTablebyVariable.h" />

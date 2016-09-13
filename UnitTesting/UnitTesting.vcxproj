@@ -172,6 +172,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TestAST.cpp" />
+    <ClCompile Include="TestParser.cpp" />
+    <ClCompile Include="TestPKB.cpp" />
     <ClCompile Include="TestQueryValidator.cpp">
       <DeploymentContent>true</DeploymentContent>
     </ClCompile>

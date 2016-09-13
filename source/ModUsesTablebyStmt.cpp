@@ -34,7 +34,10 @@ void ModUsesTablebyStmt::addModifies(int stmtNum, string var)
 	}
 	else {
 		mVarList = it->second;
-		mVarList.push_back(var);
+		bool found = find(mVarList.begin(), mVarList.end(), var) != mVarList.end();
+		if (!found) {
+			it->second.push_back(var);
+		}
 	}
 }
 
@@ -50,19 +53,10 @@ void ModUsesTablebyStmt::addUses(int stmtNum, string var)
 	}
 	else {
 		uVarList = it->second;
-		uVarList.push_back(var);
-	}
-}
-
-bool ModUsesTablebyStmt::isValidStmt(int stmtNum)
-{
-	unordered_map<int, list<string>>::iterator it = modifiesTable.find(stmtNum);
-
-	if (it != modifiesTable.end()) {
-		return true;
-	}
-	else {
-		return false;
+		bool found = find(uVarList.begin(), uVarList.end(), var) != uVarList.end();
+		if (!found) {
+			it->second.push_back(var);
+		}
 	}
 }
 
@@ -95,9 +89,11 @@ bool ModUsesTablebyStmt::isUsed(int stmtNum, string varName)
 list<string> ModUsesTablebyStmt::getModifiedBy(int stmtNum)
 {
 	unordered_map<int, list<string>>::iterator it = modifiesTable.find(stmtNum);
+	list<string> mVarList;
 
 	if (it != modifiesTable.end()) {
-		return modifiesTable.at(stmtNum);
+		mVarList = it->second;
+		return mVarList;
 	}
 	else {
 		return list<string>();
@@ -107,9 +103,11 @@ list<string> ModUsesTablebyStmt::getModifiedBy(int stmtNum)
 list<string> ModUsesTablebyStmt::getUsedBy(int stmtNum)
 {
 	unordered_map<int, list<string>>::iterator it = usesTable.find(stmtNum);
+	list<string> uVarList;
 
 	if (it != usesTable.end()) {
-		return usesTable.at(stmtNum);
+		uVarList = it->second;
+		return uVarList;
 	}
 	else {
 		return list<string>();
