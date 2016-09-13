@@ -27,23 +27,6 @@ namespace UnitTesting
 		TEST_METHOD(TestTokenizer1)
 		{
 			Tokenizer tk("SIMPLE_test_1.txt");
-			/*
-				procedure ABC
-				{
-			1.		x=1;
-			2.		b =   2;
-			3.		y = x + i;
-			4.		while i 
-					{
-			5.			while   z
-						{
-			6.				good = b2y;
-						}
-			7.			apple = orange;
-					}
-				}
-			*/
-			
 			list<string> expectedList;
 			vector<string> expectedVec;
 			expectedVec = { "procedure", "ABC", "{",
@@ -53,15 +36,15 @@ namespace UnitTesting
 							"while", "i", "{",
 							"while", "z", "{",
 							"good", "=", "b2y", ";", "}",
-							"apple", "=", "orange", ";", "}", "}"};
+							"apple", "=", "orange", ";", "}", "}" };
 			vecToListHelper(expectedVec, expectedList);
-			
+
 			list<string>::iterator it = expectedList.begin();
-			
+
 			for (; it != expectedList.end(); ++it) {
 				string token = tk.getNextToken();
 				Assert::AreEqual(*it, token);
-			}			
+			}
 		}
 
 		TEST_METHOD(TestTokenizer2)
@@ -69,10 +52,10 @@ namespace UnitTesting
 			Tokenizer tk("SIMPLE_test_2.txt");
 			list<string> expectedList;
 			vector<string> expectedVec;
-			expectedVec = { 
-				"procedure", "ABC", "{", "x", "=", "1", ";", "b", "=", "2", ";", 
-				"while", "i", "{", "apple", "=", "orange", ";", "banana", "=", "pear", 
-				";", "}", "while", "x", "{", "s", "=", "t", ";", "while", "y", "{", 
+			expectedVec = {
+				"procedure", "ABC", "{", "x", "=", "1", ";", "b", "=", "2", ";",
+				"while", "i", "{", "apple", "=", "orange", ";", "banana", "=", "pear",
+				";", "}", "while", "x", "{", "s", "=", "t", ";", "while", "y", "{",
 				"r", "=", "2", ";", "mango", "=", "durian", ";", "}", "while", "z", "{",
 				"papaya", "=", "watermelon", ";", "}", "}", "}" };
 			vecToListHelper(expectedVec, expectedList);
@@ -90,11 +73,11 @@ namespace UnitTesting
 			Tokenizer tk("SIMPLE_test_3.txt");
 			list<string> expectedList;
 			vector<string> expectedVec;
-			expectedVec = { 
+			expectedVec = {
 				"procedure", "XYZ", "{", "x", "=", "1", ";", "x", "=", "z", ";",
 				"while", "i", "{", "apple", "=", "orange", ";", "banana", "=", "pear",
 				";", "}", "while", "x", "{", "s", "=", "t", ";", "while", "y", "{", "r",
-				"=", "2", ";", "x", "=", "y", ";", "mango", "=", "durian", ";", "}", 
+				"=", "2", ";", "x", "=", "y", ";", "mango", "=", "durian", ";", "}",
 				"while", "z", "{", "papaya", "=", "watermelon", ";", "}", "}", "}"
 			};
 			vecToListHelper(expectedVec, expectedList);
@@ -106,7 +89,7 @@ namespace UnitTesting
 				Assert::AreEqual(*it, token);
 			}
 		}
-		
+
 		TEST_METHOD(TestFollowsTable)
 		{
 			// Test if FollowsTable is empty before being populated
@@ -159,14 +142,14 @@ namespace UnitTesting
 			list<int> expectedList;
 			vector<int> expectedVec;
 
-			 //Follows(_, x), where x is first statement in each nesting level
-			 //Should return NO_STMT
+			//Follows(_, x), where x is first statement in each nesting level
+			//Should return NO_STMT
 			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollowedFrom(1));
 			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollowedFrom(4));
 			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollowedFrom(7));
 			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollowedFrom(9));
 			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollowedFrom(12));
-			
+
 			// Follows(x, _) where x is last statement in each nesting level
 			// Should return NO_STMT
 			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollower(6));
@@ -317,7 +300,7 @@ namespace UnitTesting
 				{
 			1		x=1;
 			2		x=z;
-			3		while i 
+			3		while i
 					{
 			4			apple = orange;
 			5			banana = pear;
@@ -390,7 +373,7 @@ namespace UnitTesting
 				{
 			1		x=1;
 			2		x=z;
-			3		while i 
+			3		while i
 					{
 			4			apple = orange;
 			5			banana = pear;
@@ -448,37 +431,10 @@ namespace UnitTesting
 			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getUsedBy(6), expectedList));
 		}
 
-		TEST_METHOD(TestConstantTable)
+		TEST_METHOD(TestConstantTable1)
 		{
-			Parser p("SIMPLE_test_3.txt");
+			Parser p("SIMPLE_test_1.txt");
 			p.process();
-			/*
-				procedure XYZ
-				{
-			1		x=1;
-			2		x=z;
-			3		while i
-					{
-			4			apple = orange;
-			5			banana = pear;
-					}
-			6		while x
-					{
-			7			s = t;
-			8			while y
-						{
-			9				r = 2;
-			10				x = y
-			11				mango = durian;
-						}
-			12			while z
-						{
-			13				papaya = watermelon;
-						}
-					}
-				}
-			*/
-
 			list<int> expectedList;
 			vector<int> expectedVec;
 			/* Correct Uses relationships (constant not in containers) */
@@ -491,9 +447,66 @@ namespace UnitTesting
 			/* Correct Uses relationships (constant in containers) */
 			// Uses(6, "2"), Uses(8, "2"), Uses(9, "2") -- TRUE
 			clearVector(expectedVec);
-			expectedVec = { 6, 8, 9 };
+			expectedVec = { 2 };
 			vecToListHelper(expectedVec, expectedList);
 			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getStmtlineByConstant(2), expectedList));
+
+			clearVector(expectedVec);
+			expectedVec = { 1,2 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getConstantList(), expectedList));
+		}
+
+		TEST_METHOD(TestConstantTable2)
+		{
+			Parser p("SIMPLE_test_2.txt");
+			p.process();
+			list<int> expectedList;
+			vector<int> expectedVec;
+			/* Correct Uses relationships (constant not in containers) */
+			// Uses(1, "1") -- TRUE
+			clearVector(expectedVec);
+			expectedVec = { 1 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getStmtlineByConstant(1), expectedList));
+
+			/* Correct Uses relationships (constant in containers) */
+			// Uses(6, "2"), Uses(8, "2"), Uses(9, "2") -- TRUE
+			clearVector(expectedVec);
+			expectedVec = { 2,6,8,9 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getStmtlineByConstant(2), expectedList));
+
+			clearVector(expectedVec);
+			expectedVec = { 1,2 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getConstantList(), expectedList));
+		}
+
+		TEST_METHOD(TestConstantTable3)
+		{
+			Parser p("SIMPLE_test_3.txt");
+			p.process();
+			list<int> expectedList;
+			vector<int> expectedVec;
+			/* Correct Uses relationships (constant not in containers) */
+			// Uses(1, "1") -- TRUE
+			clearVector(expectedVec);
+			expectedVec = { 1 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getStmtlineByConstant(1), expectedList));
+
+			/* Correct Uses relationships (constant in containers) */
+			// Uses(6, "2"), Uses(8, "2"), Uses(9, "2") -- TRUE
+			clearVector(expectedVec);
+			expectedVec = { 6,8,9 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getStmtlineByConstant(2), expectedList));
+
+			clearVector(expectedVec);
+			expectedVec = { 1,2 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(PKB::getPKB()->getConstantList(), expectedList));
 		}
 
 		TEST_METHOD(TestStatementTable)
@@ -595,7 +608,7 @@ namespace UnitTesting
 		{
 			vector<int>().swap(v);
 		}
-				
+
 		void vecToListHelper(vector<string> v, list<string> & s)
 		{
 			s.clear();
