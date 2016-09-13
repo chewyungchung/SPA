@@ -55,44 +55,58 @@ namespace UnitTesting
 			for (; it != expectedList.end(); ++it) {
 				string token = tk.getNextToken();
 				Assert::AreEqual(*it, token);
-			}
+			}			
 		}
 		
-		//TEST_METHOD(TestFollowsTable)
-		//{
-		//	Parser p("SIMPLE_test_2.txt");
-		//	p.process();
-		//	/*
-		//		procedure ABC
-		//		{
-		//	1		x = 1;
-		//	2		b = 2;
-		//	3		while i
-		//			{
-		//	4			apple = orange;
-		//	5			banana = pear;
-		//			}
-		//	6		while x
-		//			{
-		//	7			s = t;
-		//	8			while y
-		//				{
-		//	9				r = 2;
-		//	10				mango = durian;
-		//				}
-		//	11			while z
-		//				{
-		//	12				papaya = watermelon;
-		//				}
-		//			}
-		//		}
-		//	*/
-		//	
-		//	const int NO_STMT = -1;
-		//	const int FALSE = -1;
+		TEST_METHOD(TestFollowsTable)
+		{
+			//Parser p("SIMPLE_test_2.txt");
+			//p.process();
+			/*
+				procedure ABC
+				{
+			1		x = 1;
+			2		b = 2;
+			3		while i
+					{
+			4			apple = orange;
+			5			banana = pear;
+					}
+			6		while x
+					{
+			7			s = t;
+			8			while y
+						{
+			9				r = 2;
+			10				mango = durian;
+						}
+			11			while z
+						{
+			12				papaya = watermelon;
+						}
+					}
+				}
+			*/
 
-			// Follows(_, x), where x is first statement in each nesting level
-			// Should return NO_STMT
+			// Hand-evaluate the nesting level
+			PKB::getPKB()->addFollows(1, 1);
+			PKB::getPKB()->addFollows(2, 1);
+			PKB::getPKB()->addFollows(3, 1);
+			PKB::getPKB()->addFollows(4, 2);
+			PKB::getPKB()->addFollows(5, 2);
+			PKB::getPKB()->addFollows(6, 1);
+			PKB::getPKB()->addFollows(7, 3);
+			PKB::getPKB()->addFollows(8, 3);
+			PKB::getPKB()->addFollows(9, 4);
+			PKB::getPKB()->addFollows(10, 4);
+			PKB::getPKB()->addFollows(11, 3);
+			PKB::getPKB()->addFollows(12, 5);
+			
+			const int NO_STMT = -1;
+			const int FALSE = -1;
+
+			// //Follows(_, x), where x is first statement in each nesting level
+			// //Should return NO_STMT
 			//Assert::AreEqual(PKB::getPKB()->getFollowedFrom(1), NO_STMT);
 			//Assert::AreEqual(PKB::getPKB()->getFollowedFrom(4), NO_STMT);
 			//Assert::AreEqual(PKB::getPKB()->getFollowedFrom(7), NO_STMT);
@@ -108,7 +122,7 @@ namespace UnitTesting
 			//Assert::AreEqual(PKB::getPKB()->getFollower(12), NO_STMT);
 
 			//// Correct Follows relationships
-			//Assert::AreEqual(PKB::getPKB()->getFollower(1), 2);
+			Assert::AreEqual(2, PKB::getPKB()->getFollower(1));
 			//Assert::AreEqual(PKB::getPKB()->getFollower(2), 3);
 			//Assert::AreEqual(PKB::getPKB()->getFollower(3), 6);
 			//Assert::AreEqual(PKB::getPKB()->getFollower(4), 5);
@@ -126,7 +140,9 @@ namespace UnitTesting
 			//// Incorrect Follows relationships (different nesting level)
 			//Assert::AreNotEqual(PKB::getPKB()->getFollower(3), 4);
 			//Assert::AreNotEqual(PKB::getPKB()->getFollower(5), 7);
-		//}
+
+			PKB::destroyInstance();
+		}
 
 		//TEST_METHOD(TestParentTable)
 		//{
