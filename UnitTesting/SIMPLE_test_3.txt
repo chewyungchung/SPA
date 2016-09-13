@@ -13,7 +13,7 @@ procedure XYZ
 		while y
 		{
 			r = 2;
-			x = y
+			x = y;
 			mango = durian;
 		}
 		while z
