@@ -306,6 +306,65 @@ namespace UnitTesting
 			// (not direct parent, i.e. Parent* holds but not Parent)
 			Assert::AreNotEqual(PKB::getPKB()->getParentOf(10), 6);
 			Assert::AreNotEqual(PKB::getPKB()->getParentOf(12), 6);
+
+			// Parent*
+			list<int> expected1 = list<int>();
+			expected1.push_back(8);
+			expected1.push_back(6);
+			list<int> actual1 = PKB::getPKB()->getParentStar(9);
+			bool found, areSameSize;
+			for (auto& itValue : actual1) {
+				found = (find(expected1.begin(), expected1.end(), itValue) != expected1.end());
+				Assert::IsTrue(found);
+			}
+			areSameSize = (expected1.size() == actual1.size());
+			Assert::IsTrue(areSameSize);
+
+			// Parent* : parent does not exist
+			list<int> expected2 = list<int>();
+			list<int> actual2 = PKB::getPKB()->getParentStar(1);
+			bool areZeroSize = (expected2.size() == actual2.size());
+			Assert::IsTrue(areZeroSize);
+
+			// Parent* : Out of range
+			list<int> actual3 = PKB::getPKB()->getParentStar(9999);
+			areZeroSize = (expected2.size() == actual3.size());
+			Assert::IsTrue(areZeroSize);
+
+			// isParentOf...
+			Assert::IsTrue(PKB::getPKB()->isParentOf(3, 4)); // legit parent
+			Assert::IsFalse(PKB::getPKB()->isParentOf(6, 10)); // isParentStar but is not parent
+			Assert::IsFalse(PKB::getPKB()->isParentOf(4, 6)); // wrong order of parent-child arguments
+
+			// ... and isParentStar
+			Assert::IsTrue(PKB::getPKB()->isParentStar(6, 10)); // legit parent*
+			Assert::IsFalse(PKB::getPKB()->isParentStar(5, 10));
+			Assert::IsFalse(PKB::getPKB()->isParentStar(9999, 10)); // out of range, and parent-child argument order is reversed
+			Assert::IsFalse(PKB::getPKB()->isParentStar(NO_PARENT, 1)); // grey-box testing. this is a contract.
+
+			// getChildrenOf : out of range
+			list<int> actual4 = PKB::getPKB()->getChildrenOf(-1);
+			areZeroSize = (expected2.size() == actual4.size());
+			Assert::IsTrue(areZeroSize);
+
+			// getChildrenOf : legit parent
+			list<int> expected3 = list<int>();
+			expected3.push_back(11);			
+			expected3.push_back(8);
+			expected3.push_back(7);
+			list<int> actual5 = PKB::getPKB()->getChildrenOf(6);
+			for (auto& itValue : actual5) {
+				found = (find(expected3.begin(), expected3.end(), itValue) != expected3.end());
+				Assert::IsTrue(found);
+			}
+			areSameSize = (expected3.size() == actual5.size());
+			Assert::IsTrue(areSameSize);
+
+
+			// is empty?
+			Assert::IsFalse(PKB::getPKB()->isParentEmpty());
+			PKB::destroyInstance();
+			Assert::IsTrue(PKB::getPKB()->isParentEmpty());
 		}
 
 		TEST_METHOD(TestModifiesTable)
