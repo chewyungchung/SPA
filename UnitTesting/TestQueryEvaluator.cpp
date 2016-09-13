@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
+#include "Parser.h"
 #include "QueryValidator.h"
+#include "QueryEvaluator.h"
+#include "QueryResultProjector.h"
 #include "QueryTokenizer.h"
 #include "QueryToken.h"
 #include "QueryTable.h"
@@ -16,15 +19,127 @@ namespace UnitTesting {
 	TEST_CLASS(TestQueryEvaluator) {
 		TEST_METHOD(testBasicEvaluateSelect) {
 			string query = "stmt s; assign a; while w; constant c; prog_line n; Select s"; // 1,2,3,4,5,6,7,8,9
+			Parser parser("yc_sample_src.txt");
+			parser.process();
+			QueryValidator qv(query);
+			QueryTable qt = qv.parse();
+			QueryEvaluator qe(qt);
+			QueryTable results = qe.evaluate();
+			Assert::AreEqual(results.isSelectResultEmpty(), false);
+			Assert::AreEqual(results.isSuchThatResultEmpty(), true);
+			Assert::AreEqual(results.isPatternResultEmpty(), true);
+			vector<string> selectResults = results.getSelectResult().getArg1ResultList();
+			Assert::AreEqual(selectResults.size(), (size_t)9);
+			
+			vector<string> expectedResultList({ "1", "2", "3", "4", "5", "6", "7", "8", "9" });
+			vector<string>::iterator expectedResultIterator = expectedResultList.begin();
+			for (vector<string>::iterator it = selectResults.begin(); it != selectResults.end() && expectedResultIterator != expectedResultList.end(); it++) {
+				Assert::AreEqual(*it, *expectedResultIterator);
+				expectedResultIterator++;
+			}
+
 			query = "stmt s; assign a; while w; constant c; prog_line n; Select a"; // 1,2,3,5,7,8,9
+			qv = QueryValidator(query);
+			qt = qv.parse();
+			qe = QueryEvaluator(qt);
+			results = qe.evaluate();
+			Assert::AreEqual(results.isSelectResultEmpty(), false);
+			Assert::AreEqual(results.isSuchThatResultEmpty(), true);
+			Assert::AreEqual(results.isPatternResultEmpty(), true);
+			selectResults = results.getSelectResult().getArg1ResultList();
+			Assert::AreEqual(selectResults.size(), (size_t)7);
+
+			expectedResultList = { "1", "2", "3", "5", "7", "8", "9"};
+			expectedResultIterator = expectedResultList.begin();
+			for (vector<string>::iterator it = selectResults.begin(); it != selectResults.end() && expectedResultIterator != expectedResultList.end(); it++) {
+				Assert::AreEqual(*it, *expectedResultIterator);
+				expectedResultIterator++;
+			}
+
 			query = "stmt s; assign a; while w; constant c; prog_line n; Select w"; // 4,6
+			qv = QueryValidator(query);
+			qt = qv.parse();
+			qe = QueryEvaluator(qt);
+			results = qe.evaluate();
+			Assert::AreEqual(results.isSelectResultEmpty(), false);
+			Assert::AreEqual(results.isSuchThatResultEmpty(), true);
+			Assert::AreEqual(results.isPatternResultEmpty(), true);
+			selectResults = results.getSelectResult().getArg1ResultList();
+			Assert::AreEqual(selectResults.size(), (size_t)2);
+
+			expectedResultList = { "4", "6" };
+			expectedResultIterator = expectedResultList.begin();
+			for (vector<string>::iterator it = selectResults.begin(); it != selectResults.end() && expectedResultIterator != expectedResultList.end(); it++) {
+				Assert::AreEqual(*it, *expectedResultIterator);
+				expectedResultIterator++;
+			}
 			query = "stmt s; assign a; while w; constant c; prog_line n; Select c"; // 1,2,3,4,5,6,7
+			qv = QueryValidator(query);
+			qt = qv.parse();
+			qe = QueryEvaluator(qt);
+			results = qe.evaluate();
+			Assert::AreEqual(results.isSelectResultEmpty(), false);
+			Assert::AreEqual(results.isSuchThatResultEmpty(), true);
+			Assert::AreEqual(results.isPatternResultEmpty(), true);
+			selectResults = results.getSelectResult().getArg1ResultList();
+			Assert::AreEqual(selectResults.size(), (size_t)7);
+
+			expectedResultList = { "1", "2", "3", "4", "5", "6", "7" };
+			expectedResultIterator = expectedResultList.begin();
+			for (vector<string>::iterator it = selectResults.begin(); it != selectResults.end() && expectedResultIterator != expectedResultList.end(); it++) {
+				Assert::AreEqual(*it, *expectedResultIterator);
+				expectedResultIterator++;
+			}
+
 			query = "stmt s; assign a; while w; constant c; prog_line n; Select n"; // 1,2,3,4,5,6,7,8,9
+			qv = QueryValidator(query);
+			qt = qv.parse();
+			qe = QueryEvaluator(qt);
+			results = qe.evaluate();
+			Assert::AreEqual(results.isSelectResultEmpty(), false);
+			Assert::AreEqual(results.isSuchThatResultEmpty(), true);
+			Assert::AreEqual(results.isPatternResultEmpty(), true);
+			selectResults = results.getSelectResult().getArg1ResultList();
+			Assert::AreEqual(selectResults.size(), (size_t)9);
+
+			expectedResultList = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+			expectedResultIterator = expectedResultList.begin();
+			for (vector<string>::iterator it = selectResults.begin(); it != selectResults.end() && expectedResultIterator != expectedResultList.end(); it++) {
+				Assert::AreEqual(*it, *expectedResultIterator);
+				expectedResultIterator++;
+			}
 		}
 
 		TEST_METHOD(testEvaluateFollow) {
-			string query = "stmt s; assign a; while w; constant c; prog_line n; Select s";
-			query = "stmt s; assign a; while w; constant c; prog_line n; Select a such that Follows(1,1)";	 // false, corner case
+			string query = "stmt s; assign a; while w; constant c; prog_line n; Select a such that Follows(1,1)";	 // false, corner case
+			Parser parser("yc_sample_src.txt");
+			parser.process();
+			QueryValidator qv(query);
+			QueryTable qt = qv.parse();
+			QueryEvaluator qe(qt);
+			QueryTable results = qe.evaluate();
+			Assert::AreEqual(results.isSelectResultEmpty(), true);
+			Assert::AreEqual(results.isSuchThatResultEmpty(), true);
+			Assert::AreEqual(results.isPatternResultEmpty(), true);
+
+			query = "stmt s; assign a; while w; constant c; prog_line n; Select a such that Follows(2,3)"; // true 1,2,3,5,7,8,9
+			qv = QueryValidator(query);
+			qt = qv.parse();
+			qe = QueryEvaluator(qt);
+			results = qe.evaluate();
+			Assert::AreEqual(results.isSelectResultEmpty(), false);
+			Assert::AreEqual(results.isSuchThatResultEmpty(), true);
+			Assert::AreEqual(results.isPatternResultEmpty(), true);
+			vector<string> selectResults = results.getSelectResult().getArg1ResultList();
+			Assert::AreEqual(selectResults.size(), (size_t)7);
+
+			vector<string> expectedResultList = { "1", "2", "3", "5", "7", "8", "9" };
+			vector<string>::iterator expectedResultIterator = expectedResultList.begin();
+			for (vector<string>::iterator it = selectResults.begin(); it != selectResults.end() && expectedResultIterator != expectedResultList.end(); it++) {
+				Assert::AreEqual(*it, *expectedResultIterator);
+				expectedResultIterator++;
+			}
+			/*
 			query = "stmt s; assign a; while w; constant c; prog_line n; Select a such that Follows(2,3)";   // true
 			query = "stmt s; assign a; while w; constant c; prog_line n; Select w such that Follows(1,3)";   // false
 			query = "stmt s; assign a; while w; constant c; prog_line n; Select w such that Follows(8,9)";   // true, boundary
@@ -46,6 +161,7 @@ namespace UnitTesting {
 			query = "stmt s; assign a; while w; constant c; prog_line n; Select s such that Follows(9,s)";	 // false, nothing follow last
 			query = "stmt s; assign a; while w; constant c; prog_line n; Select s such that Follows(s,s)";	 // false, corner case
 			query = "stmt s; assign a; while w; constant c; prog_line n; Select s such that Follows(2,3)";	 // 
+			*/
 		}
 
 		TEST_METHOD(testEvaluateFollowStar) {

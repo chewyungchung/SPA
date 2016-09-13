@@ -27,8 +27,6 @@ public:
 	QueryResult getSuchThatResult();
 	QueryResult getPatternResult();
 
-	bool isSuchThatAvail();
-	bool isPatternAvail();
 	bool isSelectResultEmpty();
 	bool isSuchThatResultEmpty();
 	bool isPatternResultEmpty();
@@ -57,7 +55,5 @@ private:
 	QueryResult _suchThatResult;
 	QueryResult _patternResult;
 
-	bool _isSuchThatAvail;
-	bool _isPatternAvail;
 	bool _isNull;
 };

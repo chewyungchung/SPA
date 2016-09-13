@@ -44,9 +44,15 @@ QueryTable QueryEvaluator::evaluate() {
 	}
 
 	// Process all such that and pattern clause, and finally select clause
-	_qt.setSuchThatResult(processSuchThat(_qt.getSuchThatClause())); 
-	_qt.setPatternResult(processPattern(_qt.getPatternClause()));
-	_qt.setSelectResult(processSelect(_qt.getSelectClause()));
+	if (_qt.getSuchThatClause().isClauseNull() == false) {
+		_qt.setSuchThatResult(processSuchThat(_qt.getSuchThatClause()));
+	}
+	if (_qt.getPatternClause().isClauseNull() == false) {
+		_qt.setPatternResult(processPattern(_qt.getPatternClause()));
+	}
+	if (_qt.getSelectClause().isClauseNull() == false) {
+		_qt.setSelectResult(processSelect(_qt.getSelectClause()));
+	}
 	return _qt;
 }
 
@@ -221,7 +227,12 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_CONSTANT) {
-			// TO BE IMPLEMENTED ONCE CONSTANT TABLE MERGED
+			// Need to get all the statements with constant
+			list<int> stmtWithConstants = PKB::getPKB()->getStmtlineByConstant(stoi(arg2));
+			if (!stmtWithConstants.empty()) {
+				qr.setIsExist(true);
+			}
+			return qr;
 		}
 		else {
 			// arg2Type is a string --> For now it can only be a variable
@@ -271,7 +282,35 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_CONSTANT) {
-			// TO BE IMPLEMENTED
+			list<int> stmtlineByConstantList = PKB::getPKB()->getStmtlineByConstant(stoi(arg2));
+			if (stmtlineByConstantList.empty()) {
+				return qr;
+			}
+
+			// For each variable, get the list of statements that modifies them. Then check
+			for (list<string>::iterator it1 = varList.begin(); it1 != varList.end(); it1++) {
+				bool firstNestValid = false;
+				list<int> arg1ModifiedBy = PKB::getPKB()->getModifiedBy(*it1);
+				if (!arg1ModifiedBy.empty()) {
+					// For each statement that modified each variable, check if they are equal to any of the statement that contain the constant arg2
+					for (list<int>::iterator it2 = arg1ModifiedBy.begin(); it2 != arg1ModifiedBy.end(); it2++) {
+						bool secondNestValid = false;
+						for (list<int>::iterator it3 = stmtlineByConstantList.begin(); it3 != stmtlineByConstantList.end(); it3++) {
+							if (*it2 == *it3) {
+								firstNestValid = true;
+								secondNestValid = true;
+								break;
+							}
+						}
+						if (secondNestValid) {
+							qr.insertPatternResult(to_string(*it2));
+						}
+					}
+					if (firstNestValid) {
+						qr.insertArg1Result(*it1);
+					}
+				}
+			}
 		}
 		else {
 			// arg2Type is a string --> For now it can only be a variable
@@ -300,7 +339,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 					}
 				}
 			}
-			return;
+			return qr;
 		}
 	}
 	return qr;

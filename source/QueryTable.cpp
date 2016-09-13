@@ -24,13 +24,6 @@ QueryTable::QueryTable(Clause selectClause, Clause suchThatClause, Clause patter
 
 // Destructor
 QueryTable::~QueryTable() {
-	// Free all pointers
-	/*delete _selectClause;
-	delete _suchThatClause;
-	delete _patternClause;
-	delete _selectResult;
-	delete _suchThatResult;
-	delete _patternResult;*/
 }
 
 Clause QueryTable::getSelectClause()
@@ -73,80 +66,31 @@ string QueryTable::getSynType(string syn)
 	return "NO HAVE";
 }
 
-bool QueryTable::isSuchThatAvail() {
-	/*if (_suchThatClause != NULL) {
-		return true;
-	}
-	else {
-		return false;
-	}*/
-	return true;
-}
-
-bool QueryTable::isPatternAvail() {
-	/*if (_patternClause != NULL) {
-		return true;
-	}
-	else {
-		return false;
-	}*/
-	return true;
-}
-
 bool QueryTable::isSelectResultEmpty() {
-	/*if (_selectResult != NULL) {
-		return true;
-	}
-	else {
-		return false;
-	}*/
-	/*
-	if (!(_selectResult->isArg1ResultEmpty()) && !(_selectResult->isArg2ResultEmpty())) {
+	if (_selectResult.isArg1ResultEmpty() && _selectResult.isArg2ResultEmpty()) {
 		return true;
 	}
 	else {
 		return false;
 	}
-	*/
-	return true;
 }
 
-bool QueryTable::isSuchThatResultEmpty()
-{
-	/*if (_suchThatResult != NULL) {
-		return true;
-	}
-	else {
-		return false;
-	}*/
-	/*
-	if (!_suchThatResult->isArg1ResultEmpty() && !_suchThatResult->isArg2ResultEmpty()) {
+bool QueryTable::isSuchThatResultEmpty(){
+	if (_suchThatResult.isArg1ResultEmpty() && _suchThatResult.isArg2ResultEmpty()) {
 		return true;
 	}
 	else {
 		return false;
 	}
-	*/
-	return true;
 }
 
-bool QueryTable::isPatternResultEmpty()
-{
-	/*if (_patternResult != NULL) {
-		return true;
-	}
-	else {
-		return false;
-	}*/
-	/*
-	if (!_patternResult->isArg1ResultEmpty() && !_patternResult->isArg2ResultEmpty()) {
+bool QueryTable::isPatternResultEmpty(){
+	if (_patternResult.isArg1ResultEmpty() && _patternResult.isArg2ResultEmpty()) {
 		return true;
 	}
 	else {
 		return false;
 	}
-	*/
-	return true;
 }
 
 bool QueryTable::isNullQuery() {
@@ -184,14 +128,4 @@ void QueryTable::setSuchThatResult(QueryResult suchThatResult)
 void QueryTable::setPatternResult(QueryResult patternResult)
 {
 	_patternResult = patternResult;
-}
-
-void QueryTable::setIsSuchThatAvail(bool val) 
-{
-	_isSuchThatAvail = val;
-}
-
-void QueryTable::setIsPatternAvail(bool val) 
-{
-	_isPatternAvail = val;
 }

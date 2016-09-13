@@ -45,7 +45,6 @@ string QueryResult::getSynonym(string arg) {
 
 void QueryResult::setArg1ResultList(vector<string> resultList) {
 	_arg1ResultList = resultList;
-	_isNull = false;
 }
 
 void QueryResult::setArg2ResultList(vector<string> resultList) {
