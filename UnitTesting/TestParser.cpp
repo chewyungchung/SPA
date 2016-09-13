@@ -60,8 +60,8 @@ namespace UnitTesting
 		
 		TEST_METHOD(TestFollowsTable)
 		{
-			//Parser p("SIMPLE_test_2.txt");
-			//p.process();
+			Parser p("SIMPLE_test_2.txt");
+			p.process();
 			/*
 				procedure ABC
 				{
@@ -88,6 +88,7 @@ namespace UnitTesting
 				}
 			*/
 
+			/*
 			// Hand-evaluate the nesting level
 			PKB::getPKB()->addFollows(1, 1);
 			PKB::getPKB()->addFollows(2, 1);
@@ -101,45 +102,45 @@ namespace UnitTesting
 			PKB::getPKB()->addFollows(10, 4);
 			PKB::getPKB()->addFollows(11, 3);
 			PKB::getPKB()->addFollows(12, 5);
-			
+			*/
 			const int NO_STMT = -1;
 			const int FALSE = -1;
 
-			// //Follows(_, x), where x is first statement in each nesting level
-			// //Should return NO_STMT
-			//Assert::AreEqual(PKB::getPKB()->getFollowedFrom(1), NO_STMT);
-			//Assert::AreEqual(PKB::getPKB()->getFollowedFrom(4), NO_STMT);
-			//Assert::AreEqual(PKB::getPKB()->getFollowedFrom(7), NO_STMT);
-			//Assert::AreEqual(PKB::getPKB()->getFollowedFrom(9), NO_STMT);
-			//Assert::AreEqual(PKB::getPKB()->getFollowedFrom(12), NO_STMT);
+			 //Follows(_, x), where x is first statement in each nesting level
+			 //Should return NO_STMT
+			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollowedFrom(1));
+			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollowedFrom(4));
+			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollowedFrom(7));
+			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollowedFrom(9));
+			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollowedFrom(12));
+			
+			// Follows(x, _) where x is last statement in each nesting level
+			// Should return NO_STMT
+			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollower(6));
+			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollower(5));
+			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollower(11));
+			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollower(10));
+			Assert::AreEqual(NO_STMT, PKB::getPKB()->getFollower(12));
 
-			//// Follows(x, _) where x is last statement in each nesting level
-			//// Should return NO_STMT
-			//Assert::AreEqual(PKB::getPKB()->getFollower(6), NO_STMT);
-			//Assert::AreEqual(PKB::getPKB()->getFollower(5), NO_STMT);
-			//Assert::AreEqual(PKB::getPKB()->getFollower(11), NO_STMT);
-			//Assert::AreEqual(PKB::getPKB()->getFollower(10), NO_STMT);
-			//Assert::AreEqual(PKB::getPKB()->getFollower(12), NO_STMT);
-
-			//// Correct Follows relationships
+			// Correct Follows relationships
 			Assert::AreEqual(2, PKB::getPKB()->getFollower(1));
-			//Assert::AreEqual(PKB::getPKB()->getFollower(2), 3);
-			//Assert::AreEqual(PKB::getPKB()->getFollower(3), 6);
-			//Assert::AreEqual(PKB::getPKB()->getFollower(4), 5);
-			//Assert::AreEqual(PKB::getPKB()->getFollower(8), 11);
-			//Assert::AreEqual(PKB::getPKB()->getFollower(9), 10);
+			Assert::AreEqual(3, PKB::getPKB()->getFollower(2));
+			Assert::AreEqual(6, PKB::getPKB()->getFollower(3));
+			Assert::AreEqual(5, PKB::getPKB()->getFollower(4));
+			Assert::AreEqual(11, PKB::getPKB()->getFollower(8));
+			Assert::AreEqual(10, PKB::getPKB()->getFollower(9));
 
-			//// Incorrect Follows relationships (same nesting level, not in sequence)
-			//Assert::AreNotEqual(PKB::getPKB()->getFollower(1), 3);
-			//Assert::AreNotEqual(PKB::getPKB()->getFollower(7), 11);
+			// Incorrect Follows relationships (same nesting level, not in sequence)
+			Assert::AreNotEqual(3, PKB::getPKB()->getFollower(1));
+			Assert::AreNotEqual(11, PKB::getPKB()->getFollower(7));
 
-			//// Incorrect Follows relationships (same nesting level, wrong order)
-			//Assert::AreNotEqual(PKB::getPKB()->getFollower(2), 1);
-			//Assert::AreNotEqual(PKB::getPKB()->getFollower(11), 8);
+			// Incorrect Follows relationships (same nesting level, wrong order)
+			Assert::AreNotEqual(1, PKB::getPKB()->getFollower(2));
+			Assert::AreNotEqual(8, PKB::getPKB()->getFollower(11));
 
-			//// Incorrect Follows relationships (different nesting level)
-			//Assert::AreNotEqual(PKB::getPKB()->getFollower(3), 4);
-			//Assert::AreNotEqual(PKB::getPKB()->getFollower(5), 7);
+			// Incorrect Follows relationships (different nesting level)
+			Assert::AreNotEqual(4, PKB::getPKB()->getFollower(3));
+			Assert::AreNotEqual(7, PKB::getPKB()->getFollower(5));
 
 			PKB::destroyInstance();
 		}
