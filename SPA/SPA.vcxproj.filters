@@ -120,6 +120,7 @@
     <ClCompile Include="..\source\ConstantTable.cpp">
       <Filter>Source Files\PKB</Filter>
     </ClCompile>
+
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\Clause.h">
@@ -185,5 +186,6 @@
     <ClInclude Include="..\source\ConstantTable.h">
       <Filter>Header Files\PKB</Filter>
     </ClInclude>
+
   </ItemGroup>
 </Project>

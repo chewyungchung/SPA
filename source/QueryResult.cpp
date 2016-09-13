@@ -116,3 +116,7 @@ bool QueryResult::isArg2ResultEmpty() {
 bool QueryResult::isPatternResultEmpty() {
 	return _patternResultList.empty();
 }
+
+bool QueryResult::isResultNull() {
+	return _isNull;
+}
