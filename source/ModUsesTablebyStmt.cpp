@@ -60,19 +60,6 @@ void ModUsesTablebyStmt::addUses(int stmtNum, string var)
 	}
 }
 
-
-bool ModUsesTablebyStmt::isValidStmt(int stmtNum)
-{
-	unordered_map<int, list<string>>::iterator it = modifiesTable.find(stmtNum);
-
-	if (it != modifiesTable.end()) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
 bool ModUsesTablebyStmt::isModified(int stmtNum, string varName)
 {
 	unordered_map<int, list<string>>::iterator it = modifiesTable.find(stmtNum);

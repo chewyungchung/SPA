@@ -19,7 +19,6 @@ public:
 	unordered_map<int, list<string>> getUsesTable();
 	void addModifies(int stmtNum, string var);
 	void addUses(int stmtNum, string var);
-	bool isValidStmt(int stmtNo);
 	bool isModified(int stmtNum, string varName);
 	bool isUsed(int stmtNum, string varName);
 	list<string> getModifiedBy(int stmtNum);

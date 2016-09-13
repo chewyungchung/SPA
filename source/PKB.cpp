@@ -158,10 +158,6 @@ void PKB::addUses(int stmtNum, string var) {
 	M_U_TableByStmt->addUses(stmtNum, var);
 }
 
-bool PKB::isValidStmt(int stmtNum) {
-	return M_U_TableByStmt->isValidStmt(stmtNum);
-}
-
 bool PKB::isModified(int stmtNum, string varName) {
 	return M_U_TableByStmt->isModified(stmtNum, varName);
 }
@@ -232,6 +228,12 @@ list<int> PKB::getStmtList() {
 int PKB::getStatementCount() {
 	return S_Table->getStatementCount();
 }
+
+bool PKB::isValidStmt(int stmtNum) {
+	return S_Table->isValidStmt(stmtNum);
+}
+
+/* Constant Table */
 
 void PKB::addConstant(int constant, int stmt)
 {

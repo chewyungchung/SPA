@@ -45,5 +45,15 @@ int StatementTable::getStatementCount()
 	return allStmtList.size();
 }
 
+bool StatementTable::isValidStmt(int stmtNum)
+{
+	bool isFound = find(allStmtList.begin(), allStmtList.end(), stmtNum) != allStmtList.end();
+	if (isFound) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
 
 

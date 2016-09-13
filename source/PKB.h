@@ -60,7 +60,6 @@ public:
 	
 	void addModifies(int stmtNum, string var);
 	void addUses(int stmtNum, string var);
-	bool isValidStmt(int stmtNum);
 	bool isModified(int stmtNum, string varName);
 	bool isUsed(int stmtNum, string varName);
 	list<string> getModifiedBy(int stmtNum);
@@ -80,6 +79,7 @@ public:
 	list<int> getWhileList();
 	list<int> getStmtList();
 	int getStatementCount();
+	bool isValidStmt(int stmtNum);
 
 	void addConstant(int constant, int stmt);
 	list<int> getConstantList();
