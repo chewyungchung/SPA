@@ -1,7 +1,7 @@
 #include "FollowsTable.h"
 
 FollowsTable::FollowsTable() {
-	tableStmtWise = unordered_map<int, int>();
+	tableStmtWise = map<int, int>();
 	tableNestingWise = unordered_map<int, vector<int> >();
 }
 
@@ -11,7 +11,7 @@ FollowsTable::~FollowsTable() {
 }
 
 void FollowsTable::addFollows(int stmt, int nestingIndex) {
-	unordered_map<int, int>::iterator it = tableStmtWise.find(stmt);
+	map<int, int>::iterator it = tableStmtWise.find(stmt);
 	if (it != tableStmtWise.end()) {
 		throw logic_error("statement already exists");
 	}
@@ -34,7 +34,7 @@ int FollowsTable::getFollowedFrom(int stmt)
 			}
 		}
 
-		if (r.size() != 1) {
+		if (r.size() > 1) {
 			throw logic_error("There are more than 1 statements that the given statement follows");
 		}
 
@@ -89,11 +89,11 @@ bool FollowsTable::isValidFollows(int from, int to)
 
 		if (nestingAtFrom == nestingAtTo) {
 			int subsequentStmt = from + 1;
-			unordered_map<int, int>::iterator i = tableStmtWise.find(subsequentStmt);
+			map<int, int>::iterator i = tableStmtWise.find(subsequentStmt);
 			if (i == tableStmtWise.end()) {
 				return false;
 			}
-			for (unordered_map<int, int>::iterator iter = i;
+			for (map<int, int>::iterator iter = i;
 				iter != tableStmtWise.find(to);
 				++iter) {
 				if (iter->second == nestingAtFrom) {
