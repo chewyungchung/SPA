@@ -17,6 +17,7 @@ public:
 	Parser(string fileName);
 	~Parser();
 	void process();
+	static int const NO_PARENT_FLAG = -1;
 
 private:
 	Tokenizer * tk;
@@ -24,8 +25,7 @@ private:
 	string procName;
 	int stmtLine;
 
-	// Parent data
-	int NO_PARENT_FLAG = -1;
+	// Parent data	
 	stack<int> parentStack;
 
 	// Follows data

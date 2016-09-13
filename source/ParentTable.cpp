@@ -1,4 +1,5 @@
 #include "ParentTable.h"
+#include "Parser.h"
 
 ParentTable::ParentTable() {
 	TableChildWise = unordered_map<int, int>();
@@ -13,6 +14,9 @@ ParentTable::~ParentTable()
 
 void ParentTable::addParent(int parent, int child) {
 	
+	if (parent == Parser::NO_PARENT_FLAG) {
+		return;
+	}
 	TableChildWise[child] = parent;
 	TableParentWise[parent].push_back(child);
 	TableChildWiseStar[child].push_back(parent);
@@ -71,7 +75,7 @@ bool ParentTable::isParentOf(int parent, int child)
 		cerr << "Out of range error: " << oor.what() << "\n";
 		return false;
 	}
-	if (res != flag) {
+	if (res != flag && res == parent) {
 		r = true;
 	}
 	return r;
