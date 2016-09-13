@@ -9,6 +9,7 @@
 using namespace std;
 
 #include "Tokenizer.h"
+#include "PKB.h"
 
 class Parser
 {
@@ -16,7 +17,7 @@ class Parser
 public:
 	Parser(string fileName);
 	~Parser();
-	void process();
+	PKB * process();
 
 private:
 	Tokenizer * tk;

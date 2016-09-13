@@ -27,32 +27,26 @@ void TestWrapper::parse(std::string filename) {
 void TestWrapper::evaluate(std::string query, std::list<std::string>& results){
 // call your evaluator to evaluate the query here
   // ...code to evaluate query...
-	string queryString = "assign a; Select a";
-	QueryValidator qv(queryString);
+	Parser p("C:\\Users\\Pheng Heong\\Downloads\\AutoTester-Aug15-VS2015\\AutoTester-Aug15-VS2015\\AutoTester\\Sample-Source2.txt");
+	QueryValidator qv = QueryValidator(query);
 	QueryTable qt = qv.parse();
-	string isQtNull;
-	if (qt.isNullQuery() == true) {
-		isQtNull = "true";
+	
+	QueryEvaluator qe = QueryEvaluator(qt, p.process());
+	QueryTable evaluationResults = qe.evaluate();
+	if (bool selectResults = evaluationResults.getSelectResult().isArg1ResultEmpty()) {
+		cout << "empty, man.";
 	}
 	else {
-		isQtNull = "false";
+		cout << "Something here!";
 	}
-	cout << "Is it NULL???? : " << isQtNull << "!!!!!!!!!!!!!!!!!!" << endl;
-	
-	
-	QueryEvaluator qe(qt);
-	QueryTable evaluationResults = qe.evaluate();
-	vector<string> selectResults = evaluationResults.getSelectResult().getArg1ResultList();
-	QueryResultProjector qrp(evaluationResults);
-	list<string> finalResults = qrp.getResults();
 
-	for (vector<string>::iterator it = selectResults.begin(); it != selectResults.end(); it++) {
-		cout << *it << endl;
-	}
+
+	QueryResultProjector qrp = QueryResultProjector(evaluationResults);
+	list<string> finalResults = qrp.getResults();
 
   // store the answers to the query in the results list (it is initially empty)
   // each result must be a string.
-	results.push_back("1");
-	results.push_back("2");
-	results.push_back(to_string(finalResults.size()));
+	for (auto& str : finalResults) {
+		results.push_back(str);
+	}
 }

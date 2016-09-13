@@ -3,9 +3,11 @@
 #include "Clause.h"
 #include "QueryTable.h"
 #include "QueryResult.h"
+#include "PKB.h"
 #include <string>
 #include <vector>
 #include <iostream>
+
 
 using namespace std;
 
@@ -14,13 +16,14 @@ class QueryEvaluator {
 public:
 	QueryEvaluator();
 	~QueryEvaluator();
-	QueryEvaluator(QueryTable);
+	QueryEvaluator(QueryTable, PKB*);
 	QueryTable evaluate();
 
 private:
 	vector<string> _result;
 
 	QueryTable _qt;
+	PKB* _ptr;
 
 	QueryResult processSuchThat(Clause suchThatClause);
 	QueryResult processSelect(Clause selectClause);

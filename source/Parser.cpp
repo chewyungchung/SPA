@@ -27,9 +27,10 @@ Parser::~Parser()
 }
 
 
-void Parser::process()
+PKB * Parser::process()
 {
 	parseProgram();
+	return PKB::getPKB();
 }
 
 
