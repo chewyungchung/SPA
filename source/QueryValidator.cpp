@@ -45,6 +45,7 @@ void QueryValidator::match(string token) {
 void QueryValidator::match(int tokenType) {
 	if (_nextToken.getTokenType() == tokenType) {
 		_nextToken = getToken();
+		std::this_thread::sleep_for(std::chrono::milliseconds(30));
 	}
 	else {
 		throw(QueryException("Invalid query: Unexpected token type'" + to_string(_nextToken.getTokenType()) + "; Expected tokenType '" + to_string(tokenType)));
@@ -99,6 +100,7 @@ void QueryValidator::matchDeclarationVar(string entity) {
 	else {
 		// End declaration for this entity type
 		match(";");
+		cout << "Did this match not run?" << endl;
 	}
 }
 

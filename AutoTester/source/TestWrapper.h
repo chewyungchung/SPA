@@ -18,9 +18,18 @@
 #include "RelationTable.h"
 #include "Relation.h"
 #include "Clause.h"
+#include <chrono>
+#include <thread>
 
 class TestWrapper : public AbstractWrapper {
- public:
+private:
+	Parser _parser;
+	QueryValidator _qv;
+	QueryEvaluator _qe;
+	QueryResultProjector _qrp;
+	PKB _pkb;
+
+public:
   // default constructor
   TestWrapper();
   

@@ -6,6 +6,8 @@
 #include "QueryToken.h"
 #include "QueryTokenizer.h"
 #include "RelationTable.h"
+#include <chrono>
+#include <thread>
 
 const vector<string> DESIGN_ENTITIES({
 	"stmt",

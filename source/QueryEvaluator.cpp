@@ -34,6 +34,13 @@ QueryEvaluator::QueryEvaluator() {
 QueryEvaluator::~QueryEvaluator() {
 }
 
+QueryEvaluator::QueryEvaluator(QueryValidator qv, PKB pkb, list<string>* results) {
+	_pkb = pkb;
+	_qt = qv.parse();
+	QueryResultProjector qrp = evaluate();
+	results = &qrp.getResults();
+}
+
 QueryEvaluator::QueryEvaluator(QueryTable qt, PKB pkb) {
 	_qt = qt;
 	_pkb = pkb;

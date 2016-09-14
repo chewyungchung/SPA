@@ -12,14 +12,18 @@ using namespace std;
 #include "Tokenizer.h"
 #include "PKB.h"
 
+Parser::Parser() {
+
+}
+
 Parser::Parser(string fileName)
 {
-	_pkb = PKB();
+	/*_pkb = PKB();
 	tk = new Tokenizer(fileName);
 	stmtLine = 1;
 	parentStack.push(NO_PARENT_FLAG);
 	followsMaxNestingLevel = 1;
-	followsStack.push(followsMaxNestingLevel);
+	followsStack.push(followsMaxNestingLevel);*/
 }
 
 Parser::~Parser()
@@ -27,9 +31,18 @@ Parser::~Parser()
 	delete tk;
 }
 
+//PKB Parser::process() {
+//	return _pkb;
+//}
 
-PKB Parser::process()
+PKB Parser::process(string fileName)
 {
+	_pkb = PKB();
+	tk = new Tokenizer(fileName);
+	stmtLine = 1;
+	parentStack.push(NO_PARENT_FLAG);
+	followsMaxNestingLevel = 1;
+	followsStack.push(followsMaxNestingLevel);
 	parseProgram();
 	return _pkb;
 }

@@ -15,9 +15,11 @@ class Parser
 {
 
 public:
+	Parser();
 	Parser(string fileName);
 	~Parser();
 	PKB process();
+	PKB process(string);
 
 private:
 	PKB _pkb;
