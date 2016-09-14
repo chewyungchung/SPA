@@ -19,36 +19,24 @@ namespace UnitTesting {
 	TEST_CLASS(TestQueryResultProjector) {
 		TEST_METHOD(testBasicQueryOutput) {
 			Parser parser("C:\\Users\\Einlanz\\Documents\\GitSPA\\Release\\Sample-Source.txt");
-			string query = "assign a; Select a such that Follows(6, a)"; // 
+			string query = "assign a; variable v; Select v pattern a(v, _\"x\"_)"; // 1
 			QueryValidator qv(query);
 			QueryTable qt = qv.parse();
-			Assert::AreEqual(qt.isNullQuery(), -1);
+			Assert::AreEqual(qt.isNullQuery(), -1,L"NULL");
 			PKB pkb = parser.process();
 			QueryEvaluator qe = QueryEvaluator(qt, pkb);
 			QueryTable results = qe.evaluate();
-			Assert::AreEqual(results.isNullQuery(), -1);
-			Assert::AreEqual(results.isSelectResultEmpty(), -1, L"itsme");
-			Assert::AreEqual(results.isSuchThatResultEmpty(), 1, L"itsme");
-			Assert::AreEqual(results.isPatternResultEmpty(), 1);
+			Assert::AreEqual(results.isNullQuery(), -1, L"123");
+			Assert::AreEqual(results.isSelectResultEmpty(), -1 , L"1111");
+			Assert::AreEqual(results.isSuchThatResultEmpty(), 1, L"12222");
+			Assert::AreEqual(results.isPatternResultEmpty(), -1,L"14444");
 			vector<string> selectResults = results.getSelectResult().getArg1ResultList();
-			//vector<string> suchThatResults1 = results.getSuchThatResult().getArg1ResultList();
-			vector<string> suchThatResults2 = results.getSuchThatResult().getArg2ResultList();
-			//vector<string> suchThatResults2 = results.getSuchThatResult().getArg2ResultList();
-			Assert::AreEqual(selectResults.size(), (size_t)6);
-			//Assert::AreEqual(suchThatResults1.size(), (size_t)5, L"itsme"); // 12345
-			Assert::AreEqual(suchThatResults2.size(), (size_t)0, L"itsme"); // 23456
-
-			/*vector<string> expectedResultList = { "6"};
-			vector<string>::iterator expectedResultIterator = expectedResultList.begin();
-			for (vector<string>::iterator it = selectResults.begin(); it != selectResults.end() && expectedResultIterator != expectedResultList.end(); it++) {
-				Assert::AreEqual(*it, *expectedResultIterator, L"lol");
-				expectedResultIterator++;
-			}*/
-
+			vector<string> patternResults = results.getPatternResult().getPatternResultList();
+			Assert::AreEqual(selectResults.size(), (size_t)4, L"SelectResult");
+			Assert::AreEqual(patternResults.size(), (size_t)1,L"PatternResult"); // 12345
 			QueryResultProjector qrp(results);
 			list<string> finalResults = qrp.getResults();
-
-			Assert::IsTrue(finalResults.empty(), L"ME");
+			Assert::IsFalse(finalResults.empty());
 
 			/*expectedResultIterator = expectedResultList.begin();
 			bool enterLooped = false;

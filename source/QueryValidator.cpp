@@ -179,7 +179,7 @@ void QueryValidator::matchPatternAssign() {
 		_synToUseCountMap[synAssign] += 1;
 		match(synAssign);
 		match("(");
-		pair<int,string> arg1 = matchEntRef();
+		arg1 = matchEntRef();
 		match(",");
 		if (_nextToken.getTokenName() == "_") {
 			match("_");
@@ -189,9 +189,9 @@ void QueryValidator::matchPatternAssign() {
 			arg2 = matchFactor();
 			match("\"");
 			match("_");
-			arg2MatchFactor = true;
+			arg2MatchFactor = 1;
 		}
-		if (!arg2MatchFactor) {
+		if (arg2MatchFactor == -1) {
 			arg2 = pair<int, string>(UNDERSCORE, "_");
 		}
 
@@ -665,6 +665,7 @@ pair<int,string> QueryValidator::matchEntRef() {
 	else {
 		throw(QueryException("Invalid Query : Unexpected token '" + _nextToken.getTokenName() + "'; Expected entRef token"));
 	}
+	
 	return pair<int,string>(tokenType, argument);
 }
 

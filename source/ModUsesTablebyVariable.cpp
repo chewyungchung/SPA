@@ -36,7 +36,7 @@ void ModUsesTablebyVariable::addModifies(string varName, int stmtNum)
 	else {
 		mStmtList = it->second;
 		bool found = find(mStmtList.begin(), mStmtList.end(), stmtNum) != mStmtList.end();
-		if (!found) {
+		if (found == false) {
 			it->second.push_back(stmtNum);
 		}
 	}
@@ -56,7 +56,7 @@ void ModUsesTablebyVariable::addUses(string varName, int stmtNum)
 	else {
 		uStmtList = it->second;
 		bool found = find(uStmtList.begin(), uStmtList.end(), stmtNum) != uStmtList.end();
-		if (!found) {
+		if (found == false) {
 			it->second.push_back(stmtNum);
 		}
 	}

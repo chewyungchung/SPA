@@ -113,14 +113,17 @@ void QueryTable::setPatternClause(Clause patternClause)
 void QueryTable::setSelectResult(QueryResult selectResult)
 {
 	_selectResult = selectResult;
+	_isNull = -1;
 }
 
 void QueryTable::setSuchThatResult(QueryResult suchThatResult)
 {
 	_suchThatResult = suchThatResult;
+	_isNull = -1;
 }
 
 void QueryTable::setPatternResult(QueryResult patternResult)
 {
 	_patternResult = patternResult;
+	_isNull = -1;
 }

@@ -189,7 +189,23 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 			return qr;
 		}
 		else if (arg2Type == ARGTYPE_CONSTANT) {
-			
+			list<int> arg1ModifiedBy = _pkb.getModifiedBy(arg1);
+			list<int> statementsWithArg2 = _pkb.getStmtlineByConstant(stoi(arg2));
+
+			for (list<int>::iterator it1 = arg1ModifiedBy.begin(); it1 != arg1ModifiedBy.end(); ++it1) {
+				bool insideAlreadyTrue = false;
+				for (list<int>::iterator it2 = statementsWithArg2.begin(); it2 != statementsWithArg2.end(); ++it2) {
+					if (*it1 == *it2) {
+						qr.setIsExist(1);
+						insideAlreadyTrue = true;
+						break;
+					}
+				}
+				if (insideAlreadyTrue == true) {
+					break;
+				}
+			}
+			return qr;
 		}
 		else {
 			// arg2Type is a string --> For now it can only be a variable
@@ -231,10 +247,12 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 		else if (arg2Type == ARGTYPE_CONSTANT) {
 			// Need to get all the statements with constant
 			list<int> stmtWithConstants = _pkb.getStmtlineByConstant(stoi(arg2));
-
 			stmtWithConstants.unique();
-			if (!stmtWithConstants.empty()) {
+			if (stmtWithConstants.empty() == false) {
 				qr.setIsExist(1);
+				for (list<int>::iterator it = stmtWithConstants.begin(); it != stmtWithConstants.end(); it++) {
+					qr.insertPatternResult(to_string(*it));
+				}
 			}
 			return qr;
 		}
@@ -246,7 +264,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 			}
 			// Get the list of statements that uses arg2
 			list<int> arg2UsedBy = _pkb.getUsedBy(arg2);
-			if (arg2UsedBy.empty()) {
+			if (arg2UsedBy.empty() == true) {
 				return qr;
 			}
 			else {
@@ -254,6 +272,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 					qr.setIsExist(1);
 					qr.insertPatternResult(to_string(*it));
 				}
+				return qr;
 			}
 		}
 	}
@@ -333,14 +352,15 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 				}
 				else {
 					for (list<int>::iterator it2 = arg1ModifiedBy.begin(); it2 != arg1ModifiedBy.end(); it2++) {
-						if (_pkb.isUsed(*it2, *it1) == true) {
+						if (_pkb.isUsed(*it2, arg2) == true) {
 							outerIteratorIsValidResult = 1;
 							qr.setIsExist(1);
+							qr.insertPatternResult(to_string(*it2));
 							break;
 						}
 					}
 					if (outerIteratorIsValidResult == 1) {
-						qr.insertPatternResult(*it1);
+						qr.insertArg1Result(*it1);
 					}
 				}
 			}
@@ -1082,7 +1102,6 @@ QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
 		// arg2 is a variable synonym
 		qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
 		list<string> allVarList = _pkb.getVarList();
-		allVarList.unique();
 		if (allVarList.empty() == true) {
 			return qr;
 		}
@@ -1112,7 +1131,9 @@ QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
 			// Since allVarList is non-empty, add everything into the reuslts for arg2
 			for (list<string>::iterator it = allVarList.begin(); it != allVarList.end(); it++) {
 				qr.insertArg2Result(*it);
+				qr.setIsExist(1);
 			}
+			return qr;
 		}
 		else {
 			// arg1 is a synonym

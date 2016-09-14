@@ -16,10 +16,13 @@ TestWrapper::TestWrapper() {
 	
 }
 
+string textFile;
+
 // method for parsing the SIMPLE source
 void TestWrapper::parse(std::string filename) {
 	// call your parser to do the parsing
   // ...rest of your code...
+	textFile = filename;
 }
 
 // method to evaluating a query
@@ -27,30 +30,15 @@ void TestWrapper::evaluate(std::string query, std::list<std::string>& results){
 // call your evaluator to evaluate the query here
   // ...code to evaluate query...
 	results.clear();
-	Parser p("C:\\Users\\Einlanz\\Documents\\GitSPA\\Release\\Sample-Source.txt");
+	Parser p(textFile);
+	//Parser p("C:\\Users\\Einlanz\\Documents\\GitSPA\\Release\\Sample-Source.txt");
 	QueryValidator qv = QueryValidator(query);
-	QueryTable qt = qv.parse();
-	QueryEvaluator qe = QueryEvaluator(qt, p.process());
-	QueryTable evaluationResults = qe.evaluate();
+	//QueryTable qt = qv.parse();
+	QueryEvaluator qe = QueryEvaluator(qv.parse(), p.process());
+	//QueryTable evaluationResults = qe.evaluate();
+	QueryResultProjector qrp(qe.evaluate());
+	results = qrp.getResults();
 
-	/*for (vector<string>::iterator it1 = ab1.begin(); it1 != ab1.end(); ++it1) {
-		cout << "select: " << *it1 << endl;
-	}
-
-	for (vector<string>::iterator it2 = ab2.begin(); it2 != ab2.end(); ++it2) {
-		cout << "suchthat: " << *it2 << endl;
-	}
-	for (vector<string>::iterator it3 = ab3.begin(); it3 != ab1.end(); ++it3) {
-		cout << "pattern: " << *it3 << endl;
-	}*/
-
-	QueryResultProjector qrp = QueryResultProjector(evaluationResults);
-	list<string> finalResults = qrp.getResults();
-
-	cout << "Size of final results :" << to_string(finalResults.size()) << endl;
-  // store the answers to the query in the results list (it is initially empty)
-  // each result must be a string.
-	for (auto& str : finalResults) {
-		results.push_back(str);
-	}
+	// store the answers to the query in the results list (it is initially empty)
+	// each result must be a string.
 }

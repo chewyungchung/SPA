@@ -35,7 +35,6 @@ list<string> QueryResultProjector::getResults() {
 	// Check if the QueryTable returned by the QueryEvaluator is a NULL ptr
 	// If (YES), return an empty list. Else, proceed to process.
 	if (_qt.isNullQuery() == 1) {
-		cout << "LOL" << endl;
 		return finalResult;
 	}
 
@@ -56,7 +55,6 @@ list<string> QueryResultProjector::getResults() {
 
 	// Corner: Select BOOLEAN
 	if (_selectExist == 1 && _suchThatExist == -1 && _patternExist == -1) {
-		//cout << "impossible" << endl;
 		if (getClauseSynonym(CLAUSE_SELECT, selectResult).at(0) == "BOOLEAN") {
 			finalResult.push_back("TRUE");
 			return finalResult;
@@ -65,7 +63,6 @@ list<string> QueryResultProjector::getResults() {
 
 	// If no results exist for the select clause, empty result is returned regardless
 	if (_selectExist == -1) {
-		//cout << "impossible 111" << endl;
 		return finalResult;
 	}
 
@@ -91,6 +88,7 @@ list<string> QueryResultProjector::getResults() {
 		// selectSyn is a synonym
 		if (isResultShareCommonSyn(selectSyn, suchThatResult, patternResult) == 1) {
 			finalResult = mergeResult(selectSyn, suchThatResult, patternResult);
+			return finalResult;
 		}
 		else {
 			list<string> mergedResult = mergeResult(suchThatResult, patternResult);
@@ -100,13 +98,10 @@ list<string> QueryResultProjector::getResults() {
 				final.erase(unique(final.begin(), final.end()), final.end());
 
 				finalResult = getListResult(final);
-				//cout << "MERGE 13: " << to_string(finalResult.size()) << endl;
 			}
-			//cout << "MERGE 12: " << to_string(finalResult.size()) << endl;
 			return finalResult;
 		}
 	}
-	//cout << "MERGE 11: " << to_string(finalResult.size()) << endl;
 	return finalResult;
 }
 
@@ -114,13 +109,15 @@ int QueryResultProjector::isResultShareCommonSyn(string selectSyn, QueryResult s
 	if (_suchThatExist == 1 && _patternExist == 1) {
 		vector<string> suchThatSyn = getClauseSynonym(CLAUSE_SUCH_THAT, suchThatResult);
 		vector<string> patternSyn = getClauseSynonym(CLAUSE_PATTERN, patternResult);
-		int foundInSuchThat = find(suchThatSyn.begin(), suchThatSyn.end(), selectSyn) != suchThatSyn.end();
-		int foundInPattern = find(patternSyn.begin(), patternSyn.end(), selectSyn) != patternSyn.end();
-		if (foundInSuchThat == 1 || foundInPattern == 1) {
-			return 1;
+
+		vector<string>::iterator suchThatIterator = find(suchThatSyn.begin(), suchThatSyn.end(), selectSyn);
+		vector<string>::iterator patternIterator = find(patternSyn.begin(), patternSyn.end(), selectSyn);
+
+		if (suchThatIterator == suchThatSyn.end() && patternIterator == patternSyn.end()) {
+			return -1;
 		}
 		else {
-			return -1;
+			return 1;
 		}
 	}
 	else if (_suchThatExist == 1) {
@@ -135,13 +132,20 @@ int QueryResultProjector::isResultShareCommonSyn(string selectSyn, QueryResult s
 	}
 	else if (_patternExist == 1) {
 		vector<string> patternSyn = getClauseSynonym(CLAUSE_PATTERN, patternResult);
-		int foundInPattern = find(patternSyn.begin(), patternSyn.end(), selectSyn) != patternSyn.end();
+		vector<string>::iterator patternIterator = find(patternSyn.begin(), patternSyn.end(), selectSyn);
+		if (patternIterator == patternSyn.end()) {
+			return -1;
+		}
+		else {
+			return 1;
+		}
+		/*int foundInPattern = find(patternSyn.begin(), patternSyn.end(), selectSyn) != patternSyn.end();
 		if (foundInPattern == 1) {
 			return 1;
 		}
 		else {
 			return -1;
-		}
+		}*/
 	}
 	else {
 		// Both 'Such That' and 'Pattern' do not exist
@@ -194,7 +198,6 @@ list<string> QueryResultProjector::mergeResult(QueryResult suchThatResult, Query
 			if (nonEmpty == 1) {
 				mergedResult.push_back("dummyItem");
 			}
-			//cout << "MERGE 9: " << to_string(mergedResult.size()) << endl;
 			return mergedResult;
 		}
 	}
@@ -202,19 +205,16 @@ list<string> QueryResultProjector::mergeResult(QueryResult suchThatResult, Query
 		if (suchThatResult.getIsExist() == 1) {
 			mergedResult.push_back("dummyItem");
 		}
-		//cout << "MERGE 999";
 		return mergedResult;
 	}
 	else if (_patternExist == 1) {
 		if (patternResult.getIsExist() == 1) {
 			mergedResult.push_back("dummyItem");
 		}
-		//cout << "MERGE 8: " << to_string(mergedResult.size()) << endl;
 		return mergedResult;
 	}
 	// Both SuchThat and Pattern results don't exist, return empty result to signify query is false
 	else {
-		//cout << "MERGE 7: " << to_string(mergedResult.size()) << endl;
 		return mergedResult;
 	}
 }
@@ -225,23 +225,19 @@ list<string> QueryResultProjector::mergeResult(string selectSyn, QueryResult suc
 
 	// Gotta check if suchThatResult or patternResult null
 	if (_suchThatExist == 1 && _patternExist == 1) {
-		//cout << "both exist: " << to_string(mergedResult.size()) << endl;
 		list<string> commonSyn = getCommonSynonym(suchThatResult, patternResult);
 		// If no common synonyms, check that both queries are existential. If yes, gotta get all the map
 		// If not, return an empty list to signify that whole query should be false
 		if (commonSyn.empty() == true) {
-			//cout << "no common: " << to_string(mergedResult.size()) << endl;
 			if (suchThatResult.getIsExist() == 1 && patternResult.getIsExist() == 1) {
 				// Get a map with all the synonym results
 				unordered_map<string, list<string>> synResultMap = getCommonSynonymResult(suchThatResult, patternResult);
 				mergedResult = synResultMap[selectSyn];
 			}
-			//cout << "oei" << endl;
 			return mergedResult;
 		}
 		// Else, once the commonSyn results are merged between SuchThat and Pattern, retrieve the results that correspond to select's syn
 		else {
-			//cout << "gotcommon" << endl;
 			unordered_map<string, list<string>> commonSynResult = getCommonSynonymResult(commonSyn, suchThatResult, patternResult);
 			mergedResult = commonSynResult[selectSyn];
 			return mergedResult;
@@ -255,7 +251,6 @@ list<string> QueryResultProjector::mergeResult(string selectSyn, QueryResult suc
 				sort(final.begin(), final.end());
 				final.erase(unique(final.begin(), final.end()), final.end());
 				mergedResult = getListResult(final);
-				//cout << "MERGE SIZE4: " << to_string(mergedResult.size()) << endl;
 			}
 			else if (suchThatResult.getSynonym(PARAM_ARG2) == selectSyn) {
 				vector<string> final = suchThatResult.getArg2ResultList();
@@ -264,28 +259,25 @@ list<string> QueryResultProjector::mergeResult(string selectSyn, QueryResult suc
 				mergedResult = getListResult(final);
 			}
 		}
-		//cout << "MERGE SIZE3: " << to_string(mergedResult.size()) << endl;
 		return mergedResult;
 	}
 	else if (_patternExist == 1) {
-		// Since isResultShareCommonSyn was TRUE, select clause definitely shared a syn with SuchThatResults
+		// Since isResultShareCommonSyn was TRUE, select clause definitely shared a syn with PatternResults
 		if (patternResult.getIsExist() == 1) {
 			if (patternResult.getSynonym(PARAM_ARG1) == selectSyn) {
-				vector<string> final = suchThatResult.getArg1ResultList();
+				vector<string> final = patternResult.getArg1ResultList();
 				sort(final.begin(), final.end());
 				final.erase(unique(final.begin(), final.end()), final.end());
-				mergedResult = getListResult(patternResult.getArg1ResultList());
+				mergedResult = getListResult(final);
 			}
 			else if (patternResult.getSynonym(PARAM_PATTERN) == selectSyn) {
 				mergedResult = getListResult(patternResult.getPatternResultList());
 			}
 		}
-		//cout << "MERGE SIZE2: " << to_string(mergedResult.size()) << endl;
 		return mergedResult;
 	}
 	// Both SuchThat and Pattern results don't exist, return empty result to signify query is false
 	else {
-		cout << "MERGE SIZE1: " << to_string(mergedResult.size()) << endl;
 		return mergedResult;
 	}
 }
@@ -324,10 +316,10 @@ list<string> QueryResultProjector::getCommonSynonym(QueryResult suchThatResult, 
 		suchThatSyn.push_back(suchThatResult.getSynonym(PARAM_ARG2));
 	}
 	if (patternResult.getSynonym(PARAM_ARG1) != PARAM_EMPTY_STRING) {
-		suchThatSyn.push_back(patternResult.getSynonym(PARAM_ARG1));
+		patternSyn.push_back(patternResult.getSynonym(PARAM_ARG1));
 	}
 	if (patternResult.getSynonym(PARAM_PATTERN) != PARAM_EMPTY_STRING) {
-		suchThatSyn.push_back(patternResult.getSynonym(PARAM_PATTERN));
+		patternSyn.push_back(patternResult.getSynonym(PARAM_PATTERN));
 	}
 
 	// Iterate through both list and compare, if common, add to list
