@@ -26,12 +26,24 @@ void TestWrapper::parse(std::string filename) {
 void TestWrapper::evaluate(std::string query, std::list<std::string>& results){
 // call your evaluator to evaluate the query here
   // ...code to evaluate query...
+	results.clear();
 	Parser p("C:\\Users\\Einlanz\\Documents\\GitSPA\\Release\\Sample-Source.txt");
 	QueryValidator qv = QueryValidator(query);
 	QueryTable qt = qv.parse();
-	cout << endl << "Query is :" << query << endl;
-	QueryEvaluator qe = QueryEvaluator(qt);
+	QueryEvaluator qe = QueryEvaluator(qt, p.process());
 	QueryTable evaluationResults = qe.evaluate();
+
+	/*for (vector<string>::iterator it1 = ab1.begin(); it1 != ab1.end(); ++it1) {
+		cout << "select: " << *it1 << endl;
+	}
+
+	for (vector<string>::iterator it2 = ab2.begin(); it2 != ab2.end(); ++it2) {
+		cout << "suchthat: " << *it2 << endl;
+	}
+	for (vector<string>::iterator it3 = ab3.begin(); it3 != ab1.end(); ++it3) {
+		cout << "pattern: " << *it3 << endl;
+	}*/
+
 	QueryResultProjector qrp = QueryResultProjector(evaluationResults);
 	list<string> finalResults = qrp.getResults();
 

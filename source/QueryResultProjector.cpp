@@ -3,6 +3,7 @@
 #include "QueryResult.h"
 #include <vector>
 #include <string>
+#include <algorithm>
 
 using namespace std;
 
@@ -16,9 +17,9 @@ const string PARAM_BOOLEAN = "BOOLEAN";
 const string PARAM_EMPTY_STRING = "";
 
 QueryResultProjector::QueryResultProjector() {
-	_selectExist = false;
-	_suchThatExist = false;
-	_patternExist = false;
+	_selectExist = -1;
+	_suchThatExist = -1;
+	_patternExist = -1;
 }
 
 QueryResultProjector::~QueryResultProjector() {
@@ -33,7 +34,8 @@ list<string> QueryResultProjector::getResults() {
 
 	// Check if the QueryTable returned by the QueryEvaluator is a NULL ptr
 	// If (YES), return an empty list. Else, proceed to process.
-	if (_qt.isNullQuery()) {
+	if (_qt.isNullQuery() == 1) {
+		cout << "LOL" << endl;
 		return finalResult;
 	}
 
@@ -42,18 +44,19 @@ list<string> QueryResultProjector::getResults() {
 	QueryResult suchThatResult = (_qt.getSuchThatResult());
 	QueryResult patternResult = (_qt.getPatternResult());
 
-	if (selectResult.getIsExist() == true) {
-		_selectExist = true;
+	if (selectResult.getIsExist() == 1) {
+		_selectExist = 1;
 	}
-	if (suchThatResult.getIsExist() == true) {
-		_suchThatExist = true;
+	if (suchThatResult.getIsExist() == 1) {
+		_suchThatExist = 1;
 	}
-	if (patternResult.getIsExist() == true) {
-		_patternExist = true;
+	if (patternResult.getIsExist() == 1) {
+		_patternExist = 1;
 	}
 
 	// Corner: Select BOOLEAN
-	if (_selectExist && !_suchThatExist && !_patternExist) {
+	if (_selectExist == 1 && _suchThatExist == -1 && _patternExist == -1) {
+		//cout << "impossible" << endl;
 		if (getClauseSynonym(CLAUSE_SELECT, selectResult).at(0) == "BOOLEAN") {
 			finalResult.push_back("TRUE");
 			return finalResult;
@@ -61,7 +64,8 @@ list<string> QueryResultProjector::getResults() {
 	}
 
 	// If no results exist for the select clause, empty result is returned regardless
-	if (!_selectExist) {
+	if (_selectExist == -1) {
+		//cout << "impossible 111" << endl;
 		return finalResult;
 	}
 
@@ -71,7 +75,7 @@ list<string> QueryResultProjector::getResults() {
 	// If we want BOOLEAN, then merge the results of SuchThat and Pattern and check if it's non-empty. If non-empty, return TRUE. Return FALSE otherwise.
 	if (selectSyn == PARAM_BOOLEAN) {
 		list<string> result = mergeResult(suchThatResult, patternResult);
-		if (!result.empty()) {
+		if (result.empty() == false) {
 			finalResult.push_back("TRUE");
 			return finalResult;
 		}
@@ -85,59 +89,63 @@ list<string> QueryResultProjector::getResults() {
 	// If false, merge the results of SuchThat and Pattern and check if they are non empty
 	else {
 		// selectSyn is a synonym
-		if (isResultShareCommonSyn(selectSyn, suchThatResult, patternResult)) {
+		if (isResultShareCommonSyn(selectSyn, suchThatResult, patternResult) == 1) {
 			finalResult = mergeResult(selectSyn, suchThatResult, patternResult);
 		}
 		else {
 			list<string> mergedResult = mergeResult(suchThatResult, patternResult);
-			if (!mergedResult.empty()) {
-				finalResult = getListResult(selectResult.getArg1ResultList());
-				cout << "MERGE 13: " << to_string(finalResult.size()) << endl;
+			if (mergedResult.empty() == false) {
+				vector<string> final = selectResult.getArg1ResultList();
+				sort(final.begin(), final.end());
+				final.erase(unique(final.begin(), final.end()), final.end());
+
+				finalResult = getListResult(final);
+				//cout << "MERGE 13: " << to_string(finalResult.size()) << endl;
 			}
-			cout << "MERGE 12: " << to_string(finalResult.size()) << endl;
+			//cout << "MERGE 12: " << to_string(finalResult.size()) << endl;
 			return finalResult;
 		}
 	}
-	cout << "MERGE 11: " << to_string(finalResult.size()) << endl;
+	//cout << "MERGE 11: " << to_string(finalResult.size()) << endl;
 	return finalResult;
 }
 
-bool QueryResultProjector::isResultShareCommonSyn(string selectSyn, QueryResult suchThatResult, QueryResult patternResult) {
-	if (_suchThatExist && _patternExist) {
+int QueryResultProjector::isResultShareCommonSyn(string selectSyn, QueryResult suchThatResult, QueryResult patternResult) {
+	if (_suchThatExist == 1 && _patternExist == 1) {
 		vector<string> suchThatSyn = getClauseSynonym(CLAUSE_SUCH_THAT, suchThatResult);
 		vector<string> patternSyn = getClauseSynonym(CLAUSE_PATTERN, patternResult);
-		bool foundInSuchThat = find(suchThatSyn.begin(), suchThatSyn.end(), selectSyn) != suchThatSyn.end();
-		bool foundInPattern = find(patternSyn.begin(), patternSyn.end(), selectSyn) != patternSyn.end();
-		if (foundInSuchThat || foundInPattern) {
-			return true;
+		int foundInSuchThat = find(suchThatSyn.begin(), suchThatSyn.end(), selectSyn) != suchThatSyn.end();
+		int foundInPattern = find(patternSyn.begin(), patternSyn.end(), selectSyn) != patternSyn.end();
+		if (foundInSuchThat == 1 || foundInPattern == 1) {
+			return 1;
 		}
 		else {
-			return false;
+			return -1;
 		}
 	}
-	else if (_suchThatExist) {
+	else if (_suchThatExist == 1) {
 		vector<string> suchThatSyn = getClauseSynonym(CLAUSE_SUCH_THAT, suchThatResult);
-		bool foundInSuchThat = find(suchThatSyn.begin(), suchThatSyn.end(), selectSyn) != suchThatSyn.end();
-		if (foundInSuchThat) {
-			return true;
+		int foundInSuchThat = find(suchThatSyn.begin(), suchThatSyn.end(), selectSyn) != suchThatSyn.end();
+		if (foundInSuchThat == 1) {
+			return 1;
 		}
 		else {
-			return false;
+			return -1;
 		}
 	}
-	else if (_patternExist) {
+	else if (_patternExist == 1) {
 		vector<string> patternSyn = getClauseSynonym(CLAUSE_PATTERN, patternResult);
-		bool foundInPattern = find(patternSyn.begin(), patternSyn.end(), selectSyn) != patternSyn.end();
-		if (foundInPattern) {
-			return true;
+		int foundInPattern = find(patternSyn.begin(), patternSyn.end(), selectSyn) != patternSyn.end();
+		if (foundInPattern == 1) {
+			return 1;
 		}
 		else {
-			return false;
+			return -1;
 		}
 	}
 	else {
 		// Both 'Such That' and 'Pattern' do not exist
-		return false;
+		return -1;
 	}
 }
 
@@ -161,52 +169,52 @@ vector<string> QueryResultProjector::getClauseSynonym(string clause, QueryResult
 // Does not involve select, check if result is non empty after merging
 list<string> QueryResultProjector::mergeResult(QueryResult suchThatResult, QueryResult patternResult) {
 	list<string> mergedResult;
-	
+	//_patternExist = false;
 	// Gotta check if suchThatResult or patternResult null
-	if (_suchThatExist && _patternExist) {
+	if (_suchThatExist == 1 && _patternExist == 1) {
 		list<string> commonSyn = getCommonSynonym(suchThatResult, patternResult);
 		// If no common synonyms, check that both queries are existential. If not, return an empty list to signify that whole query should be false
-		if (commonSyn.empty()) {
-			if (suchThatResult.getIsExist() && patternResult.getIsExist()) {
+		if (commonSyn.empty() == true) {
+			if (suchThatResult.getIsExist() == 1 && patternResult.getIsExist() == 1) {
 				mergedResult.push_back("dummyItem");
 			}
-			cout << "MERGE 00: " << to_string(mergedResult.size()) << endl;
 			return mergedResult;
 		}
 		// Else, check that all the common synonym results once merged, are non empty
 		else {
-			bool nonEmpty = true;
+			int nonEmpty = 1;
 			unordered_map<string, list<string>> commonSynResult = getCommonSynonymResult(commonSyn, suchThatResult, patternResult);
 			for (list<string>::iterator it = commonSyn.begin(); it != commonSyn.end(); it++) {
 				list<string> synResult = commonSynResult[*it];
-				if (synResult.empty()) {
-					nonEmpty = false;
+				if (synResult.empty() == true) {
+					nonEmpty = -1;
 					break;
 				}
 			}
-			if (nonEmpty) {
+			if (nonEmpty == 1) {
 				mergedResult.push_back("dummyItem");
 			}
-			cout << "MERGE 9: " << to_string(mergedResult.size()) << endl;
+			//cout << "MERGE 9: " << to_string(mergedResult.size()) << endl;
 			return mergedResult;
 		}
 	}
-	else if (_suchThatExist) {
-		if (suchThatResult.getIsExist()) {
+	else if (_suchThatExist == 1) {
+		if (suchThatResult.getIsExist() == 1) {
 			mergedResult.push_back("dummyItem");
 		}
+		//cout << "MERGE 999";
 		return mergedResult;
 	}
-	else if (_patternExist) {
-		if (patternResult.getIsExist()) {
+	else if (_patternExist == 1) {
+		if (patternResult.getIsExist() == 1) {
 			mergedResult.push_back("dummyItem");
 		}
-		cout << "MERGE 8: " << to_string(mergedResult.size()) << endl;
+		//cout << "MERGE 8: " << to_string(mergedResult.size()) << endl;
 		return mergedResult;
 	}
 	// Both SuchThat and Pattern results don't exist, return empty result to signify query is false
 	else {
-		cout << "MERGE 7: " << to_string(mergedResult.size()) << endl;
+		//cout << "MERGE 7: " << to_string(mergedResult.size()) << endl;
 		return mergedResult;
 	}
 }
@@ -216,52 +224,63 @@ list<string> QueryResultProjector::mergeResult(string selectSyn, QueryResult suc
 	list<string> mergedResult;
 
 	// Gotta check if suchThatResult or patternResult null
-	if (_suchThatExist && _patternExist) {
+	if (_suchThatExist == 1 && _patternExist == 1) {
+		//cout << "both exist: " << to_string(mergedResult.size()) << endl;
 		list<string> commonSyn = getCommonSynonym(suchThatResult, patternResult);
 		// If no common synonyms, check that both queries are existential. If yes, gotta get all the map
 		// If not, return an empty list to signify that whole query should be false
-		if (commonSyn.empty()) {
-			if (suchThatResult.getIsExist() && patternResult.getIsExist()) {
+		if (commonSyn.empty() == true) {
+			//cout << "no common: " << to_string(mergedResult.size()) << endl;
+			if (suchThatResult.getIsExist() == 1 && patternResult.getIsExist() == 1) {
 				// Get a map with all the synonym results
 				unordered_map<string, list<string>> synResultMap = getCommonSynonymResult(suchThatResult, patternResult);
 				mergedResult = synResultMap[selectSyn];
 			}
-			cout << "MERGE 6: " << to_string(mergedResult.size()) << endl;
+			//cout << "oei" << endl;
 			return mergedResult;
 		}
 		// Else, once the commonSyn results are merged between SuchThat and Pattern, retrieve the results that correspond to select's syn
 		else {
+			//cout << "gotcommon" << endl;
 			unordered_map<string, list<string>> commonSynResult = getCommonSynonymResult(commonSyn, suchThatResult, patternResult);
 			mergedResult = commonSynResult[selectSyn];
-			cout << "MERGE SIZE5: " << to_string(mergedResult.size()) << endl;
 			return mergedResult;
 		}
 	}
 	else if (_suchThatExist) {
 		// Since isResultShareCommonSyn was TRUE, select clause definitely shared a syn with SuchThatResults
-		if (suchThatResult.getIsExist()) {
+		if (suchThatResult.getIsExist() == 1) {
 			if (suchThatResult.getSynonym(PARAM_ARG1) == selectSyn) {
-				mergedResult = getListResult(suchThatResult.getArg1ResultList());
-				cout << "MERGE SIZE4: " << to_string(mergedResult.size()) << endl;
+				vector<string> final = suchThatResult.getArg1ResultList();
+				sort(final.begin(), final.end());
+				final.erase(unique(final.begin(), final.end()), final.end());
+				mergedResult = getListResult(final);
+				//cout << "MERGE SIZE4: " << to_string(mergedResult.size()) << endl;
 			}
 			else if (suchThatResult.getSynonym(PARAM_ARG2) == selectSyn) {
-				mergedResult = getListResult(suchThatResult.getArg2ResultList());
+				vector<string> final = suchThatResult.getArg2ResultList();
+				sort(final.begin(), final.end());
+				final.erase(unique(final.begin(), final.end()), final.end());
+				mergedResult = getListResult(final);
 			}
 		}
-		cout << "MERGE SIZE3: " << to_string(mergedResult.size()) << endl;
+		//cout << "MERGE SIZE3: " << to_string(mergedResult.size()) << endl;
 		return mergedResult;
 	}
-	else if (_patternExist) {
+	else if (_patternExist == 1) {
 		// Since isResultShareCommonSyn was TRUE, select clause definitely shared a syn with SuchThatResults
-		if (patternResult.getIsExist()) {
+		if (patternResult.getIsExist() == 1) {
 			if (patternResult.getSynonym(PARAM_ARG1) == selectSyn) {
+				vector<string> final = suchThatResult.getArg1ResultList();
+				sort(final.begin(), final.end());
+				final.erase(unique(final.begin(), final.end()), final.end());
 				mergedResult = getListResult(patternResult.getArg1ResultList());
 			}
 			else if (patternResult.getSynonym(PARAM_PATTERN) == selectSyn) {
 				mergedResult = getListResult(patternResult.getPatternResultList());
 			}
 		}
-		cout << "MERGE SIZE2: " << to_string(mergedResult.size()) << endl;
+		//cout << "MERGE SIZE2: " << to_string(mergedResult.size()) << endl;
 		return mergedResult;
 	}
 	// Both SuchThat and Pattern results don't exist, return empty result to signify query is false

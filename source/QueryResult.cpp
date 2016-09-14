@@ -11,8 +11,8 @@ const string PARAM_EMPTY_STRING = "";
 
 // Default constructor
 QueryResult::QueryResult() {
-	_isExist = false;
-	_isNull = false;
+	_isExist = -1;
+	_isNull = 1;
 	_argToSynonymMapping[PARAM_ARG1] = PARAM_EMPTY_STRING;
 	_argToSynonymMapping[PARAM_ARG2] = PARAM_EMPTY_STRING;
 	_argToSynonymMapping[PARAM_PATTERN] = PARAM_EMPTY_STRING;
@@ -77,17 +77,18 @@ void QueryResult::insertPatternResult(string item) {
 	_patternResultList.push_back(item);
 }
 
-void QueryResult::setIsExist(bool input) {
-	if (input == true) {
+void QueryResult::setIsExist(int input) {
+	/*if (input == true) {
 		_isExist = input;
 	}
 	else if (input == false)
 	{
 		_isExist = input;
-	}
+	}*/
+	_isExist = input;
 }
 
-bool QueryResult::getIsExist() {
+int QueryResult::getIsExist() {
 	return _isExist;
 }
 
@@ -118,6 +119,6 @@ bool QueryResult::isPatternResultEmpty() {
 	return _patternResultList.empty();
 }
 
-bool QueryResult::isResultNull() {
+int QueryResult::isResultNull() {
 	return _isNull;
 }

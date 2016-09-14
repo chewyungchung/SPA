@@ -10,7 +10,7 @@ public:
 	list<string> getResults();
 
 	// Check between all clauses
-	bool isResultShareCommonSyn(string selectSyn, QueryResult suchThatResult, QueryResult patternResult);
+	int isResultShareCommonSyn(string selectSyn, QueryResult suchThatResult, QueryResult patternResult);
 	vector<string> getClauseSynonym(string clause, QueryResult);
 	// Does not involve select
 	list<string> mergeResult(QueryResult suchThatResult, QueryResult patternResult);
@@ -26,7 +26,7 @@ public:
 
 private:
 	QueryTable _qt;
-	bool _selectExist;
-	bool _suchThatExist;
-	bool _patternExist;
+	int _selectExist;
+	int _suchThatExist;
+	int _patternExist;
 };

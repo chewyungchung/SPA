@@ -5,6 +5,13 @@
 #include <string>
 #include <vector>
 #include <list>
+#include "TNode.h"
+#include "ModUsesTablebyStmt.h"
+#include "ModUsesTablebyVariable.h"
+#include "StatementTable.h"
+#include "FollowsTable.h"
+#include "ParentTable.h"
+#include "ConstantTable.h"
 
 using namespace std;
 typedef short PROC;
@@ -22,24 +29,25 @@ class ConstantTable;
 class PKB {
 
 private:
-	static ModUsesTablebyStmt* M_U_TableByStmt;
-	static ModUsesTablebyVariable* M_U_TableByVar;
-	static StatementTable* S_Table;
-	static FollowsTable* F_Table;
-	static ParentTable* P_Table;
-	static ConstantTable* C_Table;
-	PKB();
-	~PKB();
-	static PKB* instance;
 
 public:
+
+	ModUsesTablebyStmt M_U_TableByStmt;
+	ModUsesTablebyVariable M_U_TableByVar;
+	StatementTable S_Table;
+	FollowsTable F_Table;
+	ParentTable P_Table;
+	ConstantTable C_Table;
+	PKB();
+	~PKB();
+
 
 	static VarTable* varTable; 
 	static int setProcToAST(PROC p, TNode* r);
 	static TNode* getRootAST (PROC p);
-	static PKB* getPKB();
-	static void destroyInstance();
-	static void resetPKB();
+//	static PKB* getPKB();
+//	static void destroyInstance();
+//	static void resetPKB();
 	
 	void addParent(int lineOfParent, int lineNum);
 	int getParentOf(int stmt);

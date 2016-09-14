@@ -111,6 +111,8 @@ list<string> ModUsesTablebyVariable::getAllModVar()
 	for (it = varModTable.begin(); it != varModTable.end(); ++it) {
 		allModVarList.push_back(it->first);
 	}
+	allModVarList.sort();
+	allModVarList.unique();
 	return allModVarList;
 }
 
@@ -126,6 +128,8 @@ list<string> ModUsesTablebyVariable::getAllUsedVar()
 	for (it = varUsesTable.begin(); it != varUsesTable.end(); ++it) {
 		allUsedVarList.push_back(it->first);
 	}
+	allUsedVarList.sort();
+	allUsedVarList.unique();
 	return allUsedVarList;
 }
 
@@ -143,6 +147,7 @@ list<string> ModUsesTablebyVariable::getVarList()
 		allVarList.push_back(it2->first);
 	}
 
+	allVarList.sort();
 	allVarList.unique();
 
 	return allVarList;

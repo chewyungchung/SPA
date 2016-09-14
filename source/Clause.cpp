@@ -14,14 +14,14 @@ using namespace std;
 
 Clause::Clause()
 {
-	_isNull = true;
+	_isNull = 1;
 }
 Clause::Clause(string relation, vector<string> arg, vector<string> argType)
 {
 	_relation = relation;
 	_arg = arg;
 	_argType = argType;
-	_isNull = false;
+	_isNull = -1;
 }
 
 string Clause::getRelation()
@@ -40,6 +40,6 @@ vector<string> Clause::getArgType()
 }
 
 
-bool Clause::isClauseNull() {
+int Clause::isClauseNull() {
 	return _isNull;
 }

@@ -17,13 +17,13 @@ class QueryEvaluator {
 public:
 	QueryEvaluator();
 	~QueryEvaluator();
-	QueryEvaluator(QueryTable);
+	QueryEvaluator(QueryTable, PKB);
 	QueryTable evaluate();
 
 private:
 	vector<string> _result;
-
 	QueryTable _qt;
+	PKB _pkb;
 
 	QueryResult processSuchThat(Clause suchThatClause);
 	QueryResult processSelect(Clause selectClause);
@@ -35,8 +35,8 @@ private:
 	QueryResult processUses(Clause usesClause);
 	QueryResult processModifies(Clause modifiesClause);
 
-	bool isInList(list<int> inList, int item);
-	bool isListEmpty(list<int> intList);
+	int isInList(list<int> inList, int item);
+	int isListEmpty(list<int> intList);
 
 	list<int> getList(string argType);
 };

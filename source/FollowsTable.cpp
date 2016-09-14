@@ -23,10 +23,19 @@ void FollowsTable::addFollows(int stmt, int nestingIndex) {
 
 int FollowsTable::getFollowedFrom(int stmt)
 {
-	try {
-		vector<int> stmts = tableNestingWise.at(tableStmtWise.at(stmt));
+	vector<int> stmts;
+	list<int> emptyList;
+	int tableStmtWiseLvl = tableStmtWise[stmt];
+
+	if (tableStmtWiseLvl != 0) {
+		stmts = tableNestingWise[tableStmtWiseLvl];
+		if (stmts.empty() == true) {
+			return -1;
+		}
+	}
+		//vector<int> stmts = tableNestingWise.at(tableStmtWise.at(stmt));
 		
-		vector<int> r = vector<int>();
+		vector<int> r;
 		
 		for (auto& iterValue : stmts) {
 			if (this->isValidFollows(iterValue, stmt)) {
@@ -34,24 +43,32 @@ int FollowsTable::getFollowedFrom(int stmt)
 			}
 		}
 
-		if (r.size() > 1) {
+		/*if (r.size() > 1) {
 			throw logic_error("There are more than 1 statements that the given statement follows");
+		}*/
+
+		if (r.empty() == true) {
+			return -1;
 		}
 
 		return r.at(0);
-	}
-	catch (out_of_range& oor) {
-		cerr << "Out of range error: " << oor.what() << "\n";
-		return -1;
-	}
 }
 
 int FollowsTable::getFollower(int stmt)
 {
-	try {
-		vector<int> stmts = tableNestingWise.at(tableStmtWise.at(stmt));
+	vector<int> stmts;
+	list<int> emptyList;
+	int tableStmtWiseLvl = tableStmtWise[stmt];
 
-		vector<int> r = vector<int>();
+	if (tableStmtWiseLvl != 0) {
+		stmts = tableNestingWise[tableStmtWiseLvl];
+		if (stmts.empty() == true) {
+			return -1;
+		}
+	}
+		//vector<int> stmts = tableNestingWise.at(tableStmtWise.at(stmt));
+
+	vector<int> r;
 
 		for (auto& iterValue : stmts) {
 			if (this->isValidFollows(stmt, iterValue)) {
@@ -59,17 +76,15 @@ int FollowsTable::getFollower(int stmt)
 			}
 		}
 
-		if (r.size() > 1) {
+		/*if (r.size() > 1) {
 			throw logic_error("There are more than 1 statements that follow the given statement");
+		}*/
+
+		if (r.empty() == true) {
+			return -1;
 		}
 
-	    int result = r.at(0);
-		return result;
-	}
-	catch (out_of_range& oor) {
-		cerr << "Out of range error: " << oor.what() << "\n";
-		return -1;
-	}
+		return r.at(0);
 }
 
 bool FollowsTable::isFollowEmpty()
@@ -79,15 +94,34 @@ bool FollowsTable::isFollowEmpty()
 
 bool FollowsTable::isValidFollows(int from, int to)
 {
-	if (from >= to) {
+	if (isgreaterequal(from, to) == true) {
 		return false;
 	}
 
-	try {
-		int nestingAtFrom = tableStmtWise.at(from);
-		int nestingAtTo = tableStmtWise.at(to);
+		int nestingAtFrom = tableStmtWise[from];
+		int nestingAtTo = tableStmtWise[to];
+
+		if (nestingAtFrom == 0 || nestingAtTo == 0) {
+			return false;
+		}
 
 		if (nestingAtFrom == nestingAtTo) {
+			if (from + 1 == to) return true; 
+			else {
+				int subsequentStmt = from + 1;
+				map<int, int>::iterator i = tableStmtWise.find(subsequentStmt);
+				if (i == tableStmtWise.end()) {
+					return false;
+				}
+				for (map<int, int>::iterator iter = i;
+					iter != tableStmtWise.find(to);
+					++iter) {
+					if (iter->second == nestingAtFrom) {
+						return false;
+					}
+				}
+				return true;
+			}
 			int subsequentStmt = from + 1;
 			map<int, int>::iterator i = tableStmtWise.find(subsequentStmt);
 			if (i == tableStmtWise.end()) {
@@ -103,11 +137,6 @@ bool FollowsTable::isValidFollows(int from, int to)
 			return true;
 		}
 		return false;
-	}
-	catch (out_of_range& oor) {
-		cerr << "Out of range error: " << oor.what() << "\n";
-		return false;
-	}
 }
 
 bool FollowsTable::isFollowsStar(int from, int to)
@@ -115,10 +144,12 @@ bool FollowsTable::isFollowsStar(int from, int to)
 	if (from >= to) {
 		return false;
 	}
+		/*int nestingAtFrom = tableStmtWise.at(from);
+		int nestingAtTo = tableStmtWise.at(to);*/
+	int nestingAtFrom = tableStmtWise[from];
+	int nestingAtTo = tableStmtWise[to];
 
-	try {
-		int nestingAtFrom = tableStmtWise.at(from);
-		int nestingAtTo = tableStmtWise.at(to);
+	if (nestingAtFrom != 0 && nestingAtTo != 0) {
 		if (nestingAtFrom == nestingAtTo) {
 			return true;
 		}
@@ -126,17 +157,26 @@ bool FollowsTable::isFollowsStar(int from, int to)
 			return false;
 		}
 	}
-	catch (out_of_range& oor) {
-		cerr << "Out of range error: " << oor.what() << "\n";
+	else {
 		return false;
 	}
+
 }
 
 list<int> FollowsTable::getFollowedFromStar(int stmt)
 {
+	vector<int> stmts;
+	list<int> emptyList;
+	int tableStmtWiseLvl = tableStmtWise[stmt];
+	
+	if (tableStmtWiseLvl != 0) {
+		stmts = tableNestingWise[tableStmtWiseLvl];
+		if (stmts.empty() == true) {
+			return emptyList;
+		}
+	}
 
-	try {
-		vector<int> stmts = tableNestingWise.at(tableStmtWise.at(stmt));
+		//vector<int> stmts = tableNestingWise.at(tableStmtWise.at(stmt));
 
 		list<int> r = list<int>();
 
@@ -147,20 +187,24 @@ list<int> FollowsTable::getFollowedFromStar(int stmt)
 		}
 
 		return r;
-	}
-	catch (out_of_range& oor) {
-		cerr << "Out of range error: " << oor.what() << "\n";
-		return list<int>();
-	}
 }
 
 list<int> FollowsTable::getFollowerStar(int stmt)
 {
+		//vector<int> stmts = tableNestingWise.at(tableStmtWise.at(stmt));
 
-	try {
-		vector<int> stmts = tableNestingWise.at(tableStmtWise.at(stmt));
+		vector<int> stmts;
+		list<int> emptyList;
+		int tableStmtWiseLvl = tableStmtWise[stmt];
 
-		list<int> r = list<int>();
+		if (tableStmtWiseLvl != 0) {
+			stmts = tableNestingWise[tableStmtWiseLvl];
+			if (stmts.empty() == true) {
+				return emptyList;
+			}
+		}
+
+		list<int> r;
 
 		for (auto& iterValue : stmts) {
 			if (this->isFollowsStar(stmt, iterValue)) {
@@ -169,11 +213,6 @@ list<int> FollowsTable::getFollowerStar(int stmt)
 		}
 
 		return r;
-	}
-	catch (out_of_range& oor) {
-		cerr << "Out of range error: " << oor.what() << "\n";
-		return list<int>();
-	}
 }
 
 

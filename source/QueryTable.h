@@ -16,7 +16,7 @@ public:
 
 	QueryTable();
 	~QueryTable();
-	QueryTable(bool isNull);
+	QueryTable(int isNull);
 	QueryTable(Clause selectClause, Clause suchThatClause, Clause patternClause);
 
 	// Get
@@ -27,10 +27,10 @@ public:
 	QueryResult getSuchThatResult();
 	QueryResult getPatternResult();
 
-	bool isSelectResultEmpty();
-	bool isSuchThatResultEmpty();
-	bool isPatternResultEmpty();
-	bool isNullQuery();
+	int isSelectResultEmpty();
+	int isSuchThatResultEmpty();
+	int isPatternResultEmpty();
+	int isNullQuery();
 
 	string getSynType(string);
 
@@ -41,8 +41,8 @@ public:
 	void setSelectResult(QueryResult qr);
 	void setSuchThatResult(QueryResult qr);
 	void setPatternResult(QueryResult qr);
-	void setIsSuchThatAvail(bool val);
-	void setIsPatternAvail(bool val);
+	void setIsSuchThatAvail(int val);
+	void setIsPatternAvail(int val);
 
 private:
 	
@@ -55,5 +55,5 @@ private:
 	QueryResult _suchThatResult;
 	QueryResult _patternResult;
 
-	bool _isNull;
+	int _isNull;
 };

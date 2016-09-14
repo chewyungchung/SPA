@@ -126,7 +126,8 @@ void QueryValidator::matchSelectResult() {
 	else {
 		// If not BOOLEAN, should be a synonym. Match it
 		string syn = _nextToken.getTokenName();
-		if (_synToEntityMap[syn] == "") {
+		unordered_map<string, string>::iterator  it = _synToEntityMap.find(syn);
+		if (it->second.compare("") == 0) {
 			throw(QueryException("Invalid Query : Unexpected synonym '" + syn + "' in Select clause"));
 		}
 		else {
@@ -170,7 +171,7 @@ void QueryValidator::matchPatternAssign() {
 	// factor : var_name | const_value
 	string synAssign = _nextToken.getTokenName();
 	string synAssignType;
-	bool arg2MatchFactor = false;
+	int arg2MatchFactor = -1;
 	pair<int, string> arg1, arg2;
 	// Check the syn to entity map and verify if it is "assign" or not. If NOT, ERROR!!!!!!!!!!!!!!!!
 	if (_synToEntityMap[synAssign] == "assign") {
@@ -197,8 +198,8 @@ void QueryValidator::matchPatternAssign() {
 		match(")");
 
 		// Validate arg1 & arg2
-		bool isArg1Valid = false;
-		bool isArg2Valid = false;
+		int isArg1Valid = -1;
+		int isArg2Valid = -1;
 		string arg1Type, arg2Type;
 		if (arg1.first == IDENT) {
 			if (_synToEntityMap[arg1.second] != "") {
@@ -291,8 +292,8 @@ void QueryValidator::matchFollow() {
 	pair<int, string> arg2 = matchStmtRef();
 	match(")");
 	// Validate arg1 and arg2
-	bool arg1Valid = false;
-	bool arg2Valid = false;
+	int arg1Valid = -1;
+	int arg2Valid = -1;
 	string arg1Type, arg2Type;
 
 	if (arg1.first == IDENT) {
@@ -346,8 +347,8 @@ void QueryValidator::matchFollowStar() {
 	pair<int, string> arg2 = matchStmtRef();
 	match(")");
 	
-	bool arg1Valid = false;
-	bool arg2Valid = false;
+	int arg1Valid = -1;
+	int arg2Valid = -1;
 	string arg1Type, arg2Type;
 
 	if (arg1.first == IDENT) {
@@ -400,8 +401,8 @@ void QueryValidator::matchParent() {
 	pair<int, string> arg2 = matchStmtRef();
 	match(")");
 	
-	bool arg1Valid = false;
-	bool arg2Valid = false;
+	int arg1Valid = -1;
+	int arg2Valid = -1;
 	string arg1Type, arg2Type;
 
 	if (arg1.first == IDENT) {
@@ -455,8 +456,8 @@ void QueryValidator::matchParentStar() {
 	match(")");
 	
 
-	bool arg1Valid = false;
-	bool arg2Valid = false;
+	int arg1Valid = -1;
+	int arg2Valid = -1;
 	string arg1Type, arg2Type;
 
 	if (arg1.first == IDENT) {
@@ -509,8 +510,8 @@ void QueryValidator::matchModifies() {
 	pair<int, string> arg2 = matchEntRef();
 	match(")");
 	
-	bool arg1Valid = false;
-	bool arg2Valid = false;
+	int arg1Valid = -1;
+	int arg2Valid = -1;
 	string arg1Type, arg2Type;
 
 	if (arg1.first == IDENT) {
@@ -564,8 +565,8 @@ void QueryValidator::matchUses() {
 	match(")");
 
 	// Validate arg1 and arg2
-	bool arg1Valid = false;
-	bool arg2Valid = false;
+	int arg1Valid = -1;
+	int arg2Valid = -1;
 	string arg1Type, arg2Type;
 
 	if (arg1.first == IDENT) {

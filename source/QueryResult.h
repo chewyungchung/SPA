@@ -18,20 +18,21 @@ public:
 	vector<string> getArg2ResultList();
 	vector<string> getPatternResultList();
 	string getSynonym(string arg);
-	bool getIsExist();
+	int getIsExist();
 	bool isQueryExistential();
 	bool isSynonymExist(string syn);
 	bool isArg1ResultEmpty();
 	bool isArg2ResultEmpty();
 	bool isPatternResultEmpty();
-	bool isResultNull();
+	int isResultNull();
 
 	// Setter
 	void setArgToSynonymMapping(string arg, string synonym);
 	void setArg1ResultList(vector<string> resultList);
 	void setArg2ResultList(vector<string> resultList);
 	void setPatternResultList(vector<string> resultList);
-	void setIsExist(bool input);
+	//void setIsExist(bool input);
+	void setIsExist(int);
 	void insertSynonym(string synonym);
 	void insertArg1Result(string item);
 	void insertArg2Result(string item);
@@ -44,7 +45,8 @@ private:
 	vector<string> _patternResultList;
 	unordered_map<string, string> _argToSynonymMapping;
 
-	bool _isExist;
-	bool _isNull;
+	int _isExist;
+	//bool _isExist;
+	int _isNull;
 
 };

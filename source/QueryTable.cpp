@@ -3,15 +3,10 @@
 // Default
 QueryTable::QueryTable()
 {
-	/*_selectClause = NULL;
-	_suchThatClause = NULL;
-	_patternClause = NULL;
-	_selectResult = NULL;
-	_suchThatResult = NULL;
-	_patternResult = NULL;*/
+	_isNull = 1;
 }
 
-QueryTable::QueryTable(bool isNull) {
+QueryTable::QueryTable(int isNull) {
 	_isNull = isNull;
 }
 
@@ -66,53 +61,53 @@ string QueryTable::getSynType(string syn)
 	return "NO HAVE";
 }
 
-bool QueryTable::isSelectResultEmpty() {
-	if (_selectResult.isArg1ResultEmpty() && _selectResult.isArg2ResultEmpty()) {
-		return true;
+int QueryTable::isSelectResultEmpty() {
+	if (_selectResult.isArg1ResultEmpty() == true && _selectResult.isArg2ResultEmpty() == true) {
+		return 1;
 	}
 	else {
-		return false;
+		return -1;
 	}
 }
 
-bool QueryTable::isSuchThatResultEmpty(){
-	if (_suchThatResult.isArg1ResultEmpty() && _suchThatResult.isArg2ResultEmpty()) {
-		return true;
+int QueryTable::isSuchThatResultEmpty(){
+	if (_suchThatResult.isArg1ResultEmpty() == true && _suchThatResult.isArg2ResultEmpty() == true) {
+		return 1;
 	}
 	else {
-		return false;
+		return -1;
 	}
 }
 
-bool QueryTable::isPatternResultEmpty(){
-	if (_patternResult.isArg1ResultEmpty() && _patternResult.isArg2ResultEmpty()) {
-		return true;
+int QueryTable::isPatternResultEmpty(){
+	if (_patternResult.isArg1ResultEmpty() == true && _patternResult.isArg2ResultEmpty() == true && _patternResult.isPatternResultEmpty() == true) {
+		return 1;
 	}
 	else {
-		return false;
+		return -1;
 	}
 }
 
-bool QueryTable::isNullQuery() {
+int QueryTable::isNullQuery() {
 	return _isNull;
 }
 
 void QueryTable::setSelectClause(Clause selectClause)
 {
 	_selectClause = selectClause;
-	_isNull = false;
+	_isNull = -1;
 }
 
 void QueryTable::setSuchThatClause(Clause suchThatClause)
 {
 	_suchThatClause = suchThatClause;
-	_isNull = false;
+	_isNull = -1;
 }
 
 void QueryTable::setPatternClause(Clause patternClause)
 {
 	_patternClause = patternClause;
-	_isNull = false;
+	_isNull = -1;
 }
 
 void QueryTable::setSelectResult(QueryResult selectResult)
