@@ -18,41 +18,26 @@ Parser::Parser() {
 
 Parser::Parser(string fileName)
 {
-	/*_pkb = PKB();
-	tk = new Tokenizer(fileName);
-	stmtLine = 1;
-	parentStack.push(NO_PARENT_FLAG);
-	followsMaxNestingLevel = 1;
-	followsStack.push(followsMaxNestingLevel);*/
-}
-
-Parser::~Parser()
-{
-	delete tk;
-}
-
-//PKB Parser::process() {
-//	return _pkb;
-//}
-
-PKB Parser::process(string fileName)
-{
 	_pkb = PKB();
-	tk = new Tokenizer(fileName);
+	_tk = Tokenizer(fileName);
 	stmtLine = 1;
 	parentStack.push(NO_PARENT_FLAG);
 	followsMaxNestingLevel = 1;
 	followsStack.push(followsMaxNestingLevel);
+}
+
+PKB Parser::process() {
 	parseProgram();
 	return _pkb;
 }
+
 
 
 void Parser::match(string token)
 {
 	if (next_token == token)
 	{
-		next_token = tk->getNextToken();
+		next_token = _tk.getNextToken();
 	}
 	else
 	{
@@ -63,7 +48,7 @@ void Parser::match(string token)
 
 void Parser::parseProgram()
 {
-	next_token = tk->getNextToken();
+	next_token = _tk.getNextToken();
 	parseProcedure();
 }
 

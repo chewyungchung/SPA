@@ -1,6 +1,12 @@
 #pragma once
-#include "QueryTable.h"
 #include <unordered_map>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include "QueryTable.h"
+
+using namespace std;
 
 class QueryResultProjector {
 public:
@@ -26,7 +32,9 @@ public:
 
 private:
 	QueryTable _qt;
-	int _selectExist;
-	int _suchThatExist;
-	int _patternExist;
+	int _selectExist = -1;
+	int _suchThatExist = -1;
+	int _patternExist = -1;
+	int _suchThatNull = 1;
+	int _patternNull = 1;
 };

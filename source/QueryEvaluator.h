@@ -1,18 +1,16 @@
 #pragma once
-
-#include "Clause.h"
-#include "QueryTable.h"
-#include "QueryResult.h"
-#include "QueryValidator.h"
-#include "QueryResultProjector.h"
-#include "PKB.h"
-#include "Parser.h"
 #include <string>
 #include <vector>
+#include <set>
+#include <algorithm>
 #include <iostream>
 #include <chrono>
 #include <thread>
 
+#include "Parser.h"
+#include "PKB.h"
+#include "QueryValidator.h"
+#include "QueryResultProjector.h"
 
 using namespace std;
 

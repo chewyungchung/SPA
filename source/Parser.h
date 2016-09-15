@@ -17,13 +17,11 @@ class Parser
 public:
 	Parser();
 	Parser(string fileName);
-	~Parser();
 	PKB process();
-	PKB process(string);
 
 private:
 	PKB _pkb;
-	Tokenizer * tk;
+	Tokenizer _tk;
 	string next_token;
 	string procName;
 	int stmtLine;

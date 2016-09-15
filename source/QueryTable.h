@@ -4,10 +4,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "QueryResult.h"
-#include "Clause.h"
 #include "map"
 #include "unordered_set"
+
+#include "QueryResult.h"
+#include "Clause.h"
 
 using namespace std;
 

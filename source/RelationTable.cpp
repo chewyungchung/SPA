@@ -1,8 +1,4 @@
 #include "RelationTable.h"
-#include <vector>
-#include <string>
-
-using namespace std;
 
 RelationTable::RelationTable() {
 	// Init _relationTable

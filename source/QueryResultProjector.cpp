@@ -1,11 +1,4 @@
 #include "QueryResultProjector.h"
-#include "QueryTable.h"
-#include "QueryResult.h"
-#include <vector>
-#include <string>
-#include <algorithm>
-
-using namespace std;
 
 const string CLAUSE_SELECT = "SELECT";
 const string CLAUSE_SUCH_THAT = "SUCH THAT";
@@ -23,7 +16,6 @@ QueryResultProjector::QueryResultProjector() {
 }
 
 QueryResultProjector::~QueryResultProjector() {
-	//delete _qt;
 }
 
 QueryResultProjector::QueryResultProjector(QueryTable qt) {
@@ -39,10 +31,19 @@ list<string> QueryResultProjector::getResults() {
 	}
 
 	// Retrieve all the results from the QueryTable
+	Clause suchThatClause = _qt.getSuchThatClause();
+	Clause patternClause = _qt.getPatternClause();
+
 	QueryResult selectResult = (_qt.getSelectResult());
 	QueryResult suchThatResult = (_qt.getSuchThatResult());
 	QueryResult patternResult = (_qt.getPatternResult());
 
+	if (suchThatClause.isClauseNull() == -1) {
+		_suchThatNull = -1;
+	}
+	if (patternClause.isClauseNull() == -1) {
+		_patternNull = -1;
+	}
 	if (selectResult.getIsExist() == 1) {
 		_selectExist = 1;
 	}
@@ -106,7 +107,7 @@ list<string> QueryResultProjector::getResults() {
 }
 
 int QueryResultProjector::isResultShareCommonSyn(string selectSyn, QueryResult suchThatResult, QueryResult patternResult) {
-	if (_suchThatExist == 1 && _patternExist == 1) {
+	if (_suchThatNull == -1 && _patternNull == -1) {
 		vector<string> suchThatSyn = getClauseSynonym(CLAUSE_SUCH_THAT, suchThatResult);
 		vector<string> patternSyn = getClauseSynonym(CLAUSE_PATTERN, patternResult);
 
@@ -120,7 +121,7 @@ int QueryResultProjector::isResultShareCommonSyn(string selectSyn, QueryResult s
 			return 1;
 		}
 	}
-	else if (_suchThatExist == 1) {
+	else if (_suchThatNull == -1) {
 		vector<string> suchThatSyn = getClauseSynonym(CLAUSE_SUCH_THAT, suchThatResult);
 		int foundInSuchThat = find(suchThatSyn.begin(), suchThatSyn.end(), selectSyn) != suchThatSyn.end();
 		if (foundInSuchThat == 1) {
@@ -130,7 +131,7 @@ int QueryResultProjector::isResultShareCommonSyn(string selectSyn, QueryResult s
 			return -1;
 		}
 	}
-	else if (_patternExist == 1) {
+	else if (_patternNull == -1) {
 		vector<string> patternSyn = getClauseSynonym(CLAUSE_PATTERN, patternResult);
 		vector<string>::iterator patternIterator = find(patternSyn.begin(), patternSyn.end(), selectSyn);
 		if (patternIterator == patternSyn.end()) {
@@ -173,77 +174,142 @@ vector<string> QueryResultProjector::getClauseSynonym(string clause, QueryResult
 // Does not involve select, check if result is non empty after merging
 list<string> QueryResultProjector::mergeResult(QueryResult suchThatResult, QueryResult patternResult) {
 	list<string> mergedResult;
-	//_patternExist = false;
-	// Gotta check if suchThatResult or patternResult null
-	if (_suchThatExist == 1 && _patternExist == 1) {
-		list<string> commonSyn = getCommonSynonym(suchThatResult, patternResult);
-		// If no common synonyms, check that both queries are existential. If not, return an empty list to signify that whole query should be false
-		if (commonSyn.empty() == true) {
-			if (suchThatResult.getIsExist() == 1 && patternResult.getIsExist() == 1) {
+
+	if (_suchThatNull == -1 && _patternNull == -1) {
+		// If both clause not null, as long as got 1 non existential, return EMPTY
+		if (_suchThatExist == -1 || _patternExist == -1) {
+			return mergedResult;
+		}
+
+		// Gotta check if suchThatResult or patternResult null
+		// If at least got 1 non exist shit, return empty everything
+		if (_suchThatExist == 1 && _patternExist == 1) {
+			list<string> commonSyn = getCommonSynonym(suchThatResult, patternResult);
+			// If no common synonyms, check that both queries are existential. If not, return an empty list to signify that whole query should be false
+			if (commonSyn.empty() == true) {
+				if (suchThatResult.getIsExist() == 1 && patternResult.getIsExist() == 1) {
+					mergedResult.push_back("dummyItem");
+				}
+				return mergedResult;
+			}
+			// Else, check that all the common synonym results once merged, are non empty
+			else {
+				int nonEmpty = 1;
+				unordered_map<string, list<string>> commonSynResult = getCommonSynonymResult(commonSyn, suchThatResult, patternResult);
+				for (list<string>::iterator it = commonSyn.begin(); it != commonSyn.end(); it++) {
+					list<string> synResult = commonSynResult[*it];
+					if (synResult.empty() == true) {
+						nonEmpty = -1;
+						break;
+					}
+				}
+				if (nonEmpty == 1) {
+					mergedResult.push_back("dummyItem");
+				}
+				return mergedResult;
+			}
+		}
+		else if (_suchThatExist == 1) {
+			if (suchThatResult.getIsExist() == 1) {
 				mergedResult.push_back("dummyItem");
 			}
 			return mergedResult;
 		}
-		// Else, check that all the common synonym results once merged, are non empty
-		else {
-			int nonEmpty = 1;
-			unordered_map<string, list<string>> commonSynResult = getCommonSynonymResult(commonSyn, suchThatResult, patternResult);
-			for (list<string>::iterator it = commonSyn.begin(); it != commonSyn.end(); it++) {
-				list<string> synResult = commonSynResult[*it];
-				if (synResult.empty() == true) {
-					nonEmpty = -1;
-					break;
-				}
-			}
-			if (nonEmpty == 1) {
+		else if (_patternExist == 1) {
+			if (patternResult.getIsExist() == 1) {
 				mergedResult.push_back("dummyItem");
 			}
+			return mergedResult;
+		}
+		// Both SuchThat and Pattern results don't exist, return empty result to signify query is false
+		else {
 			return mergedResult;
 		}
 	}
-	else if (_suchThatExist == 1) {
+	else if (_suchThatNull == -1) {
 		if (suchThatResult.getIsExist() == 1) {
 			mergedResult.push_back("dummyItem");
 		}
 		return mergedResult;
 	}
-	else if (_patternExist == 1) {
+	else if (_patternNull == -1) {
 		if (patternResult.getIsExist() == 1) {
 			mergedResult.push_back("dummyItem");
 		}
 		return mergedResult;
 	}
-	// Both SuchThat and Pattern results don't exist, return empty result to signify query is false
-	else {
-		return mergedResult;
-	}
+	return mergedResult;
 }
 
 // Involves select
 list<string> QueryResultProjector::mergeResult(string selectSyn, QueryResult suchThatResult, QueryResult patternResult) {
 	list<string> mergedResult;
 
-	// Gotta check if suchThatResult or patternResult null
-	if (_suchThatExist == 1 && _patternExist == 1) {
-		list<string> commonSyn = getCommonSynonym(suchThatResult, patternResult);
-		// If no common synonyms, check that both queries are existential. If yes, gotta get all the map
-		// If not, return an empty list to signify that whole query should be false
-		if (commonSyn.empty() == true) {
-			if (suchThatResult.getIsExist() == 1 && patternResult.getIsExist() == 1) {
-				// Get a map with all the synonym results
-				unordered_map<string, list<string>> synResultMap = getCommonSynonymResult(suchThatResult, patternResult);
-				mergedResult = synResultMap[selectSyn];
+	// If any non existential query, return empty result
+	if (_suchThatNull == -1 && _patternNull == -1) {
+		if (_suchThatExist == -1 || _patternExist == -1) {
+			return mergedResult;
+		}
+
+		// Gotta check if suchThatResult or patternResult null
+		if (_suchThatExist == 1 && _patternExist == 1) {
+			list<string> commonSyn = getCommonSynonym(suchThatResult, patternResult);
+			// If no common synonyms, check that both queries are existential. If yes, gotta get all the map
+			// If not, return an empty list to signify that whole query should be false
+			if (commonSyn.empty() == true) {
+				if (suchThatResult.getIsExist() == 1 && patternResult.getIsExist() == 1) {
+					// Get a map with all the synonym results
+					unordered_map<string, list<string>> synResultMap = getCommonSynonymResult(suchThatResult, patternResult);
+					mergedResult = synResultMap[selectSyn];
+				}
+				return mergedResult;
+			}
+			// Else, once the commonSyn results are merged between SuchThat and Pattern, retrieve the results that correspond to select's syn
+			else {
+				unordered_map<string, list<string>> commonSynResult = getCommonSynonymResult(commonSyn, suchThatResult, patternResult);
+				mergedResult = commonSynResult[selectSyn];
+				return mergedResult;
+			}
+		}
+		else if (_suchThatExist == 1) {
+			// Since isResultShareCommonSyn was TRUE, select clause definitely shared a syn with SuchThatResults
+			if (suchThatResult.getIsExist() == 1) {
+				if (suchThatResult.getSynonym(PARAM_ARG1) == selectSyn) {
+					vector<string> final = suchThatResult.getArg1ResultList();
+					sort(final.begin(), final.end());
+					final.erase(unique(final.begin(), final.end()), final.end());
+					mergedResult = getListResult(final);
+				}
+				else if (suchThatResult.getSynonym(PARAM_ARG2) == selectSyn) {
+					vector<string> final = suchThatResult.getArg2ResultList();
+					sort(final.begin(), final.end());
+					final.erase(unique(final.begin(), final.end()), final.end());
+					mergedResult = getListResult(final);
+				}
 			}
 			return mergedResult;
 		}
-		// Else, once the commonSyn results are merged between SuchThat and Pattern, retrieve the results that correspond to select's syn
+		else if (_patternExist == 1) {
+			// Since isResultShareCommonSyn was TRUE, select clause definitely shared a syn with PatternResults
+			if (patternResult.getIsExist() == 1) {
+				if (patternResult.getSynonym(PARAM_ARG1) == selectSyn) {
+					vector<string> final = patternResult.getArg1ResultList();
+					sort(final.begin(), final.end());
+					final.erase(unique(final.begin(), final.end()), final.end());
+					mergedResult = getListResult(final);
+				}
+				else if (patternResult.getSynonym(PARAM_PATTERN) == selectSyn) {
+					mergedResult = getListResult(patternResult.getPatternResultList());
+				}
+			}
+			return mergedResult;
+		}
+		// Both SuchThat and Pattern results don't exist, return empty result to signify query is false
 		else {
-			unordered_map<string, list<string>> commonSynResult = getCommonSynonymResult(commonSyn, suchThatResult, patternResult);
-			mergedResult = commonSynResult[selectSyn];
 			return mergedResult;
 		}
 	}
-	else if (_suchThatExist) {
+	else if (_suchThatNull == -1) {
 		// Since isResultShareCommonSyn was TRUE, select clause definitely shared a syn with SuchThatResults
 		if (suchThatResult.getIsExist() == 1) {
 			if (suchThatResult.getSynonym(PARAM_ARG1) == selectSyn) {
@@ -261,7 +327,7 @@ list<string> QueryResultProjector::mergeResult(string selectSyn, QueryResult suc
 		}
 		return mergedResult;
 	}
-	else if (_patternExist == 1) {
+	else if (_patternNull == -1) {
 		// Since isResultShareCommonSyn was TRUE, select clause definitely shared a syn with PatternResults
 		if (patternResult.getIsExist() == 1) {
 			if (patternResult.getSynonym(PARAM_ARG1) == selectSyn) {
@@ -274,10 +340,6 @@ list<string> QueryResultProjector::mergeResult(string selectSyn, QueryResult suc
 				mergedResult = getListResult(patternResult.getPatternResultList());
 			}
 		}
-		return mergedResult;
-	}
-	// Both SuchThat and Pattern results don't exist, return empty result to signify query is false
-	else {
 		return mergedResult;
 	}
 }

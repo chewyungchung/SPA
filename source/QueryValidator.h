@@ -1,13 +1,16 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <unordered_map>
-#include "QueryTable.h"
-#include "QueryToken.h"
-#include "QueryTokenizer.h"
-#include "RelationTable.h"
 #include <chrono>
 #include <thread>
+#include <unordered_map>
+
+#include "QueryTable.h"
+#include "QueryTokenizer.h"
+#include "RelationTable.h"
+#include "QueryException.h"
+
+using namespace std;
 
 const vector<string> DESIGN_ENTITIES({
 	"stmt",

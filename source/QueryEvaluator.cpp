@@ -1,10 +1,4 @@
-#include "Clause.h"
-#include "QueryTable.h"
 #include "QueryEvaluator.h"
-#include "PKB.h"
-#include <string>
-#include <algorithm>
-#include <set>
 
 const string REL_FOLLOWS = "follows";
 const string REL_FOLLOWS_STAR = "follows*";
@@ -465,12 +459,13 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 			if (synonymStatementsArg2.empty() == true) return qr;
 			
 			// Check all statements of arg2Type for followedFrom. Add all followedFrom to result list
-			/*for (list<int>::iterator it = synonymStatementsArg2.begin(), end = synonymStatementsArg2.end(); it != end; ++it) {
+			for (list<int>::iterator it = synonymStatementsArg2.begin(), end = synonymStatementsArg2.end(); it != end; ++it) {
 				int followedFrom = _pkb.getFollowedFrom(*it);
-				if (followedFrom) {
-					qr.insertArg2Result(to_string(followedFrom));
+				if (followedFrom != -1) {
+					qr.insertArg2Result(to_string(*it));
+					qr.setIsExist(1);
 				}
-			}*/
+			}
 			return qr;
 		}
 	}
@@ -934,11 +929,18 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 
 			// For each element in synonymStatementsArg2, check if arg2 is in arg1Children. If yes, add to results
 			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-				if (find(arg1Children.begin(), arg1Children.end(), *it) != arg1Children.end()) {
-					qr.insertArg2Result(to_string(*it));
+				if (_pkb.isParentStar(stoi(arg1), *it) != -1) {
 					qr.setIsExist(1);
+					qr.insertArg2Result(to_string(*it));
 				}
 			}
+			//// For each element in synonymStatementsArg2, check if arg2 is in arg1Children. If yes, add to results
+			//for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
+			//	if (find(arg1Children.begin(), arg1Children.end(), *it) != arg1Children.end()) {
+			//		qr.insertArg2Result(to_string(*it));
+			//		qr.setIsExist(1);
+			//	}
+			//}
 			return qr;
 		}
 	}

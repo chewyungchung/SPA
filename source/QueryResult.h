@@ -19,12 +19,12 @@ public:
 	vector<string> getPatternResultList();
 	string getSynonym(string arg);
 	int getIsExist();
+	int getIsNull();
 	bool isQueryExistential();
 	bool isSynonymExist(string syn);
 	bool isArg1ResultEmpty();
 	bool isArg2ResultEmpty();
 	bool isPatternResultEmpty();
-	int isResultNull();
 
 	// Setter
 	void setArgToSynonymMapping(string arg, string synonym);
@@ -33,6 +33,7 @@ public:
 	void setPatternResultList(vector<string> resultList);
 	//void setIsExist(bool input);
 	void setIsExist(int);
+	void setIsNull(int);
 	void insertSynonym(string synonym);
 	void insertArg1Result(string item);
 	void insertArg2Result(string item);
@@ -45,8 +46,7 @@ private:
 	vector<string> _patternResultList;
 	unordered_map<string, string> _argToSynonymMapping;
 
-	int _isExist;
-	//bool _isExist;
-	int _isNull;
+	int _isExist = -1;
+	int _isNull = 1;
 
 };

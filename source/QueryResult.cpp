@@ -78,18 +78,19 @@ void QueryResult::insertPatternResult(string item) {
 }
 
 void QueryResult::setIsExist(int input) {
-	/*if (input == true) {
-		_isExist = input;
-	}
-	else if (input == false)
-	{
-		_isExist = input;
-	}*/
 	_isExist = input;
+}
+
+void QueryResult::setIsNull(int input) {
+	_isNull = input;
 }
 
 int QueryResult::getIsExist() {
 	return _isExist;
+}
+
+int QueryResult::getIsNull() {
+	return _isNull;
 }
 
 bool QueryResult::isSynonymExist(string syn) {
@@ -117,8 +118,4 @@ bool QueryResult::isArg2ResultEmpty() {
 
 bool QueryResult::isPatternResultEmpty() {
 	return _patternResultList.empty();
-}
-
-int QueryResult::isResultNull() {
-	return _isNull;
 }
