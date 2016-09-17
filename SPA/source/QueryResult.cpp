@@ -104,10 +104,6 @@ bool QueryResult::isSynonymExist(string syn) {
 	return isSynonymExist;
 }
 
-bool QueryResult::isQueryExistential() {
-	return _isExist;
-}
-
 bool QueryResult::isArg1ResultEmpty() {
 	return _arg1ResultList.empty();
 }

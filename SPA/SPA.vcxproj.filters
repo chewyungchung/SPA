@@ -33,30 +33,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\source\Clause.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\QueryEvaluator.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\QueryResult.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\QueryTable.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\DesignExtractor.cpp">
-      <Filter>Source Files\PKB</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\PKB.cpp">
-      <Filter>Source Files\PKB</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\TNode.cpp">
-      <Filter>Source Files\PKB</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\Parser.cpp">
-      <Filter>Source Files\Front End</Filter>
-    </ClCompile>
     <ClCompile Include="source\Tokenizer.cpp">
       <Filter>Source Files\Front End</Filter>
     </ClCompile>
@@ -109,6 +85,9 @@
       <Filter>Source Files\QueryProcessor</Filter>
     </ClCompile>
     <ClCompile Include="source\QueryEvaluator.cpp">
+      <Filter>Source Files\QueryProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Clause.cpp">
       <Filter>Source Files\QueryProcessor</Filter>
     </ClCompile>
   </ItemGroup>

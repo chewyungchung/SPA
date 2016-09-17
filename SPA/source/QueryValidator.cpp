@@ -99,7 +99,6 @@ void QueryValidator::matchDeclarationVar(string entity) {
 	else {
 		// End declaration for this entity type
 		match(";");
-		cout << "Did this match not run?" << endl;
 	}
 }
 

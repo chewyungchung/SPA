@@ -929,7 +929,7 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 
 			// For each element in synonymStatementsArg2, check if arg2 is in arg1Children. If yes, add to results
 			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-				if (_pkb.isParentStar(stoi(arg1), *it) != -1) {
+				if (_pkb.isParentStar(stoi(arg1), *it) != false) {
 					qr.setIsExist(1);
 					qr.insertArg2Result(to_string(*it));
 				}

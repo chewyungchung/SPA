@@ -1,5 +1,4 @@
 #include "ParentTable.h"
-#include "Parser.h"
 
 ParentTable::ParentTable() {
 	TableChildWise = unordered_map<int, int>();
@@ -14,7 +13,7 @@ ParentTable::~ParentTable()
 
 void ParentTable::addParent(int parent, int child) {
 	
-	if (parent == Parser::NO_PARENT_FLAG) {
+	if (parent == NO_PARENT_FLAG) {
 		return;
 	}
 	TableChildWise[child] = parent;

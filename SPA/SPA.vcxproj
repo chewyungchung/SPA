@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Clause.cpp" />
     <ClCompile Include="source\ConstantTable.cpp" />
     <ClCompile Include="source\FollowsTable.cpp" />
     <ClCompile Include="source\ModUsesTablebyStmt.cpp" />
@@ -109,7 +110,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
-    <OutDir>$(ProjectDir)$(Configuration)</OutDir>
+    <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
     <SourcePath>$(ProjectDir)source;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />

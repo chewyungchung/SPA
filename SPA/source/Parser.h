@@ -28,6 +28,7 @@ private:
 
 	// Parent data	
 	stack<int> parentStack;
+	int NO_PARENT_FLAG = -1;
 
 	// Follows data
 	int followsMaxNestingLevel;

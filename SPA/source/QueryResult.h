@@ -20,7 +20,6 @@ public:
 	string getSynonym(string arg);
 	int getIsExist();
 	int getIsNull();
-	bool isQueryExistential();
 	bool isSynonymExist(string syn);
 	bool isArg1ResultEmpty();
 	bool isArg2ResultEmpty();

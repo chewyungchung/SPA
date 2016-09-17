@@ -8,6 +8,13 @@
 // include your other headers here
 #include "AbstractWrapper.h"
 #include "Parser.h"
+#include "Clause.h"
+#include "QueryToken.h"
+#include "QueryTokenizer.h"
+#include "QueryTable.h"
+#include "QueryResult.h"
+#include "QueryEvaluator.h"
+#include "QueryValidator.h"
 #include "QueryResultProjector.h"
 #include <chrono>
 #include <thread>
