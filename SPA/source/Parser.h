@@ -26,8 +26,7 @@ private:
 	string procName;
 	int stmtLine;
 
-	// Parent data
-	int NO_PARENT_FLAG = -1;
+	// Parent data	
 	stack<int> parentStack;
 
 	// Follows data
