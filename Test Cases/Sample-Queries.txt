@@ -1,0 +1,155 @@
+1 - v, f(c,c)
+assign a;
+Select a such that Follows(3, 4)
+1, 2, 3, 4, 5, 6
+5000
+2 - v, f(c,v)
+assign a;
+Select a such that Follows(2, a)
+3
+5000
+3 - v, f(c,v)
+assign a;
+Select a such that Follows(6, a)
+none
+5000
+4 - v, f(v,v)
+assign a1; assign a2;
+Select a1 such that Follows(a1, a2)
+1, 2, 3, 4, 5
+5000
+5 - v, f(v,v)
+assign a1; assign a2;
+Select a2 such that Follows(a1, a2)
+2, 3, 4, 5, 6
+5000
+6 - v, f(v,c)
+assign a;
+Select a such that Follows(a, 6)
+5
+5000
+7 - v, f(v,c)
+assign a;
+Select a such that Follows(a, 1)
+none
+5000
+8 - v, f(c,c)
+stmt s;
+Select s such that Follows(4, 5)
+1, 2, 3, 4, 5, 6
+5000
+9 - v, f(c,v)
+stmt s;
+Select s such that Follows(5, s)
+6
+5000
+10 - v, f(v,v)
+stmt s; assign a;
+Select s such that Follows(s, a)
+1, 2, 3, 4, 5
+5000
+11 - v, f(v,v)
+stmt s1; stmt s2;
+Select s2 such that Follows(s1, s2)
+2, 3, 4, 5, 6
+5000
+12 - v, f(v,c)
+stmt s;
+Select s such that Follows(s, 2)
+1
+5000
+13 - inv, select synonym not declared
+
+Select s such that Follows(2, s)
+none
+5000
+14 - v, f(c,c)=false
+assign a;
+Select a such that Follows(3, 6)
+none
+5000
+15 - v, fs(c,c)
+stmt s;
+Select s such that Follows*(1, 4)
+1, 2, 3, 4, 5, 6
+5000
+16 - v, fs(c,c) = false
+stmt s;
+Select s such that Follows*(4, 4)
+none
+5000
+17 - v, fs(v,c)
+stmt s;
+Select s such that Follows*(s, 5)
+1, 2, 3, 4
+5000
+18 - v, fs(c,v)
+assign a;
+Select a such that Follows*(3, a)
+4, 5, 6
+5000
+19 - v, fs(v,v)
+stmt s1; stmt s2;
+Select s1 such that Follows*(s1, s2)
+1, 2, 3, 4, 5
+5000
+20 - v, fs(v,v)
+assign a1; assign a2;
+Select a2 such that Follows*(a1, a2)
+2, 3, 4, 5, 6
+5000
+21 - v, p(c,c)
+assign a;
+Select a such that Parent(1, 5)
+none
+5000
+22 - v, p(c,v)
+stmt s;
+Select s such that Parent(2, s)
+none
+5000
+23 - v, p(v,c)
+assign a;
+Select a such that Parent(a, 4)
+none
+5000
+24 - v, p(v,v)
+stmt s1; stmt s2;
+Select s1 such that Parent(s1, s2)
+none
+5000
+25 - v, p(c,v)
+stmt s1; stmt s2;
+Select s1 such that Parent(3, s2)
+none
+5000
+26 - v, ps(c,c)
+assign a;
+Select a such that Parent*(1, 3)
+none
+5000
+27 - v, ps(c,v)
+stmt s;
+Select s such that Parent*(2, s)
+none
+5000
+28 - v, ps(v,c)
+assign a;
+Select a such that Parent*(a, 6)
+none
+5000
+29 - v, ps(v,v)
+stmt s1; stmt s2;
+Select s1 such that Parent*(s1, s2)
+none
+5000
+30 - v, ps(v,v)
+stmt s1; stmt s2;
+Select s1 such that Parent*(3, s2)
+none
+5000
+31 - v, fs(c,v)
+assign a; stmt s;
+Select s such that Follows*(3, a)
+1, 2, 3, 4, 5, 6
+5000

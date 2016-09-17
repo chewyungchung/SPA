@@ -19,50 +19,45 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\source\Clause.cpp" />
-    <ClCompile Include="..\source\ConstantTable.cpp" />
-    <ClCompile Include="..\source\DesignExtractor.cpp" />
-    <ClCompile Include="..\source\FollowsTable.cpp" />
-    <ClCompile Include="..\source\ModUsesTablebyStmt.cpp" />
-    <ClCompile Include="..\source\ModUsesTablebyVariable.cpp" />
-    <ClCompile Include="..\source\ParentTable.cpp" />
-    <ClCompile Include="..\source\Parser.cpp" />
-    <ClCompile Include="..\source\PKB.cpp" />
-    <ClCompile Include="..\source\QueryEvaluator.cpp" />
-    <ClCompile Include="..\source\QueryResult.cpp" />
-    <ClCompile Include="..\source\QueryResultProjector.cpp" />
-    <ClCompile Include="..\source\QueryTable.cpp" />
-    <ClCompile Include="..\source\QueryToken.cpp" />
-    <ClCompile Include="..\source\QueryTokenizer.cpp" />
-    <ClCompile Include="..\source\QueryValidator.cpp" />
-    <ClCompile Include="..\source\Relation.cpp" />
-    <ClCompile Include="..\source\RelationTable.cpp" />
-    <ClCompile Include="..\source\StatementTable.cpp" />
-    <ClCompile Include="..\source\TNode.cpp" />
-    <ClCompile Include="..\source\Tokenizer.cpp" />
+    <ClCompile Include="source\ConstantTable.cpp" />
+    <ClCompile Include="source\FollowsTable.cpp" />
+    <ClCompile Include="source\ModUsesTablebyStmt.cpp" />
+    <ClCompile Include="source\ModUsesTablebyVariable.cpp" />
+    <ClCompile Include="source\ParentTable.cpp" />
+    <ClCompile Include="source\Parser.cpp" />
+    <ClCompile Include="source\PKB.cpp" />
+    <ClCompile Include="source\QueryEvaluator.cpp" />
+    <ClCompile Include="source\QueryResult.cpp" />
+    <ClCompile Include="source\QueryResultProjector.cpp" />
+    <ClCompile Include="source\QueryTable.cpp" />
+    <ClCompile Include="source\QueryToken.cpp" />
+    <ClCompile Include="source\QueryTokenizer.cpp" />
+    <ClCompile Include="source\QueryValidator.cpp" />
+    <ClCompile Include="source\Relation.cpp" />
+    <ClCompile Include="source\RelationTable.cpp" />
+    <ClCompile Include="source\StatementTable.cpp" />
+    <ClCompile Include="source\Tokenizer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\source\Clause.h" />
-    <ClInclude Include="..\source\ConstantTable.h" />
-    <ClInclude Include="..\source\FollowsTable.h" />
-    <ClInclude Include="..\source\ModUsesTablebyStmt.h" />
-    <ClInclude Include="..\source\ModUsesTablebyVariable.h" />
-    <ClInclude Include="..\source\ParentTable.h" />
-    <ClInclude Include="..\source\Parser.h" />
-    <ClInclude Include="..\source\PKB.h" />
-    <ClInclude Include="..\source\QueryEvaluator.h" />
-    <ClInclude Include="..\source\QueryException.h" />
-    <ClInclude Include="..\source\QueryResult.h" />
-    <ClInclude Include="..\source\QueryResultProjector.h" />
-    <ClInclude Include="..\source\QueryTable.h" />
-    <ClInclude Include="..\source\QueryToken.h" />
-    <ClInclude Include="..\source\QueryTokenizer.h" />
-    <ClInclude Include="..\source\QueryValidator.h" />
-    <ClInclude Include="..\source\Relation.h" />
-    <ClInclude Include="..\source\RelationTable.h" />
-    <ClInclude Include="..\source\StatementTable.h" />
-    <ClInclude Include="..\source\TNode.h" />
-    <ClInclude Include="..\source\Tokenizer.h" />
+    <ClInclude Include="source\Clause.h" />
+    <ClInclude Include="source\ConstantTable.h" />
+    <ClInclude Include="source\FollowsTable.h" />
+    <ClInclude Include="source\ModUsesTablebyStmt.h" />
+    <ClInclude Include="source\ModUsesTablebyVariable.h" />
+    <ClInclude Include="source\ParentTable.h" />
+    <ClInclude Include="source\Parser.h" />
+    <ClInclude Include="source\PKB.h" />
+    <ClInclude Include="source\QueryEvaluator.h" />
+    <ClInclude Include="source\QueryException.h" />
+    <ClInclude Include="source\QueryResult.h" />
+    <ClInclude Include="source\QueryResultProjector.h" />
+    <ClInclude Include="source\QueryTable.h" />
+    <ClInclude Include="source\QueryToken.h" />
+    <ClInclude Include="source\QueryTokenizer.h" />
+    <ClInclude Include="source\QueryValidator.h" />
+    <ClInclude Include="source\Relation.h" />
+    <ClInclude Include="source\RelationTable.h" />
+    <ClInclude Include="source\Tokenizer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DC21A1EA-D2C6-4D14-A2B4-E025B64BDE81}</ProjectGuid>
@@ -114,6 +109,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(ProjectDir)$(Configuration)</OutDir>
+    <SourcePath>$(ProjectDir)source;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

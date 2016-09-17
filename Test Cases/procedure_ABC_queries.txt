@@ -1,0 +1,215 @@
+23 - Part 1: Modifies
+constant c;
+Select c such that Modifies(4, "Rome0")
+1, 200, 0, 2
+5000
+24 - Part 1: Modifies; false/none
+const c;
+Select c such that Modifies(7, "I")
+none
+5000
+25 - Part 1: Modifies
+constant c;
+Select c such that Modifies(21, "i")
+1, 200, 0, 2
+5000
+26 - Part 1: Modifies; false/none
+const c;
+Select c such that Modifies(23, "I")
+none
+5000
+27 - Part 1: Modifies
+constant c;
+Select c such that Modifies(26, "I")
+1, 200, 0, 2
+5000
+28 - Part 1: Modifies
+constant c;
+Select c such that Modifies(28, "u1")
+1, 200, 0, 2
+5000
+29 - Part 1: Modifies
+constant c;
+Select c such that Modifies(29, "ABC")
+1, 200, 0, 2
+5000
+30 - Part 1: Uses; false/none
+variable v;
+Select v such that Uses(1, "i")
+none
+5000
+31 - Part 1: Uses
+variable v;
+Select v such that Uses(4, "width")
+i, b, c, a, beta, oSCar, tmp, I, k, j1k, chArlie, x, left, right, Rome0, Delta, l, width, w, u1, ABC
+5000
+32 - Part 1: Uses; Testing case sensitivity of query argument
+variable v;
+Select v such that Uses(4, "delta")
+none
+5000
+33 - Part 1: Uses
+constant c;
+Select c such that Uses(5, "l")
+1, 200, 0, 2
+5000
+34 - Part 1: Uses
+constant c;
+Select c such that Uses(4, "left")
+1, 200, 0, 2
+5000
+35 - Part 1: Uses
+constant c;
+Select c such that Uses(28, "u1")
+1, 200, 0, 2
+5000
+36 - Part 1: Uses
+constant c;
+Select c such that Uses(22, "i")
+1, 200, 0, 2
+5000
+37 - Part 1: Uses; false/none
+constant c;
+Select c such that Uses(22, "I")
+none
+5000
+38 - Part 1: Uses
+constant c;
+Select c such that Uses(7, "tmp")
+1, 200, 0, 2
+5000
+39 - Part 1: Uses
+constant c;
+Select c such that Uses(8, "chArlie")
+1, 200, 0, 2
+5000
+40 - Part 2: [One condition, 1 or 2 synonyms] Follows
+stmt s;
+Select s such that Follows(4, s)
+21
+5000
+41 - Part 2: Follows; false/none
+stmt s;
+Select s such that Follows(29, s)
+none
+5000
+42 - Part 2: Follows; false/none
+stmt s;
+Select s such that Follows(s, 1)
+none
+5000
+43 - Part 2: Follows with prog_line
+prog_line n;
+Select n such that Follows(1, n)
+2
+5000
+44 - Part 2: Follows, 2 synonyms
+stmt s; assign a;
+Select s such that Follows(a, s)
+2, 3, 4, 7, 11, 14, 15, 29
+5000
+45 - Part 2: Follows, 1 uncontrained synonym
+prog_line n;
+Select n such that Follows(_,n)
+2, 3, 4, 7, 9, 11, 14, 15, 16, 18, 19, 20, 21, 26, 28, 29
+5000
+46 - Part 2: Parent*
+while w; assign a;
+Select w such that Parent*(w, a)
+4, 5, 7, 9, 11, 12, 16, 21, 22, 23, 24, 26
+5000
+47 - Part 2: Parent*
+prog_line n;
+Select n such that Parent*(4,n)
+5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
+5000
+48 - Part 2: Parent*; false/none: using assign in place of stmt
+assign a;
+Select a such that Parent*(a,_)
+none
+5000
+49 - Part 2: Modifies
+variable v;
+Select v such that Modifies(21, v)
+i, I
+5000
+50 - Part 2: Modifies
+stmt s;
+Select s such that Modifies(s, "x")
+4, 5, 9, 10, 11, 18
+5000
+51 - Part 2: Modifies
+while w; variable v;
+Select v such that Modifies(w, v)
+oSCar, x, Rome0, b, c, x, a, w, i, I
+5000
+52 - Part 2: Uses
+variable v; while w;
+Select v such that uses(w, v)
+a, beta, tmp, I, k, j1k, chArlie, x, left, right, Rome0, Delta, l, width, c, w, i
+5000
+53 - Part 2: Uses; Select a varname that is same as procname
+variable v;
+Select v such that Uses(29, v)
+ABC
+5000
+54 - Part 2: pattern only
+assign a;
+Select a pattern a("ABC",_"ABC"_)
+29
+5000
+56 - Part 2: pattern only
+assign a;
+Select a pattern a(a,_"0"_)
+none
+5000
+57 - Part 3: [2 conditions, no common synonym]
+assign a;
+Select a such that Follows(23,26) pattern a("oSCar", _"1"_)
+6
+5000
+58 - Part 3: false/none
+assign a;
+Select a pattern a("i", "1") such that Follows(2, 1)
+none
+5000
+59 - Part 3: Follows* inside loop
+assign a;
+Select a pattern a("u1", "u1") such that Follows*(14, 14)
+none
+5000
+60 - Part 3: Follows* inside loop
+assign a; variable v;
+Select v such that Follows*(11, 10) pattern a(v, _"x"_)
+none
+5000
+62 - Part 4 [2 conditions, 1 common synonym]
+assign a;
+Select a such that Uses(a, "l") pattern a(_,_"l"_)
+15
+5000
+63 - Part 4
+assign a; while w;
+Select a pattern a("oSCar", _"chArlie"_) such that Parent*(w, a)
+8
+5000
+64 - Part 4
+assign a;
+Select a such that Parent*(4, a) pattern a(_, _"tmp"_)
+6
+5000
+65 - Part 4
+assign a; variable v;
+Select a such that Modifies(a, "u1") pattern a(v, _)
+28
+5000
+65 - Part 4
+assign a, a1; variable v;
+Select a such that Uses(a, v) pattern a1 (v, _)
+3, 8, 10, 15, 17, 18
+5000
+66 - Part 4
+assign a; while w; stmt s; prog_line n; variable v; constant c;
+Select n pattern a(v,_"1"_) such that Parent*(n, a)
+4, 5, 9, 11, 12, 16, 21, 22, 26
+5000
