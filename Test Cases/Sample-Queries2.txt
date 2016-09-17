@@ -1,0 +1,105 @@
+1 - v, m(c,c)
+assign a;
+Select a such that Modifies(1, "x")
+1, 2, 3, 4, 5, 6
+5000
+2 - v, m(c,c)
+assign a;
+Select a such that Modifies(1, "o")
+none
+5000
+3 - v, f(c,v)
+variable v;
+Select v such that Modifies(4, v)
+y
+5000
+4 - v, f(v,c)
+stmt s;
+Select s such that Modifies(s, "z")
+2, 5
+5000
+5 - v, f(c,v)
+variable v;
+Select v such that Modifies(3, v)
+i
+5000
+6 - v, f(c,c)
+stmt s;
+Select s such that Modifies(4, "x")
+none
+5000
+7 - v, f(c,v)
+variable v;
+Select v such that Uses(7, v)
+none
+5000
+8 - v, m(c,c)
+assign a;
+Select a such that Uses(4, "x")
+1, 2, 3, 4, 5, 6
+5000
+9 - v, m(c,c)
+assign a;
+Select a such that Uses(4, "y")
+none
+5000
+10 - v, f(c,v)
+variable v;
+Select v such that Uses(5, v)
+i
+5000
+11 - v, f(v,c)
+stmt s;
+Select s such that Uses(s, "x")
+4
+5000
+12 - v, f(c,v)
+variable v;
+Select v such that Uses(5, v)
+i
+5000
+13 - v, f(c,c)
+stmt s;
+Select s such that Uses(1, "x")
+none
+5000
+14 - v, pt
+assign a;
+Select a pattern a(_, _"x"_)
+4
+5000
+15 - v, pt
+assign a;
+Select a pattern a("y", _"x"_)
+4
+5000
+16 - v, pt
+assign a;
+Select a pattern a("y", _"x"_)
+4
+5000
+17 - v, pt
+assign a;
+Select a pattern a(_, _"10"_)
+6
+5000
+18 - v, pt
+assign a;
+Select a pattern a("z", _"i"_)
+5
+5000
+19 - v, pt
+assign a;
+Select a pattern a("x", _)
+1, 6
+5000
+20 - v, f(c,c)
+variable v;
+Select v such that Uses(_, v)
+x, i
+5000
+21 - v, f(c,c)
+variable v;
+Select v such that Modifies(_, v)
+x, z, i, y
+5000

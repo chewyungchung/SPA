@@ -42,45 +42,6 @@
     <ClCompile Include="..\source\QueryResult.cpp">
       <Filter>Source Files\QueryProcessor</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\QueryResultProjector.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\QueryTable.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\FollowsTable.cpp">
-      <Filter>Source Files\PKB</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\ModUsesTablebyStmt.cpp">
-      <Filter>Source Files\PKB</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\ModUsesTablebyVariable.cpp">
-      <Filter>Source Files\PKB</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\ParentTable.cpp">
-      <Filter>Source Files\PKB</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\Parser.cpp">
-      <Filter>Source Files\Front End</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\DesignExtractor.cpp">
-      <Filter>Source Files\PKB</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\PKB.cpp">
-      <Filter>Source Files\PKB</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\TNode.cpp">
-      <Filter>Source Files\PKB</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\Clause.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\QueryEvaluator.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\QueryResult.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\QueryTable.cpp">
       <Filter>Source Files\QueryProcessor</Filter>
     </ClCompile>
@@ -96,96 +57,118 @@
     <ClCompile Include="..\source\Parser.cpp">
       <Filter>Source Files\Front End</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\QueryValidator.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\QueryTokenizer.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\QueryToken.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\Relation.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\RelationTable.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\Tokenizer.cpp">
+    <ClCompile Include="source\Tokenizer.cpp">
       <Filter>Source Files\Front End</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\StatementTable.cpp">
+    <ClCompile Include="source\Parser.cpp">
+      <Filter>Source Files\Front End</Filter>
+    </ClCompile>
+    <ClCompile Include="source\FollowsTable.cpp">
       <Filter>Source Files\PKB</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\ConstantTable.cpp">
+    <ClCompile Include="source\ModUsesTablebyStmt.cpp">
       <Filter>Source Files\PKB</Filter>
     </ClCompile>
-
+    <ClCompile Include="source\ModUsesTablebyVariable.cpp">
+      <Filter>Source Files\PKB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ParentTable.cpp">
+      <Filter>Source Files\PKB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\PKB.cpp">
+      <Filter>Source Files\PKB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\StatementTable.cpp">
+      <Filter>Source Files\PKB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ConstantTable.cpp">
+      <Filter>Source Files\PKB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\QueryResult.cpp">
+      <Filter>Source Files\QueryProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="source\QueryResultProjector.cpp">
+      <Filter>Source Files\QueryProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="source\QueryTable.cpp">
+      <Filter>Source Files\QueryProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="source\QueryToken.cpp">
+      <Filter>Source Files\QueryProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="source\QueryTokenizer.cpp">
+      <Filter>Source Files\QueryProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="source\QueryValidator.cpp">
+      <Filter>Source Files\QueryProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Relation.cpp">
+      <Filter>Source Files\QueryProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="source\RelationTable.cpp">
+      <Filter>Source Files\QueryProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="source\QueryEvaluator.cpp">
+      <Filter>Source Files\QueryProcessor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\source\Clause.h">
-      <Filter>Header Files\QueryProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryEvaluator.h">
-      <Filter>Header Files\QueryProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryResult.h">
-      <Filter>Header Files\QueryProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryTable.h">
-      <Filter>Header Files\QueryProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryResultProjector.h">
-      <Filter>Header Files\QueryProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\Parser.h">
+    <ClInclude Include="source\Parser.h">
       <Filter>Header Files\Front End</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\FollowsTable.h">
-      <Filter>Header Files\PKB</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\ModUsesTablebyStmt.h">
-      <Filter>Header Files\PKB</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\ParentTable.h">
-      <Filter>Header Files\PKB</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\PKB.h">
-      <Filter>Header Files\PKB</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\TNode.h">
-      <Filter>Header Files\PKB</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\ModUsesTablebyVariable.h">
-      <Filter>Header Files\PKB</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryTokenizer.h">
-      <Filter>Header Files\QueryProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryToken.h">
-      <Filter>Header Files\QueryProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\QueryException.h">
-      <Filter>Header Files\QueryProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\Relation.h">
-      <Filter>Header Files\QueryProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\RelationTable.h">
-      <Filter>Header Files\QueryProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\Tokenizer.h">
+    <ClInclude Include="source\Tokenizer.h">
       <Filter>Header Files\Front End</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\QueryValidator.h">
+    <ClInclude Include="source\FollowsTable.h">
+      <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ModUsesTablebyStmt.h">
+      <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ModUsesTablebyVariable.h">
+      <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ParentTable.h">
+      <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="source\PKB.h">
+      <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ConstantTable.h">
+      <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="source\QueryTable.h">
       <Filter>Header Files\QueryProcessor</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\StatementTable.h">
-      <Filter>Header Files\PKB</Filter>
+    <ClInclude Include="source\QueryToken.h">
+      <Filter>Header Files\QueryProcessor</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\ConstantTable.h">
-      <Filter>Header Files\PKB</Filter>
+    <ClInclude Include="source\QueryTokenizer.h">
+      <Filter>Header Files\QueryProcessor</Filter>
     </ClInclude>
-
+    <ClInclude Include="source\QueryValidator.h">
+      <Filter>Header Files\QueryProcessor</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Relation.h">
+      <Filter>Header Files\QueryProcessor</Filter>
+    </ClInclude>
+    <ClInclude Include="source\RelationTable.h">
+      <Filter>Header Files\QueryProcessor</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Clause.h">
+      <Filter>Header Files\QueryProcessor</Filter>
+    </ClInclude>
+    <ClInclude Include="source\QueryEvaluator.h">
+      <Filter>Header Files\QueryProcessor</Filter>
+    </ClInclude>
+    <ClInclude Include="source\QueryException.h">
+      <Filter>Header Files\QueryProcessor</Filter>
+    </ClInclude>
+    <ClInclude Include="source\QueryResult.h">
+      <Filter>Header Files\QueryProcessor</Filter>
+    </ClInclude>
+    <ClInclude Include="source\QueryResultProjector.h">
+      <Filter>Header Files\QueryProcessor</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
