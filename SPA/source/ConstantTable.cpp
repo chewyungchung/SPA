@@ -1,17 +1,21 @@
 #include "ConstantTable.h"
 using namespace std;
 
-ConstantTable::ConstantTable() {
+ConstantTable::ConstantTable()
+{
 	constantList = list<int>();
 	constantTable = unordered_map<int, list<int>>();
 }
 
-void ConstantTable::addConstant(int constant, int stmtline) {
+void ConstantTable::addConstant(int constant, int stmtline)
+{
 	std::unordered_map<int, list<int>>::iterator index = constantTable.find(constant);
-	if (index != constantTable.end()) {
+	if (index != constantTable.end())
+	{
 		index->second.push_back(stmtline);
 	}
-	else {
+	else
+	{
 		constantList.push_back(constant);
 		list<int> x = list<int>();
 		x.push_back(stmtline);
@@ -19,16 +23,20 @@ void ConstantTable::addConstant(int constant, int stmtline) {
 	}
 }
 
-list<int> ConstantTable::getConstantList(void) {
+list<int> ConstantTable::getConstantList(void)
+{
 	return constantList;
 }
 
-list<int> ConstantTable::getStmtlineByConstant(int constant) {
+list<int> ConstantTable::getStmtlineByConstant(int constant)
+{
 	std::unordered_map<int, list<int>>::iterator index = constantTable.find(constant);
-	if (index != constantTable.end()) {
+	if (index != constantTable.end())
+	{
 		return index->second;
 	}
-	else {
+	else
+	{
 		return list<int>();
 	}
 }

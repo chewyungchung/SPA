@@ -8,10 +8,6 @@ using namespace std;
 
 class ModUsesTablebyVariable
 {
-private:
-	unordered_map<string, list<int>> varModTable;
-	unordered_map<string, list<int>> varUsesTable;
-
 public:
 	ModUsesTablebyVariable();
 	~ModUsesTablebyVariable();
@@ -25,5 +21,9 @@ public:
 	list<string> getAllModVar();
 	list<string> getAllUsedVar();
 	list<string> getVarList();
+
+private:
+	unordered_map<string, list<int>> varModTable;
+	unordered_map<string, list<int>> varUsesTable;
 };
 

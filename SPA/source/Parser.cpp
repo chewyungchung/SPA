@@ -1,3 +1,6 @@
+/*
+Parser operates by recursive descent. Design abstraction states are tracked by global data structures.
+*/
 #pragma once
 
 #include<stdio.h>
@@ -13,7 +16,6 @@ using namespace std;
 #include "PKB.h"
 
 Parser::Parser() {
-
 }
 
 Parser::Parser(string fileName)
@@ -30,7 +32,6 @@ PKB Parser::process() {
 	parseProgram();
 	return _pkb;
 }
-
 
 
 void Parser::match(string token)

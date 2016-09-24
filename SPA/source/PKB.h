@@ -1,3 +1,7 @@
+/*
+PKB contains tables and other structures (AST, CFG) to store concrete design abstractions
+PKB itself is a facade class
+*/
 #pragma once
 
 #include <stdio.h>
@@ -16,9 +20,9 @@
 using namespace std;
 typedef short PROC;
 
-class TNode;
+//class TNode;
 
-class VarTable;  // no need to #include "VarTable.h" as all I need is pointer
+//class VarTable;  // no need to #include "VarTable.h" as all I need is pointer
 class ModUsesTablebyStmt;
 class ModUsesTablebyVariable;
 class StatementTable;
@@ -26,10 +30,8 @@ class FollowsTable;
 class ParentTable;
 class ConstantTable;
 
-class PKB {
-
-private:
-
+class PKB 
+{
 public:
 
 	ModUsesTablebyStmt M_U_TableByStmt;
@@ -41,10 +43,9 @@ public:
 	PKB();
 	~PKB();
 
-
-	static VarTable* varTable; 
-	static int setProcToAST(PROC p, TNode* r);
-	static TNode* getRootAST (PROC p);
+//	static VarTable* varTable; 
+//	static int setProcToAST(PROC p, TNode* r);
+//	static TNode* getRootAST (PROC p);
 //	static PKB* getPKB();
 //	static void destroyInstance();
 //	static void resetPKB();
@@ -92,4 +93,7 @@ public:
 	void addConstant(int constant, int stmt);
 	list<int> getConstantList();
 	list<int> getStmtlineByConstant(int c);
+
+private:
+
 };

@@ -6,11 +6,8 @@
 
 using namespace std;
 
-class FollowsTable {
-private:
-	map<int, int> tableStmtWise; // key: stmt; value: nesting index
-	unordered_map<int, vector<int> > tableNestingWise; // key: nesting index; value: stmt
-
+class FollowsTable 
+{
 public:
 	FollowsTable();
 	~FollowsTable();
@@ -23,5 +20,9 @@ public:
 	bool isValidFollows(int from, int to);
 	bool isFollowsStar(int from, int to);
 	list<int> getFollowedFromStar(int stmt);
-	list<int> getFollowerStar(int stmt);	
+	list<int> getFollowerStar(int stmt);
+
+private:
+	map<int, int> tableStmtWise; // key: stmt; value: nesting index
+	unordered_map<int, vector<int> > tableNestingWise; // key: nesting index; value: stmt	
 };

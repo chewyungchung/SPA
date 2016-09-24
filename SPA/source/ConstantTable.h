@@ -5,7 +5,8 @@
 
 using namespace std;
 
-class ConstantTable {
+class ConstantTable
+{
 public:
 	ConstantTable();
 	void addConstant(int constant, int stmtline);
