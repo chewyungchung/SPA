@@ -6,13 +6,8 @@
 
 using namespace std;
 
-class ParentTable {
-private:
-	int NO_PARENT_FLAG = -1;
-
-	unordered_map<int, int> TableChildWise; // key: child: value: parent
-	unordered_map<int, list<int> > TableParentWise; // key: parent; value: child(ren)
-	unordered_map<int, list<int> > TableChildWiseStar; // key: child; value: parent(s)-star
+class ParentTable
+{
 public:
 	ParentTable();
 	~ParentTable();
@@ -25,4 +20,10 @@ public:
 	bool isParentOf(int parent, int child);
 	list<int> getParentStar(int stmt);
 	bool isParentStar(int parent, int child);
+
+private:
+	int NO_PARENT_FLAG = -1;
+	unordered_map<int, int> TableChildWise; // key: child: value: parent
+	unordered_map<int, list<int> > TableParentWise; // key: parent; value: child(ren)
+	unordered_map<int, list<int> > TableChildWiseStar; // key: child; value: parent(s)-star
 };

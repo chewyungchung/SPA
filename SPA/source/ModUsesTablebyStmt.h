@@ -8,10 +8,6 @@ using namespace std;
 
 class ModUsesTablebyStmt
 {
-private:
-	unordered_map<int, list<string>> modifiesTable;
-	unordered_map<int, list<string>> usesTable;
-
 public:
 	ModUsesTablebyStmt();
 	~ModUsesTablebyStmt();
@@ -23,6 +19,10 @@ public:
 	bool isUsed(int stmtNum, string varName);
 	list<string> getModifiedBy(int stmtNum);
 	list<string> getUsedBy(int stmtNum);
+
+private:
+	unordered_map<int, list<string>> modifiesTable;
+	unordered_map<int, list<string>> usesTable;
 };
 
 

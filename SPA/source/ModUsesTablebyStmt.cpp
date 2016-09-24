@@ -28,14 +28,17 @@ void ModUsesTablebyStmt::addModifies(int stmtNum, string var)
 	list<string> mVarList;
 
 	/* if key is not found, add key-pair into modifiesTable */
-	if (it == modifiesTable.end()) {
+	if (it == modifiesTable.end())
+	{
 		mVarList.push_back(var);
 		modifiesTable.insert(pair<int, list<string>>(stmtNum, mVarList));
 	}
-	else {
+	else
+	{
 		mVarList = it->second;
 		bool found = find(mVarList.begin(), mVarList.end(), var) != mVarList.end();
-		if (!found) {
+		if (!found)
+		{
 			it->second.push_back(var);
 		}
 	}
@@ -47,14 +50,17 @@ void ModUsesTablebyStmt::addUses(int stmtNum, string var)
 	list<string> uVarList;
 
 	/* if key is not found, add key-value pair into usesTable */
-	if (it == usesTable.end()) {
+	if (it == usesTable.end())
+	{
 		uVarList.push_back(var);
 		usesTable.insert(pair<int, list<string>>(stmtNum, uVarList));
 	}
-	else {
+	else
+	{
 		uVarList = it->second;
 		bool found = find(uVarList.begin(), uVarList.end(), var) != uVarList.end();
-		if (!found) {
+		if (!found)
+		{
 			it->second.push_back(var);
 		}
 	}
@@ -64,11 +70,13 @@ bool ModUsesTablebyStmt::isModified(int stmtNum, string varName)
 {
 	unordered_map<int, list<string>>::iterator it = modifiesTable.find(stmtNum);
 
-	if (it != modifiesTable.end()) {
+	if (it != modifiesTable.end())
+	{
 		list<string> varModified = it->second;
 		return find(varModified.begin(), varModified.end(), varName) != varModified.end();
 	}
-	else {
+	else
+	{
 		return false;
 	}
 }
@@ -77,11 +85,13 @@ bool ModUsesTablebyStmt::isUsed(int stmtNum, string varName)
 {
 	unordered_map<int, list<string>>::iterator it = usesTable.find(stmtNum);
 
-	if (it != usesTable.end()) {
+	if (it != usesTable.end())
+	{
 		list<string> varUsed = it->second;
 		return find(varUsed.begin(), varUsed.end(), varName) != varUsed.end();
 	}
-	else {
+	else
+	{
 		return false;
 	}
 }
@@ -91,11 +101,13 @@ list<string> ModUsesTablebyStmt::getModifiedBy(int stmtNum)
 	unordered_map<int, list<string>>::iterator it = modifiesTable.find(stmtNum);
 	list<string> mVarList;
 
-	if (it != modifiesTable.end()) {
+	if (it != modifiesTable.end())
+	{
 		mVarList = it->second;
 		return mVarList;
 	}
-	else {
+	else
+	{
 		return list<string>();
 	}
 }
@@ -105,11 +117,13 @@ list<string> ModUsesTablebyStmt::getUsedBy(int stmtNum)
 	unordered_map<int, list<string>>::iterator it = usesTable.find(stmtNum);
 	list<string> uVarList;
 
-	if (it != usesTable.end()) {
+	if (it != usesTable.end())
+	{
 		uVarList = it->second;
 		return uVarList;
 	}
-	else {
+	else
+	{
 		return list<string>();
 	}
 }

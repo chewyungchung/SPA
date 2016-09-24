@@ -15,11 +15,13 @@ StatementTable::~StatementTable()
 
 void StatementTable::addStatement(int stmtNum, string stmtType)
 {
-	if (stmtType == "assign") {
+	if (stmtType == "assign")
+	{
 		assignList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
 	}
-	else if (stmtType == "while") {
+	else if (stmtType == "while")
+	{
 		whileList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
 	}
@@ -48,12 +50,12 @@ int StatementTable::getStatementCount()
 bool StatementTable::isValidStmt(int stmtNum)
 {
 	bool isFound = find(allStmtList.begin(), allStmtList.end(), stmtNum) != allStmtList.end();
-	if (isFound) {
+	if (isFound)
+	{
 		return true;
 	}
-	else {
+	else
+	{
 		return false;
 	}
 }
-
-

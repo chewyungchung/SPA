@@ -1,3 +1,7 @@
+/*
+Parser receives and tokenizes a user-specified SIMPLE source. 
+Parser then populates the PKB with program design abstractions.
+*/
 #pragma once
 
 #include<stdio.h>
@@ -13,7 +17,6 @@ using namespace std;
 
 class Parser
 {
-
 public:
 	Parser();
 	Parser(string fileName);

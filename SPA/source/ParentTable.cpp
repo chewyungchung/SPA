@@ -1,6 +1,12 @@
+/*
+ParentTable main table is keyed by stmtLine and its corresponding parent
+NO_PARENT_FLAG = -1 is used to indicate that the stmt is not in any container
+Parent* is computed by following the chain of parents until the NO_PARENT_FLAG is reached
+*/
 #include "ParentTable.h"
 
-ParentTable::ParentTable() {
+ParentTable::ParentTable()
+{
 	TableChildWise = unordered_map<int, int>();
 	TableParentWise = unordered_map<int, list<int> >();
 	TableChildWiseStar = unordered_map<int, list<int> >();
@@ -8,12 +14,12 @@ ParentTable::ParentTable() {
 
 ParentTable::~ParentTable()
 {
-	// What's there to de-allocate ah?
 }
 
-void ParentTable::addParent(int parent, int child) {
-	
-	if (parent == NO_PARENT_FLAG) {
+void ParentTable::addParent(int parent, int child)
+{	
+	if (parent == NO_PARENT_FLAG)
+	{
 		return;
 	}
 	TableChildWise[child] = parent;
@@ -23,7 +29,8 @@ void ParentTable::addParent(int parent, int child) {
 	// Because we have to keep track of parent-star relationships
 	unordered_map<int, int>::iterator it = TableChildWise.find(parent);
 
-	while (it != TableChildWise.end()) { // if the parent is itself a child
+	while (it != TableChildWise.end())
+	{ // if the parent is itself a child
 		int parentOfParent = it->second;
 		TableChildWiseStar[child].push_back(parentOfParent); // parent-star has been found; track it
 		it = TableChildWise.find(parentOfParent);
@@ -34,28 +41,30 @@ int ParentTable::getParentOf(int stmt)
 {
 	int res = -1;
 	unordered_map<int, int >::iterator it = TableChildWise.find(stmt);
-	if (it == TableChildWise.end()) {
+	if (it == TableChildWise.end())
+	{
 		return -1;
 	}
-	else {
-		res = TableChildWise.at(stmt);
+	else
+	{
+		return TableChildWise.at(stmt);
 	}
-	return res;
 }
 
-list<int> ParentTable::getChildrenOf(int stmt) {
+list<int> ParentTable::getChildrenOf(int stmt)
+{
 	list<int> res;
 	list<int> emptyList;
 
 	list<int> test = TableParentWise[stmt];
-	if (test.empty() == true) {
+	if (test.empty() == true)
+	{
 		return res;
 	}
-	else {
-		res = TableParentWise.at(stmt);
+	else
+	{
+		return TableParentWise.at(stmt);
 	}
-	/*res = TableParentWise.at(stmt);*/
-	return res;
 }
 
 bool ParentTable::isParentEmpty() {
@@ -69,23 +78,21 @@ bool ParentTable::isParentOf(int parent, int child)
 	int res = flag;
 
 	unordered_map<int, int >::iterator it = TableChildWise.find(child);
-	if (it == TableChildWise.end()) {
+	if (it == TableChildWise.end())
+	{
 		return false;
 	}
-	else {
-		/*res = TableChildWise.at(child);*/
-		if (TableChildWise.at(child) == parent) {
+	else
+	{
+		if (TableChildWise.at(child) == parent)
+		{
 			return true;
 		}
-		else {
+		else
+		{
 			return false;
 		}
 	}
-
-	/*if (res != flag) {
-		r = true;
-	}
-	return r;*/
 }
 
 list<int> ParentTable::getParentStar(int stmt)
@@ -93,14 +100,14 @@ list<int> ParentTable::getParentStar(int stmt)
 	unordered_map<int, list<int> >::iterator it = TableChildWiseStar.find(stmt);
 	list<int> res;
 
-	if (it == TableChildWiseStar.end()) {
+	if (it == TableChildWiseStar.end())
+	{
 		res = list<int>();
 	}
-	else {
-		res = it->second;
+	else
+	{
+		return it->second;
 	}
-
-	return res;
 }
 
 bool ParentTable::isParentStar(int parent, int child)
@@ -114,6 +121,5 @@ bool ParentTable::isParentStar(int parent, int child)
 			res = true;
 		}
 	}
-
 	return res;
 }
