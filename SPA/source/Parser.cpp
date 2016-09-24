@@ -149,7 +149,7 @@ void Parser::parseAssignRHS()
 	{
 		int RHSConstant = stoi(RHS);
 		_pkb.addConstant(RHSConstant, stmtLine);
-		addAllParentsOfUsedConstant(RHSConstant);
+		//addAllParentsOfUsedConstant(RHSConstant);
 	}
 	else
 	{

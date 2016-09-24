@@ -33,8 +33,13 @@ void ParentTable::addParent(int parent, int child) {
 int ParentTable::getParentOf(int stmt)
 {
 	int res = -1;
+	unordered_map<int, int >::iterator it = TableChildWise.find(stmt);
+	if (it == TableChildWise.end()) {
+		return -1;
+	}
+	else {
 		res = TableChildWise.at(stmt);
-
+	}
 	return res;
 }
 
@@ -63,12 +68,24 @@ bool ParentTable::isParentOf(int parent, int child)
 	int flag = -1;
 	int res = flag;
 
-		res = TableChildWise.at(child);
+	unordered_map<int, int >::iterator it = TableChildWise.find(child);
+	if (it == TableChildWise.end()) {
+		return false;
+	}
+	else {
+		/*res = TableChildWise.at(child);*/
+		if (TableChildWise.at(child) == parent) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 
-	if (res != flag) {
+	/*if (res != flag) {
 		r = true;
 	}
-	return r;
+	return r;*/
 }
 
 list<int> ParentTable::getParentStar(int stmt)

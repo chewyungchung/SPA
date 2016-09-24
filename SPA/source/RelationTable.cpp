@@ -24,7 +24,7 @@ RelationTable::RelationTable() {
 	arg2Type.clear();
 
 	// Modifies - Iteration 1 got '_'
-	arg1Type = { "stmt", "assign", "while", "prog_line", "string", "constant", "_" };
+	arg1Type = { "stmt", "assign", "while", "prog_line", "constant", "_" };
 	arg2Type = { "variable", "string", "_" };
 	Relation modifies(2, arg1Type, arg2Type);
 	_relationTable["modifies"] = modifies;

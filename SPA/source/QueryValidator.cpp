@@ -126,8 +126,9 @@ void QueryValidator::matchSelectResult() {
 	else {
 		// If not BOOLEAN, should be a synonym. Match it
 		string syn = _nextToken.getTokenName();
-		unordered_map<string, string>::iterator  it = _synToEntityMap.find(syn);
-		if (it->second.compare("") == 0) {
+		//unordered_map<string, string>::iterator  it = _synToEntityMap.find(syn);
+		//if (it->second.compare("") == 0) {
+		if (_synToEntityMap.count(syn) == 0) {
 			throw(QueryException("Invalid Query : Unexpected synonym '" + syn + "' in Select clause"));
 		}
 		else {

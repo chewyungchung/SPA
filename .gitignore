@@ -241,3 +241,4 @@ _Pvt_Extensions
 .fake/
 sh.exe.stackdump
 CS3201 Team 9.VC.db
+Test Cases/out.xml

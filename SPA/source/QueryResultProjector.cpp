@@ -21,6 +21,12 @@ QueryResultProjector::~QueryResultProjector() {
 QueryResultProjector::QueryResultProjector(QueryTable qt) {
 	_qt = qt;
 }
+
+QueryResultProjector::QueryResultProjector(QueryTable qt, PKB pkb) {
+	_qt = qt;
+	_pkb = pkb;
+}
+
 list<string> QueryResultProjector::getResults() {
 	list<string> finalResult;
 
@@ -268,6 +274,12 @@ list<string> QueryResultProjector::mergeResult(string selectSyn, QueryResult suc
 			else {
 				unordered_map<string, list<string>> commonSynResult = getCommonSynonymResult(commonSyn, suchThatResult, patternResult);
 				mergedResult = commonSynResult[selectSyn];
+
+				// ---
+				if (mergedResult.empty() == true) {
+					mergedResult = checkAgain(commonSynResult[commonSyn.front()], selectSyn, commonSyn.front());
+				}
+
 				return mergedResult;
 			}
 		}
@@ -460,3 +472,216 @@ list<string> QueryResultProjector::getListResult(vector<string> vectorResults) {
 	}
 	return returnList;
 }
+
+list<string> QueryResultProjector::checkAgain(list<string> intersectionResults, string selectSyn, string commonSyn) {
+	list<string> results;
+
+	vector<string> suchThatSyn = getClauseSynonym(CLAUSE_SUCH_THAT, _qt.getSuchThatResult());
+	vector<string> patternSyn = getClauseSynonym(CLAUSE_PATTERN, _qt.getPatternResult());
+
+	vector<string>::iterator searchSelect; //= suchThatSyn.begin();
+	vector<string>::iterator searchCommon;// = suchThatSyn.begin();
+
+	searchSelect = find(suchThatSyn.begin(), suchThatSyn.end(), selectSyn);
+	searchCommon = find(suchThatSyn.begin(), suchThatSyn.end(), commonSyn);
+
+	if (searchSelect != suchThatSyn.end() && searchCommon != suchThatSyn.end()) {
+		string suchThatRelation = _qt.getSuchThatClause().getRelation();
+		if (suchThatRelation == "uses") {
+			string usesArg1 = _qt.getSuchThatClause().getArg().at(0);
+			string usesArg2 = _qt.getSuchThatClause().getArg().at(1);
+
+			if (commonSyn == usesArg1) {
+				vector<string> originalArg2Results = _qt.getSuchThatResult().getArg2ResultList();
+				for (list<string>::iterator it1 = intersectionResults.begin(); it1 != intersectionResults.end(); it1++) {
+					for (vector<string>::iterator it2 = originalArg2Results.begin(); it2 != originalArg2Results.end(); it2++) {
+						if (_pkb.isUsed(stoi(*it1), *it2) == true) {
+							results.push_back(*it2);
+						}
+					}
+				}
+				return results;
+			}
+			else if (commonSyn == usesArg2) {
+				vector<string> originalArg1Results = _qt.getSuchThatResult().getArg1ResultList();
+				for (vector<string>::iterator it1 = originalArg1Results.begin(); it1 != originalArg1Results.end(); it1++) {
+					for (list<string>::iterator it2 = intersectionResults.begin(); it2 != intersectionResults.end(); it2++) {
+						if (_pkb.isUsed(stoi(*it1), *it2) == true) {
+							results.push_back(*it1);
+						}
+					}
+				}
+				return results;
+			}
+		}
+		else if (suchThatRelation == "modifies") {
+			string modifiesArg1 = _qt.getSuchThatClause().getArg().at(0);
+			string modifiesArg2 = _qt.getSuchThatClause().getArg().at(1);
+
+			if (commonSyn == modifiesArg1) {
+				vector<string> originalArg2Results = _qt.getSuchThatResult().getArg2ResultList();
+				for (list<string>::iterator it1 = intersectionResults.begin(); it1 != intersectionResults.end(); it1++) {
+					for (vector<string>::iterator it2 = originalArg2Results.begin(); it2 != originalArg2Results.end(); it2++) {
+						if (_pkb.isModified(stoi(*it1), *it2) == true) {
+							results.push_back(*it2);
+						}
+					}
+				}
+				return results;
+			}
+			else if (commonSyn == modifiesArg2) {
+				vector<string> originalArg1Results = _qt.getSuchThatResult().getArg1ResultList();
+				for (vector<string>::iterator it1 = originalArg1Results.begin(); it1 != originalArg1Results.end(); it1++) {
+					for (list<string>::iterator it2 = intersectionResults.begin(); it2 != intersectionResults.end(); it2++) {
+						if (_pkb.isModified(stoi(*it1), *it2) == true) {
+							results.push_back(*it1);
+						}
+					}
+				}
+				return results;
+			}
+		}
+		else if (suchThatRelation == "follows") {
+			string followsArg1 = _qt.getSuchThatClause().getArg().at(0);
+			string followsArg2 = _qt.getSuchThatClause().getArg().at(1);
+
+			if (commonSyn == followsArg1) {
+				vector<string> originalArg2Results = _qt.getSuchThatResult().getArg2ResultList();
+				for (list<string>::iterator it1 = intersectionResults.begin(); it1 != intersectionResults.end(); it1++) {
+					for (vector<string>::iterator it2 = originalArg2Results.begin(); it2 != originalArg2Results.end(); it2++) {
+						if (_pkb.isValidFollows(stoi(*it1), stoi(*it2)) == true) {
+							results.push_back(*it2);
+						}
+					}
+				}
+				return results;
+			}
+			else if (commonSyn == followsArg2) {
+				vector<string> originalArg1Results = _qt.getSuchThatResult().getArg1ResultList();
+				for (vector<string>::iterator it1 = originalArg1Results.begin(); it1 != originalArg1Results.end(); it1++) {
+					for (list<string>::iterator it2 = intersectionResults.begin(); it2 != intersectionResults.end(); it2++) {
+						if (_pkb.isValidFollows(stoi(*it1), stoi(*it2)) == true) {
+							results.push_back(*it1);
+						}
+					}
+				}
+				return results;
+			}
+		}
+		else if (suchThatRelation == "follows*") {
+			string followsTArg1 = _qt.getSuchThatClause().getArg().at(0);
+			string followsTArg2 = _qt.getSuchThatClause().getArg().at(1);
+
+			if (commonSyn == followsTArg1) {
+				vector<string> originalArg2Results = _qt.getSuchThatResult().getArg2ResultList();
+				for (list<string>::iterator it1 = intersectionResults.begin(); it1 != intersectionResults.end(); it1++) {
+					for (vector<string>::iterator it2 = originalArg2Results.begin(); it2 != originalArg2Results.end(); it2++) {
+						if (_pkb.isFollowsStar(stoi(*it1), stoi(*it2)) == true) {
+							results.push_back(*it2);
+						}
+					}
+				}
+				return results;
+			}
+			else if (commonSyn == followsTArg2) {
+				vector<string> originalArg1Results = _qt.getSuchThatResult().getArg1ResultList();
+				for (vector<string>::iterator it1 = originalArg1Results.begin(); it1 != originalArg1Results.end(); it1++) {
+					for (list<string>::iterator it2 = intersectionResults.begin(); it2 != intersectionResults.end(); it2++) {
+						if (_pkb.isFollowsStar(stoi(*it1), stoi(*it2)) == true) {
+							results.push_back(*it1);
+						}
+					}
+				}
+				return results;
+			}
+		}
+		else if (suchThatRelation == "parent") {
+			string parentArg1 = _qt.getSuchThatClause().getArg().at(0);
+			string parentArg2 = _qt.getSuchThatClause().getArg().at(1);
+
+			if (commonSyn == parentArg1) {
+				vector<string> originalArg2Results = _qt.getSuchThatResult().getArg2ResultList();
+				for (list<string>::iterator it1 = intersectionResults.begin(); it1 != intersectionResults.end(); it1++) {
+					for (vector<string>::iterator it2 = originalArg2Results.begin(); it2 != originalArg2Results.end(); it2++) {
+						if (_pkb.isParentOf(stoi(*it1), stoi(*it2)) == true) {
+							results.push_back(*it2);
+						}
+					}
+				}
+				return results;
+			}
+			else if (commonSyn == parentArg2) {
+				vector<string> originalArg1Results = _qt.getSuchThatResult().getArg1ResultList();
+				for (vector<string>::iterator it1 = originalArg1Results.begin(); it1 != originalArg1Results.end(); it1++) {
+					for (list<string>::iterator it2 = intersectionResults.begin(); it2 != intersectionResults.end(); it2++) {
+						if (_pkb.isParentOf(stoi(*it1), stoi(*it2)) == true) {
+							results.push_back(*it1);
+						}
+					}
+				}
+				return results;
+			}
+		}
+		else if (suchThatRelation == "parent*") {
+			string parentTArg1 = _qt.getSuchThatClause().getArg().at(0);
+			string parentTArg2 = _qt.getSuchThatClause().getArg().at(1);
+
+			if (commonSyn == parentTArg1) {
+				vector<string> originalArg2Results = _qt.getSuchThatResult().getArg2ResultList();
+				for (list<string>::iterator it1 = intersectionResults.begin(); it1 != intersectionResults.end(); it1++) {
+					for (vector<string>::iterator it2 = originalArg2Results.begin(); it2 != originalArg2Results.end(); it2++) {
+						if (_pkb.isParentStar(stoi(*it1), stoi(*it2)) == true) {
+							results.push_back(*it2);
+						}
+					}
+				}
+				return results;
+			}
+			else if (commonSyn == parentTArg2) {
+				vector<string> originalArg1Results = _qt.getSuchThatResult().getArg1ResultList();
+				for (vector<string>::iterator it1 = originalArg1Results.begin(); it1 != originalArg1Results.end(); it1++) {
+					for (list<string>::iterator it2 = intersectionResults.begin(); it2 != intersectionResults.end(); it2++) {
+						if (_pkb.isParentStar(stoi(*it1), stoi(*it2)) == true) {
+							results.push_back(*it1);
+						}
+					}
+				}
+				return results;
+			}
+		}
+	}
+
+	searchSelect = find(patternSyn.begin(), patternSyn.end(), selectSyn);
+	searchCommon = find(patternSyn.begin(), patternSyn.end(), commonSyn);
+
+	if (searchSelect != patternSyn.end() && searchCommon != patternSyn.end()) {
+		string patternArg1 = _qt.getPatternClause().getArg().at(0);
+		string patternSynAssign = _qt.getPatternClause().getArg().at(2);
+
+		if (patternArg1 == commonSyn) {
+			vector<string> originalSynAssignResults = _qt.getPatternResult().getPatternResultList();
+			for (vector<string>::iterator it1 = originalSynAssignResults.begin(); it1 != originalSynAssignResults.end(); it1++) {
+				for (list<string>::iterator it2 = intersectionResults.begin(); it2 != intersectionResults.end(); it2++) {
+					if (_pkb.isModified(stoi(*it1), *it2) == true) {
+						results.push_back(*it1);
+					}
+				}
+			}
+			return results;
+		}
+		else if (patternSynAssign == commonSyn) {
+			vector<string> originalPatternArg1Results = _qt.getPatternResult().getArg1ResultList();
+			for (list<string>::iterator it1 = intersectionResults.begin(); it1 != intersectionResults.end(); it1++) {
+				for (vector <string>::iterator it2 = originalPatternArg1Results.begin(); it2 != originalPatternArg1Results.end(); it2++) {
+					if (_pkb.isModified(stoi(*it1), *it2) == true) {
+						results.push_back(*it2);
+					}
+				}
+			}
+			return results;
+		}
+	}
+	return results;
+}
+
+

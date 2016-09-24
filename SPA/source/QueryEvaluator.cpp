@@ -198,6 +198,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 				for (list<int>::iterator it2 = statementsWithArg2.begin(); it2 != statementsWithArg2.end(); ++it2) {
 					if (*it1 == *it2) {
 						qr.setIsExist(1);
+						qr.insertPatternResult(to_string(*it1));
 						insideAlreadyTrue = true;
 						break;
 					}
@@ -322,6 +323,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 						int secondNestValid = -1;
 						for (list<int>::iterator it3 = stmtlineByConstantList.begin(); it3 != stmtlineByConstantList.end(); it3++) {
 							if (*it2 == *it3) {
+								qr.setIsExist(1);
 								firstNestValid = 1;
 								secondNestValid = 1;
 								break;
@@ -329,6 +331,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 						}
 						if (secondNestValid == 1) {
 							qr.insertPatternResult(to_string(*it2));
+							break;
 						}
 					}
 					if (firstNestValid == 1) {
@@ -336,6 +339,7 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 					}
 				}
 			}
+			return qr;
 		}
 		else {
 			// arg2Type is a string --> For now it can only be a variable
@@ -349,7 +353,8 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 				list<int> arg1ModifiedBy = _pkb.getModifiedBy(*it1);
 				int outerIteratorIsValidResult = -1;
 				if (arg1ModifiedBy.empty() == true) {
-					return qr;
+					continue;
+					//return qr;
 				}
 				else {
 					for (list<int>::iterator it2 = arg1ModifiedBy.begin(); it2 != arg1ModifiedBy.end(); it2++) {
@@ -498,8 +503,8 @@ QueryResult QueryEvaluator::processFollows(Clause followClause) {
 			// Look for followers of all statements of arg1Type. For all found, add to qr
 			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
 				int arg1Follower = _pkb.getFollower(*it);
-				if (arg1Follower) { 
-					qr.insertArg1Result(to_string(arg1Follower)); 
+				if (arg1Follower != -1) { 
+					qr.insertArg1Result(to_string(*it)); 
 					qr.setIsExist(1); 
 				}
 			}
@@ -803,7 +808,7 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 			// Check if any statement in synonymStatementsArg2 got parent. If have, add to result
 			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
 				int parentOfArg2  = _pkb.getParentOf(*it);
-				if (parentOfArg2) {
+				if (parentOfArg2 != -1) {
 					qr.insertArg2Result(to_string(*it)); 
 					qr.setIsExist(1);
 				}
@@ -840,12 +845,13 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 			// for each synonymStatement that has a kid, add to resultList in qr
 			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++)
 			{
-				list<int> arg1Children = _pkb.getChildrenOf(stoi(arg1));
+				list<int> arg1Children = _pkb.getChildrenOf(*it);
 				if (!arg1Children.empty() == true) {
 					qr.setIsExist(1);
-					for (list<int>::iterator it1 = arg1Children.begin(); it1 != arg1Children.end(); it1++) {
+					qr.insertArg1Result(to_string(*it));
+					/*for (list<int>::iterator it1 = arg1Children.begin(); it1 != arg1Children.end(); it1++) {
 						qr.insertArg1Result(to_string(*it1));
-					}
+					}*/
 				}
 			}
 			return qr;
@@ -869,14 +875,14 @@ QueryResult QueryEvaluator::processParent(Clause parentClause) {
 			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
 				int outerIteratorIsValidResult = -1;
 				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					if (_pkb.isParentOf(*it1, *it2)) {
+					if (_pkb.isParentOf(*it1, *it2) == true) {
 						outerIteratorIsValidResult = 1; 
 						qr.insertArg2Result(to_string(*it2)); 
 						qr.setIsExist(1);
 					}
 				}
 				if (outerIteratorIsValidResult == 1) {
-					qr.insertArg1Result(arg1);
+					qr.insertArg1Result(to_string(*it1));
 				}
 			}
 			return qr;
@@ -977,9 +983,10 @@ QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
 				list<int> arg2ParentStar = _pkb.getParentStar(*it1);
 				if (arg2ParentStar.empty() == false ) {
 					qr.setIsExist(1);
-					for (list<int>::iterator it2 = arg2ParentStar.begin(); it2 != arg2ParentStar.end(); it2++) {
+					qr.insertArg2Result(to_string(*it1));
+					/*for (list<int>::iterator it2 = arg2ParentStar.begin(); it2 != arg2ParentStar.end(); it2++) {
 						qr.insertArg2Result(to_string(*it2));
-					}
+					}*/
 				}
 			}
 			return qr;

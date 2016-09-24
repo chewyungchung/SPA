@@ -44,9 +44,10 @@ void TestWrapper::evaluate(std::string query, std::list<std::string>& results){
 		}
 	}*/
 
-	_qrp = QueryResultProjector(_qtresults);
+	_qrp = QueryResultProjector(_qtresults,_pkb);
 	//std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	list<string> finalResults = _qrp.getResults();
+	finalResults.unique();
 	results = finalResults;
 
 	//// store the answers to the query in the results list (it is initially empty)
