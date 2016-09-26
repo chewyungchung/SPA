@@ -33,7 +33,6 @@ PKB Parser::process() {
 	return _pkb;
 }
 
-
 void Parser::match(string token)
 {
 	if (next_token == token)
@@ -45,7 +44,6 @@ void Parser::match(string token)
 		throw invalid_argument("SIMPLE syntax error, check SIMPLE source");
 	}
 }
-
 
 void Parser::parseProgram()
 {
@@ -61,6 +59,17 @@ void Parser::parseProcedure()
 	match(LEFT_BRACES);
 	parseStmtLst();
 	match(RIGHT_BRACES);
+	if (next_token == PROCEDURE_FLAG)
+	{
+		// Entering into new procedure,
+		// thus enter into a new (highest) nestingLevel
+		// ParentStack would rightly have only NO_PARENT_FLAG at this point
+		followsMaxNestingLevel++;
+		followsStack.pop();
+		followsStack.push(followsMaxNestingLevel);
+
+		parseProcedure();
+	}
 }
 
 void Parser::parseStmtLst()
@@ -68,6 +77,12 @@ void Parser::parseStmtLst()
 	if (next_token == WHILE_FLAG)
 	{
 		parseWhileStmt();
+	}
+	else if (next_token == CALL_FLAG)
+	{
+		parseCallStmt();
+		match(SEMICOLON_FLAG);
+		stmtLine++;
 	}
 	else
 	{
@@ -120,6 +135,17 @@ void Parser::parseWhileStmt()
 	followsStack.pop();
 }
 
+void Parser::parseCallStmt()
+{
+	// Populate StatementTable
+	_pkb.addStatement(stmtLine, CALL_FLAG);
+
+	string caller = procName;
+	string callee = next_token;
+	// Populate CallTable
+	_pkb.addCalls(caller, callee);
+}
+
 void Parser::parseAssignStmt()
 {
 	// Populate StatementTable
@@ -150,7 +176,7 @@ void Parser::parseAssignRHS()
 	{
 		int RHSConstant = stoi(RHS);
 		_pkb.addConstant(RHSConstant, stmtLine);
-		//addAllParentsOfUsedConstant(RHSConstant);
+		//addAllParentsOfUsedConstant(RHSConstant); // Ignore for iteration 1, subsequently need to add in
 	}
 	else
 	{

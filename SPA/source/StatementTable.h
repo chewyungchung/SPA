@@ -7,11 +7,6 @@ using namespace std;
 
 class StatementTable
 {
-private:
-	list<int> assignList;
-	list<int> whileList;
-	list<int> allStmtList;
-
 public:
 	StatementTable();
 	~StatementTable();
@@ -21,5 +16,9 @@ public:
 	list<int> getStmtList();
 	int getStatementCount();
 	bool isValidStmt(int stmtNum);
-};
 
+private:
+	list<int> assignList;
+	list<int> whileList;
+	list<int> allStmtList;
+};

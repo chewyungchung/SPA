@@ -16,6 +16,7 @@ PKB itself is a facade class
 #include "FollowsTable.h"
 #include "ParentTable.h"
 #include "ConstantTable.h"
+#include "CallsTable.h"
 
 using namespace std;
 typedef short PROC;
@@ -29,6 +30,7 @@ class StatementTable;
 class FollowsTable;
 class ParentTable;
 class ConstantTable;
+class CallsTable;
 
 class PKB 
 {
@@ -40,6 +42,7 @@ public:
 	FollowsTable F_Table;
 	ParentTable P_Table;
 	ConstantTable C_Table;
+	CallsTable Calls_Table;
 	PKB();
 	~PKB();
 

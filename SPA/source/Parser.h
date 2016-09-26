@@ -1,6 +1,7 @@
 /*
 Parser receives and tokenizes a user-specified SIMPLE source. 
 Parser then populates the PKB with program design abstractions.
+This PKB is the single instance shared throughout the program for this particular SIMPLE source iteration.
 */
 #pragma once
 
@@ -41,6 +42,7 @@ private:
 	string PROCEDURE_FLAG = "procedure";
 	string WHILE_FLAG = "while";
 	string ASSIGN_FLAG = "assign";
+	string CALL_FLAG = "call";
 	string EQUAL_FLAG = "=";
 	string PLUS_FLAG = "+";
 	string SEMICOLON_FLAG = ";";
@@ -52,6 +54,7 @@ private:
 	void parseProcedure();
 	void parseStmtLst();
 	void parseWhileStmt();
+	void parseCallStmt();
 	void parseAssignStmt();
 	void parseAssignRHS();
 	bool isConstant(string s);
