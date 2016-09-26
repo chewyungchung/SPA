@@ -97,6 +97,15 @@ public:
 	list<int> getConstantList();
 	list<int> getStmtlineByConstant(int c);
 
+	void addCalls(string caller, string callee);
+	list<string> getCallees(string caller);
+	list<string> getCallers(string callee);
+	bool isCallsEmpty();
+	bool isCalls(string caller, string callee);
+	bool isCallsStar(string caller, string callee);
+	list<string> getCalleesStar(string caller);
+	list<string> getCallersStar(string callee);
+
 private:
 
 };

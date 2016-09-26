@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CallsTable.cpp" />
+    <ClCompile Include="source\CallsTable.cpp" />
     <ClCompile Include="source\Clause.cpp" />
     <ClCompile Include="source\ConstantTable.cpp" />
     <ClCompile Include="source\FollowsTable.cpp" />
@@ -41,7 +41,7 @@
     <ClCompile Include="source\Tokenizer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CallsTable.h" />
+    <ClInclude Include="source\CallsTable.h" />
     <ClInclude Include="source\Clause.h" />
     <ClInclude Include="source\ConstantTable.h" />
     <ClInclude Include="source\FollowsTable.h" />

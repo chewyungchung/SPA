@@ -90,7 +90,7 @@
     <ClCompile Include="source\Clause.cpp">
       <Filter>Source Files\QueryProcessor</Filter>
     </ClCompile>
-    <ClCompile Include="CallsTable.cpp">
+    <ClCompile Include="source\CallsTable.cpp">
       <Filter>Source Files\PKB</Filter>
     </ClCompile>
   </ItemGroup>
@@ -152,10 +152,10 @@
     <ClInclude Include="source\QueryResultProjector.h">
       <Filter>Header Files\QueryProcessor</Filter>
     </ClInclude>
-    <ClInclude Include="CallsTable.h">
+    <ClInclude Include="source\StatementTable.h">
       <Filter>Header Files\PKB</Filter>
     </ClInclude>
-    <ClInclude Include="source\StatementTable.h">
+    <ClInclude Include="source\CallsTable.h">
       <Filter>Header Files\PKB</Filter>
     </ClInclude>
   </ItemGroup>

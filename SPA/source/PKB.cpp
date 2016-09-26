@@ -212,3 +212,44 @@ list<int> PKB::getStmtlineByConstant(int c)
 {
 	return C_Table.getStmtlineByConstant(c);
 }
+
+/***************** CallsTable ******************/
+void PKB::addCalls(string caller, string callee)
+{
+	Calls_Table.addCalls(caller, callee);
+}
+
+list<string> PKB::getCallees(string caller)
+{
+	return Calls_Table.getCallees(caller);
+}
+
+list<string> PKB::getCallers(string callee)
+{
+	return Calls_Table.getCallers(callee);
+}
+
+bool PKB::isCallsEmpty()
+{
+	return Calls_Table.isCallsEmpty();
+}
+
+bool PKB::isCalls(string caller, string callee)
+{
+	return Calls_Table.isCalls(caller, callee);
+}
+
+bool PKB::isCallsStar(string caller, string callee)
+{
+	return Calls_Table.isCallsStar(caller, callee);
+}
+
+list<string> PKB::getCalleesStar(string caller)
+{
+	return Calls_Table.getCalleesStar(caller);
+}
+
+list<string> PKB::getCallersStar(string callee)
+{
+	return Calls_Table.getCallersStar(callee);
+}
