@@ -11,9 +11,10 @@ QueryTable::QueryTable(int isNull) {
 }
 
 // Overloaded Constructor
-QueryTable::QueryTable(Clause selectClause, Clause suchThatClause, Clause patternClause) {
+QueryTable::QueryTable(Clause selectClause, Clause suchThatClause, Clause withClause, Clause patternClause) {
 	_selectClause = selectClause;
 	_suchThatClause = suchThatClause;
+	_withClause = withClause;
 	_patternClause = patternClause;
 }
 
@@ -39,6 +40,11 @@ Clause QueryTable::getSuchThatClause()
 QueryResult QueryTable::getSuchThatResult()
 {
 	return _suchThatResult;
+}
+
+Clause QueryTable::getWithClause()
+{
+	return _withClause;
 }
 
 Clause QueryTable::getPatternClause()
@@ -101,6 +107,12 @@ void QueryTable::setSelectClause(Clause selectClause)
 void QueryTable::setSuchThatClause(Clause suchThatClause)
 {
 	_suchThatClause = suchThatClause;
+	_isNull = -1;
+}
+
+void QueryTable::setWithClause(Clause withClause)
+{
+	_withClause = withClause;
 	_isNull = -1;
 }
 

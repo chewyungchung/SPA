@@ -24,6 +24,16 @@ Clause::Clause(string relation, vector<string> arg, vector<string> argType)
 	_isNull = -1;
 }
 
+/*
+Clause::Clause(string withType, vector<string> arg, vector<string> argType)
+{
+	_withType = withType;
+	_arg = arg;
+	_argType = argType;
+	isNull = -1;
+}
+*/
+
 string Clause::getRelation()
 {
 	return _relation;

@@ -32,7 +32,8 @@ QueryToken QueryTokenizer::tokenize() {
 	if (_charType == LETTER) {
 		addNextChar();
 		getNextChar();
-		while (_charType == UNDERSCORE || _charType == LETTER || _charType == DIGIT) {
+		while (_charType == UNDERSCORE || _charType == LETTER || _charType == DIGIT ||
+				_charType == HASH) {
 			if (_charType == UNDERSCORE) {
 				isUnderscore = true;
 			}
@@ -93,6 +94,16 @@ QueryToken QueryTokenizer::tokenize() {
 		getNextChar();
 		return QueryToken(COMMA, _token);
 	}
+	else if (_charType == DOT) {
+		addNextChar();
+		getNextChar();
+		return QueryToken(DOT, _token);
+	}
+	else if (_charType == EQUAL) {
+		addNextChar();
+		getNextChar();
+		return QueryToken(EQUAL, _token);
+	}
 	else {
 		return QueryToken(ERROR, _token);
 	}
@@ -127,6 +138,9 @@ void QueryTokenizer::getNextChar() {
 		case ' ': _charType = WHITESPACE; break;
 		case '\t':_charType = TAB; break;
 		case ',': _charType = COMMA; break;
+		case '.': _charType = DOT; break;
+		case '#': _charType = HASH; break;
+		case '=': _charType = EQUAL; break;
 		case '~': _charType = ENDL; break;
 		default: break;
 	}

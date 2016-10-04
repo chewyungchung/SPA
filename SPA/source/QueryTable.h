@@ -18,11 +18,12 @@ public:
 	QueryTable();
 	~QueryTable();
 	QueryTable(int isNull);
-	QueryTable(Clause selectClause, Clause suchThatClause, Clause patternClause);
+	QueryTable(Clause selectClause, Clause withClause, Clause suchThatClause, Clause patternClause);
 
 	// Get
 	Clause getSelectClause();
 	Clause getSuchThatClause();
+	Clause getWithClause();
 	Clause getPatternClause();
 	QueryResult getSelectResult();
 	QueryResult getSuchThatResult();
@@ -38,6 +39,7 @@ public:
 	// Set
 	void setSelectClause(Clause selectClause);
 	void setSuchThatClause(Clause suchThatClause);
+	void setWithClause(Clause withClause);
 	void setPatternClause(Clause patternClause);
 	void setSelectResult(QueryResult qr);
 	void setSuchThatResult(QueryResult qr);
@@ -51,6 +53,7 @@ private:
 	
 	Clause _selectClause;
 	Clause _suchThatClause;
+	Clause _withClause;
 	Clause _patternClause;
 	QueryResult _selectResult;
 	QueryResult _suchThatResult;
