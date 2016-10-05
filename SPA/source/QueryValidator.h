@@ -18,7 +18,17 @@ const vector<string> DESIGN_ENTITIES({
 	"while",
 	"variable",
 	"constant",
-	"prog_line"
+	"prog_line",
+	"procedure", // added for iteration 2
+	"if", // added for iteration 2 
+	"call" // added for iteration 2
+});
+
+const vector<string> ATTRIBUTE_TYPES({
+	"stmt#",
+	"varName",
+	"constant",
+	"procName"
 });
 
 class QueryValidator{
@@ -32,12 +42,15 @@ public:
 	void match(string token);
 	void match(int tokenType);
 	void matchDeclaration();
-	void matchDeclarationVar(string token);
+	void matchDeclarationVar(string token); 
 	void matchSelect();
 	void matchSelectResult();
 	void matchClause();
 	void matchSuchThat();
 	void matchPattern();
+	void matchAnd();
+	void matchWith();
+	void matchWithClause();
 	void matchPatternAssign();
 	pair<int,string> matchFactor();
 	void matchRelation();
@@ -47,11 +60,22 @@ public:
 	void matchParentStar();
 	void matchModifies();
 	void matchUses();
+	void matchCalls();
+	void matchCallsStar();
+	void matchNext();
+	void matchNextStar();
 	void restrainCommonSynonym();
 
 	pair<int,string> matchStmtRef();
 	pair<int,string> matchEntRef();
+	vector<pair<int, string>> matchRef();
 
+	bool isAttrTypeValid(string attrType);
+	bool synTypeAndAttrNameMatches(string synType, string attrName);
+
+	string getWithType(string attrName, string synType);
+	string getWithType(int argType);
+	
 private:
 	QueryTable _qt;
 	QueryToken _nextToken;

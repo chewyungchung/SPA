@@ -21,7 +21,10 @@ enum TOKEN_TYPE {
 	COMMA,
 	ENDL,
 	ERROR,
-	STRING
+	STRING,
+	DOT,
+	HASH,
+	EQUAL
 };
 
 class QueryTokenizer{
