@@ -1576,12 +1576,303 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 
 ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 {
-	return ResultTable();
+	string arg1 = calls_clause.getArg().at(0);
+	string arg2 = calls_clause.getArg().at(1);
+	string arg1_type = calls_clause.getArgType().at(0);
+	string arg2_type = calls_clause.getArgType().at(1);
+
+	ResultTable temp_result;
+
+	if (arg1_type == ARGTYPE_STRING) {
+		if (_pkb.isProcedureExist(arg1) == false) {
+			return temp_result;
+		}
+
+		if (arg2_type == ARGTYPE_STRING) {
+			if (_pkb.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			if (_pkb.isCall(arg1, arg2) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			list<string> arg1_callee = _pkb.getCallee(arg1);
+			if (arg1_callee.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type. Should be non-empty
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+			
+			list<string> arg1_callee_list = _pkb.getCallee(arg1);
+			if (arg1_callee_list.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &arg1_callee : arg1_callee_list) {
+					temp_row_data.push_back(arg1_callee);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_STRING) {
+			if (_pkb.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			list<string> arg2_caller = _pkb.getCaller(arg2);
+			if (arg2_caller.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (_pkb.isCallExist() == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type. Should not be empt
+			list<string> procedure_list = _pkb.getProcedureList();
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_procedure : procedure_list) {
+				list<string> arg2_caller = _pkb.getCaller(arg2);
+				if (arg2_caller.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg2_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else {
+		// Argument 1 is a synonym of procedure type. Should not be empty
+		list<string> procedure_list = _pkb.getProcedureList();
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_STRING) {
+			if (_pkb.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			list<string> arg2_caller_list = _pkb.getCaller(arg2);
+			if (arg2_caller_list.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &arg2_caller : arg2_caller_list) {
+					temp_row_data.push_back(arg2_caller);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_callee = _pkb.getCallee(arg1_procedure);
+				if (arg1_callee.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type. Should not be empty
+			if (procedure_list.size() < 2) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_callee_list = _pkb.getCallee(arg1);
+				if (arg1_callee_list.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg1_callee : arg1_callee_list) {
+						temp_row_data.push_back(arg1_procedure);
+						temp_row_data.push_back(arg1_callee);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+			
+			return temp_result;
+		}
+	}
+
+	return temp_result;
 }
 
 ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 {
-	return ResultTable();
+	string arg1 = calls_star_clause.getArg().at(0);
+	string arg2 = calls_star_clause.getArg().at(1);
+	string arg1_type = calls_star_clause.getArgType().at(0);
+	string arg2_type = calls_star_clause.getArgType().at(1);
+
+	ResultTable temp_result;
+
+	if (arg1_type == ARGTYPE_STRING) {
+		if (_pkb.isProcedureExist(arg1) == false) {
+			return temp_result;
+		}
+
+		if (arg2_type == ARGTYPE_STRING) {
+			if (_pkb.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			if (_pkb.isCallStar(arg1, arg2) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			list<string> arg1_callee_star = _pkb.getCalleeStar(arg1);
+			if (arg1_callee_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			list<string> arg1_callee_star_list = _pkb.getCalleeStar(arg1);
+			if (arg1_callee_star_list.empty() == false) {
+				for (auto &arg1_callee_star : arg1_callee_star_list) {
+					temp_row_data.push_back(arg1_callee_star);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_STRING) {
+			if (_pkb.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			list<string> arg2_caller_star = _pkb.getCallerStar(arg2);
+			if (arg2_caller_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (_pkb.isCallExist() == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type
+			list<string> procedure_list = _pkb.getProcedureList();
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_procedure : procedure_list) {
+				list<string> arg2_caller_star = _pkb.getCallerStar(arg2);
+				if (arg2_caller_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg2_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else {
+		// Argument 1 is a synonym of procedure type. Should not be empty
+		list<string> procedure_list = _pkb.getProcedureList();
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_STRING) {
+			if (_pkb.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			list<string> arg2_caller_star_list = _pkb.getCallerStar(arg2);
+			if (arg2_caller_star_list.empty() == false) {
+				for (auto &arg2_caller_star : arg2_caller_star_list) {
+					temp_row_data.push_back(arg2_caller_star);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_callee_star = _pkb.getCalleeStar(arg1);
+				if (arg1_callee_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_caller_star_list = _pkb.getCallerStar(arg1);
+				if (arg1_caller_star_list.empty() == false) {
+					for (auto &arg1_caller_star : arg1_caller_star_list) {
+						temp_row_data.push_back(arg1_procedure);
+						temp_row_data.push_back(arg1_caller_star);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+
+			return temp_result;
+		}
+	}
+
+	return temp_result;
 }
 
 bool QueryEvaluator::ProcessNoSynGroup()
