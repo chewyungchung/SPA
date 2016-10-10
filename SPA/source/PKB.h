@@ -40,6 +40,7 @@ public:
 	FollowsTable F_Table;
 	ParentTable P_Table;
 	ConstantTable C_Table;
+	list<int> ifList;
 	PKB();
 	~PKB();
 
@@ -94,6 +95,8 @@ public:
 	list<int> getConstantList();
 	list<int> getStmtlineByConstant(int c);
 
+	void addIf(int stmt);
+	list<int> PKB::getIfList();
 private:
 
 };

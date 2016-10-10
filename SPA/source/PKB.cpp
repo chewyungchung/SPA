@@ -11,6 +11,7 @@ using namespace std;
 
 PKB::PKB()
 {
+	ifList = list<int>();
 }
 
 PKB::~PKB()
@@ -211,4 +212,12 @@ list<int> PKB::getConstantList()
 list<int> PKB::getStmtlineByConstant(int c)
 {
 	return C_Table.getStmtlineByConstant(c);
+}
+
+void PKB::addIf(int stmt) {
+	ifList.push_back(stmt);
+}
+
+list<int> PKB::getIfList() {
+	return ifList;
 }
