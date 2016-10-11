@@ -149,22 +149,22 @@ QueryResult QueryEvaluator::processSuchThat(Clause suchThatClause) {
 	QueryResult suchThatResult;
 
 	if (relation == REL_FOLLOWS) {
-		suchThatResult = processFollows(suchThatClause);
+		//suchThatResult = ProcessFollows(suchThatClause);
 	}
 	else if (relation == REL_FOLLOWS_STAR) {
-		suchThatResult = processFollowsT(suchThatClause);
+		//suchThatResult = ProcessFollowsT(suchThatClause);
 	}
 	else if (relation == REL_PARENT) {
-		suchThatResult = processParent(suchThatClause);
+		suchThatResult = ProcessParent(suchThatClause);
 	}
 	else if (relation == REL_PARENT_STAR) {
-		suchThatResult = processParentT(suchThatClause);
+		suchThatResult = ProcessParentT(suchThatClause);
 	}
 	else if (relation == REL_MODIFIES) {
-		suchThatResult = processModifies(suchThatClause);
+		suchThatResult = ProcessModifies(suchThatClause);
 	}
 	else if (relation == REL_USES) {
-		suchThatResult = processUses(suchThatClause);
+		suchThatResult = ProcessUses(suchThatClause);
 	}
 	return suchThatResult;
 }
@@ -393,852 +393,889 @@ QueryResult QueryEvaluator::processPattern(Clause patternClause) {
 	return qr;
 }
 
-QueryResult QueryEvaluator::processFollows(Clause followClause) {
-	string arg1 = followClause.getArg().at(0);
-	string arg2 = followClause.getArg().at(1);
-	string arg1Type = followClause.getArgType().at(0);
-	string arg2Type = followClause.getArgType().at(1);
+ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
+	string arg1 = follows_clause.getArg().at(0);
+	string arg2 = follows_clause.getArg().at(1);
+	string arg1_type = follows_clause.getArgType().at(0);
+	string arg2_type = follows_clause.getArgType().at(1);
+	
+	ResultTable temp_result;
 
-	QueryResult qr;
+	if (arg1_type == ARGTYPE_CONSTANT) {
+		int arg1_stmt_num = stoi(arg1);
+		if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
+		}
 
-	if (arg1Type == ARGTYPE_CONSTANT) {
-		//If arg1 not valid stmt, return empty QueryResult
-		if (_pkb.isValidStmt(stoi(arg1)) == false) {
-			return qr;
+		if (_pkb.getFollower(arg1_stmt_num) == -1) {
+			return temp_result;
 		}
-		// If arg1 no follower, return empty QueryResult
-		int arg1Follower = _pkb.getFollower(stoi(arg1));
-		if (arg1Follower == -1) {
-			return qr;
-		}
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// If arg2 <= arg1, impossibru
-			if (arg2 <= arg1) {
-				return qr;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+
+			if (arg2_stmt_num <= arg1_stmt_num) {
+				return temp_result;
 			}
 
-			// If arg2 not valid stmt, return empty QueryResult
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			if (_pkb.isValidFollows(stoi(arg1), stoi(arg2)) == true) {
-				qr.setIsExist(1);
+
+			if (_pkb.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+			
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
+		else if (arg2_type == ARGTYPE_ANY) {
 			// At this point, arg1 determined to have follower from the first getFollower() check for. Hence, return QueryResult set to 1
-			qr.setIsExist(1); 
-			return qr;
+			temp_result.SetIsQueryTrue(true);
+			return temp_result;
 		}
 		else {
-			// arg2 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-
-			// If program does not have any statements of arg2Type, then this relationship evaluates to -1
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// Check if any of the statement in synonymStatementsArg2 list is a follower of arg1
-			// If found, add to arg2ResultList and set query to 1
-			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); ++it) {
-				if (_pkb.isValidFollows(stoi(arg1), *it) == true) {
-					qr.insertArg2Result(to_string(*it)); 
-					qr.setIsExist(1);
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (_pkb.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+					break;
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	else if (arg1Type == ARGTYPE_ANY) {
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// If arg2 not valid stmt, return empty QueryResult
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// If have followed from, set QueryResult to 1 & return
-			int arg2FollowedFrom = _pkb.getFollowedFrom(stoi(arg2));
-			if (arg2FollowedFrom == -1) {
-				qr.setIsExist(1);
+
+			if (_pkb.getFollowedFrom(arg2_stmt_num) != -1) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// If follow table not empty, result exists
+		else if (arg2_type == ARGTYPE_ANY) {
 			if (_pkb.isFollowEmpty() == false) {
-				qr.setIsExist(1);
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// arg2 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
 
-			// If program does not have any statements of arg2Type, then this relationship evaluates to -1
-			if (synonymStatementsArg2.empty() == true) return qr;
-			
-			// Check all statements of arg2Type for followedFrom. Add all followedFrom to result list
-			for (list<int>::iterator it = synonymStatementsArg2.begin(), end = synonymStatementsArg2.end(); it != end; ++it) {
-				int followedFrom = _pkb.getFollowedFrom(*it);
-				if (followedFrom != -1) {
-					qr.insertArg2Result(to_string(*it));
-					qr.setIsExist(1);
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (_pkb.getFollowedFrom(arg2_stmt_num) != -1) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+					break;
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
 	else {
-		// arg1 is a synonym
-		qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-		list<int> synonymStatementsArg1 = getList(arg1Type);
-
-		// If no statements of arg1type exist, query is -1
-		if (synonymStatementsArg1.empty() == true) {
-			return qr;
+		// Argument 1 is a synonym
+		list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// If arg2 not valid stmt, query is -1
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// Check if any of the statements in synonymStatementsArg1 is followed by arg2. If any of them are 1, add it to the query results
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				if (_pkb.isValidFollows(*it, stoi(arg2)) == true) {
-					qr.insertArg1Result(to_string(*it)); 
-					qr.setIsExist(1);
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (_pkb.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+					break;
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// Look for followers of all statements of arg1Type. For all found, add to qr
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				int arg1Follower = _pkb.getFollower(*it);
-				if (arg1Follower != -1) { 
-					qr.insertArg1Result(to_string(*it)); 
-					qr.setIsExist(1); 
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (_pkb.getFollower(arg1_stmt_num) != -1) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// arg2 is a synonym
-
-			// Corner case. F(s,s)
+			// Argument 2 is a synonym
+			// Corner case: Follows(s,s)
 			if (arg2 == arg1) {
-				return qr;
+				return temp_result;
 			}
 			
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-
-			// If program does not have any statements of arg2Type, then this relationship evaluates to -1
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each statement of arg1Type, check if each statement of arg2Type is its follower
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					if (_pkb.isValidFollows(*it1, *it2) == true) { 
-						outerIteratorIsValidResult = 1; 
-						qr.insertArg2Result(to_string(*it2)); 
-						qr.setIsExist(1); 
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+					if (_pkb.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(to_string(arg2_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+						break;
 					}
 				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.insertArg1Result(to_string(*it1));
-				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	return qr; 
+	return temp_result;
 }
 
-QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
-	string arg1 = followTClause.getArg().at(0);
-	string arg2 = followTClause.getArg().at(1);
-	string arg1Type = followTClause.getArgType().at(0);
-	string arg2Type = followTClause.getArgType().at(1);
+ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
+	string arg1 = follow_star_clause.getArg().at(0);
+	string arg2 = follow_star_clause.getArg().at(1);
+	string arg1_type = follow_star_clause.getArgType().at(0);
+	string arg2_type = follow_star_clause.getArgType().at(1);
 
-	QueryResult qr;
+	ResultTable temp_result;
 
-	if (arg1Type == ARGTYPE_CONSTANT) {
-		// arg1 must be valid stmt
-		if (_pkb.isValidStmt(stoi(arg1)) == false) {
-			return qr;
+	if (arg1_type == ARGTYPE_CONSTANT) {
+		int arg1_stmt_num = stoi(arg1);
+		if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
 		}
-		// If arg1 has no followerStar, -1 and return qr
-		list<int> arg1FollowerStar = _pkb.getFollowerStar(stoi(arg1));
-		if (arg1FollowerStar.empty() == true) {
-			return qr;
+
+		list<int> arg1_follower_star = _pkb.getFollowerStar(arg1_stmt_num);
+		if (arg1_follower_star.empty() == true) {
+			return temp_result;
 		}
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// If arg2 in arg1FollowerStar list, 1 and return
-			if (find(arg1FollowerStar.begin(), arg1FollowerStar.end(), stoi(arg2)) != arg1FollowerStar.end()) {
-				qr.setIsExist(1);
+
+			if (find(arg1_follower_star.begin(), arg1_follower_star.end(), arg2_stmt_num) != arg1_follower_star.end()) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// Query is 1 since arg1FollowerStar is non empty
-			qr.setIsExist(1);
-			return qr;
+		else if (arg2_type == ARGTYPE_ANY) {
+			temp_result.SetIsQueryTrue(true);
+			return temp_result;
 		}
 		else {
-			// arg2 is synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each follower in synonymStatementsArg2, check if they belong in arg1FollowerStar, if 1, add to result and query is 1
-			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-				if (find(arg1FollowerStar.begin(), arg1FollowerStar.end(), *it) != arg1FollowerStar.end()) {
-					qr.insertArg2Result(to_string(*it));
-					qr.setIsExist(1);
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (_pkb.isFollowsStar(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	else if (arg1Type == ARGTYPE_ANY) {
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// Check if arg2's followedFromStar list got any elements. if no have, query is -1
-			list<int> arg2FollowedFromStar = _pkb.getFollowedFromStar(stoi(arg2));
-			if (!arg2FollowedFromStar.empty() == true) {
-				qr.setIsExist(1);
+
+			list<int> arg2_followed_from_star = _pkb.getFollowedFromStar(arg2_stmt_num);
+			if (arg2_followed_from_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// If follow table not empty then is all good
+		else if (arg2_type == ARGTYPE_ANY) {
 			if (_pkb.isFollowEmpty() == false) {
-				qr.setIsExist(1);
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// arg2 is synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			// Argument 2 is synonym
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
-			// For each follower in synonymStatementsArg2, check followedFromStar list. Add all the elements in that list to arg2Results if 1
-			for (list<int>::iterator it1 = synonymStatementsArg2.begin(); it1 != synonymStatementsArg2.end(); it1++) {
-				list<int> arg2FollowedFromStar = _pkb.getFollowedFromStar(*it1);
-				if (!arg2FollowedFromStar.empty() == true) {
-					qr.setIsExist(1);
-					for (list<int>::iterator it2 = arg2FollowedFromStar.begin(); it2 != arg2FollowedFromStar.end(); it2++) {
-						qr.insertArg2Result(to_string(*it2));
-					}
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				list<int> arg2_followed_from_star = _pkb.getFollowedFromStar(arg2_stmt_num);
+				if (arg2_followed_from_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
 	else {
-		// arg1 is synonym
-		qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-		list<int> synonymStatementsArg1 = getList(arg1Type);
-		if (synonymStatementsArg1.empty() == true) {
-			return qr;
+		// Argument 1 is a synonym
+		list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
 		}
 
-		if(arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if(arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// For each element in synonymStatementsArg1, check if arg1,arg2 is valid follow* rel
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				if (_pkb.isFollowsStar(*it, stoi(arg2))) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it));
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (_pkb.isFollowsStar(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// For all element in synonymStatementsArg1, check if they each have followerStar. If have, add to results
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				list<int> arg1FollowerStar = _pkb.getFollowerStar(*it1);
-				if (!arg1FollowerStar.empty() == true) {
-					qr.setIsExist(1);
-					for (list<int>::iterator it2 = arg1FollowerStar.begin(); it2 != arg1FollowerStar.end(); it2++) {
-						qr.insertArg1Result(to_string(*it2));
-					}
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<int> arg1_follower_star = _pkb.getFollowerStar(arg1_stmt_num);
+				if (arg1_follower_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// arg2 is synonym
-			// Corner case F*(s,s)
+			// Argument 2 is a synonym
+			// Corner case FollowStar*(s,s)
 			if (arg1 == arg2) {
-				return qr;
+				return temp_result;
 			}
 
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each element in synonymStatementsArg1, check if each element in synonymStatementsArg2 fulfil isFollowStar(arg1, arg2)
-			vector<string> arg1ResultList;
-			vector<string> arg2ResultList;
-			set<string> arg2Result;
+			temp_result = ResultTable(arg1, arg2);
 
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					if (_pkb.isFollowsStar(*it1, *it2)) {
-						outerIteratorIsValidResult = 1; 
-						//qr.insertArg2Result(to_string(*it2)); Legacy
-						arg2ResultList.push_back(to_string(*it2));
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+					if (_pkb.isFollowsStar(arg1_stmt_num, arg2_stmt_num)) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(to_string(arg2_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
 					}
 				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.setIsExist(1);
-					//qr.insertArg1Result(to_string(*it1));
-					arg1ResultList.push_back(to_string(*it1));
-				}
-			}
-			
-			for (vector<string>::iterator it = arg2ResultList.begin(); it != arg2ResultList.end(); ++it) {
-				arg2Result.insert(*it);
 			}
 
-			vector<string> formattedArg2Result;
-			for (set<string>::iterator it = arg2Result.begin(); it != arg2Result.end(); ++it) {
-				formattedArg2Result.push_back(*it);
-			}
-
-			qr.setArg1ResultList(arg1ResultList);
-			qr.setArg2ResultList(formattedArg2Result);
-
-			return qr;
+			return temp_result;
 		}
 	}
-	return qr;
+
+	return temp_result;
 }
 
-QueryResult QueryEvaluator::processParent(Clause parentClause) {
-	string arg1 = parentClause.getArg().at(0);
-	string arg2 = parentClause.getArg().at(1);
-	string arg1Type = parentClause.getArgType().at(0);
-	string arg2Type = parentClause.getArgType().at(1);
+ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
+	string arg1 = parent_clause.getArg().at(0);
+	string arg2 = parent_clause.getArg().at(1);
+	string arg1_type = parent_clause.getArgType().at(0);
+	string arg2_type = parent_clause.getArgType().at(1);
 
-	QueryResult qr;
+	ResultTable temp_result;
 
-	if (arg1Type == ARGTYPE_CONSTANT)
+	if (arg1_type == ARGTYPE_CONSTANT)
 	{
-		// arg1 must be valid stmt
-		if (_pkb.isValidStmt(stoi(arg1)) == false) {
-			return qr;
+		int arg1_stmt_num = stoi(arg1);
+		if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
 		}
 
-		// arg1 must have child
-		list<int> arg1Children = _pkb.getChildrenOf(stoi(arg1));
-		if (arg1Children.empty() == true) {
-			return qr;
+		list<int> arg1_children = _pkb.getChildrenOf(arg1_stmt_num);
+		if (arg1_children.empty() == true) {
+			return temp_result;
 		}
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// Check if valid parent
-			if (_pkb.isParentOf(stoi(arg1), stoi(arg2))) {
-				qr.setIsExist(1);
+
+			if (_pkb.isParentOf(arg1_stmt_num, arg2_stmt_num)) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// Query is 1 since arg1 has children
-			qr.setIsExist(1);
-			return qr;
+		else if (arg2_type == ARGTYPE_ANY) {
+			// Query is true since arg1 has children
+			temp_result.SetIsQueryTrue(true);
+			return temp_result;
 		}
 		else {
-			// Arg2 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
-			// Check if any statement in synonymStatementsArg2 is a child of arg1
-			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-				if (_pkb.isParentOf(stoi(arg1), *it)) {
-					qr.insertArg2Result(to_string(*it)); qr.setIsExist(1);
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (_pkb.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	else if (arg1Type == ARGTYPE_ANY) {
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// arg2 must have parent
-			if (_pkb.getParentOf(stoi(arg2))) {
-				qr.setIsExist(1);
+			if (_pkb.getParentOf(arg2_stmt_num) != -1) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
+		else if (arg2_type == ARGTYPE_ANY) {
 			// If ParentTable is non empty (with relationships), existential query
-			if (!_pkb.isParentEmpty() == true) {
-				qr.setIsExist(1);
+			if (_pkb.isParentEmpty() == false) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// Arg2 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// Check if any statement in synonymStatementsArg2 got parent. If have, add to result
-			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-				int parentOfArg2  = _pkb.getParentOf(*it);
-				if (parentOfArg2 != -1) {
-					qr.insertArg2Result(to_string(*it)); 
-					qr.setIsExist(1);
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (_pkb.getParentOf(arg2_stmt_num) != -1) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
 	else 
 	{
-		// arg1 is a synonym
-		// assume validator already check arg1Type == CONTAINER
-		qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-		list<int> synonymStatementsArg1 = getList(arg1Type);
-		if (synonymStatementsArg1.empty() == true) {
-			return qr;
+		// Argument 1 is a synonym
+		list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
 		}
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// arg2 must have parent in synonymStatementsArg1
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				if (_pkb.isParentOf(*it, stoi(arg2))) {
-					qr.insertArg1Result(to_string(*it)); 
-					qr.setIsExist(1); 
-					return qr;
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (_pkb.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+					break;
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// if there exists at least 1 parent in synonymStatementsArg1 that has a child, query evaluates to 1
-			// for each synonymStatement that has a kid, add to resultList in qr
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++)
-			{
-				list<int> arg1Children = _pkb.getChildrenOf(*it);
-				if (!arg1Children.empty() == true) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it));
-					/*for (list<int>::iterator it1 = arg1Children.begin(); it1 != arg1Children.end(); it1++) {
-						qr.insertArg1Result(to_string(*it1));
-					}*/
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<int> arg1_children = _pkb.getChildrenOf(arg1_stmt_num);
+				if (arg1_children.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else
 		{
-			// Arg2 is a synonym
-			// Probably wrong implementation now... Gotta redesign QueryResult to handle 2 synonym cases
-			
-			// Corner case. P(x,x)
+			// Argument 2 is a synonym			
+			// Corner case. Parent(s,s)
 			if (arg1 == arg2) {
-				return qr;
-			}
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+				return temp_result;
 			}
 
-			// Check for all combination of arg1 and arg2 if exist parental relationship
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					if (_pkb.isParentOf(*it1, *it2) == true) {
-						outerIteratorIsValidResult = 1; 
-						qr.insertArg2Result(to_string(*it2)); 
-						qr.setIsExist(1);
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+					if (_pkb.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(to_string(arg2_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
 					}
 				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.insertArg1Result(to_string(*it1));
-				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	return qr;
+
+	return temp_result;
 }
 
-QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
-	string arg1 = parentTClause.getArg().at(0);
-	string arg2 = parentTClause.getArg().at(1);
-	string arg1Type = parentTClause.getArgType().at(0);
-	string arg2Type = parentTClause.getArgType().at(1);
+ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
+	string arg1 = parent_star_clause.getArg().at(0);
+	string arg2 = parent_star_clause.getArg().at(1);
+	string arg1_type = parent_star_clause.getArgType().at(0);
+	string arg2_type = parent_star_clause.getArgType().at(1);
 
-	QueryResult qr;
+	ResultTable temp_result;
 
-	if (arg1Type == ARGTYPE_CONSTANT) {
-		// arg1 must be valid stmt
-		if (_pkb.isValidStmt(stoi(arg1)) == false) {
-			return qr;
-		}
-		list<int> arg1Children = _pkb.getChildrenOf(stoi(arg1));
-		if (arg1Children.empty() == true) {
-			return qr;
+	if (arg1_type == ARGTYPE_CONSTANT) {
+		int arg1_stmt_num = stoi(arg1);
+		if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
 		}
 
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 nmust be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+		list<int> arg1_children_star = _pkb.getChildStarOf(arg1_stmt_num);
+		if (arg1_children_star.empty() == true) {
+			return temp_result;
+		}
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// Check if arg2 is in arg1Children. If yes, query is 1
-			if (find(arg1Children.begin(), arg1Children.end(), stoi(arg2)) != arg1Children.end()) {
-				qr.setIsExist(1);
+
+			if (find(arg1_children_star.begin(), arg1_children_star.end(), arg2_stmt_num) != arg1_children_star.end()) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// Query is 1 as arg1 has children
-			qr.setIsExist(1);
-			return qr;
+		else if (arg2_type == ARGTYPE_ANY) {
+			temp_result.SetIsQueryTrue(true);
+			return temp_result;
 		}
 		else {
-			// arg2 is 
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each element in synonymStatementsArg2, check if arg2 is in arg1Children. If yes, add to results
-			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-				if (_pkb.isParentStar(stoi(arg1), *it) != false) {
-					qr.setIsExist(1);
-					qr.insertArg2Result(to_string(*it));
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (_pkb.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			//// For each element in synonymStatementsArg2, check if arg2 is in arg1Children. If yes, add to results
-			//for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-			//	if (find(arg1Children.begin(), arg1Children.end(), *it) != arg1Children.end()) {
-			//		qr.insertArg2Result(to_string(*it));
-			//		qr.setIsExist(1);
-			//	}
-			//}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	else if (arg1Type == ARGTYPE_ANY) {
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
-			}
-			// Check if arg2 has non empty parentStar
-			list<int> arg2ParentStar = _pkb.getParentStar(stoi(arg2));
-			if (!arg2ParentStar.empty() == true) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// check if parent table non empty
-			if (_pkb.isParentEmpty() == false) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else {
-			// arg2 is 
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// For each child in synonymStatementsArg2, check the parentStar and add them in results accordingly
-			for (list<int>::iterator it1 = synonymStatementsArg2.begin(); it1 != synonymStatementsArg2.end(); it1++) {
-				list<int> arg2ParentStar = _pkb.getParentStar(*it1);
-				if (arg2ParentStar.empty() == false ) {
-					qr.setIsExist(1);
-					qr.insertArg2Result(to_string(*it1));
-					/*for (list<int>::iterator it2 = arg2ParentStar.begin(); it2 != arg2ParentStar.end(); it2++) {
-						qr.insertArg2Result(to_string(*it2));
-					}*/
+			list<int> arg2_parent_star = _pkb.getParentStar(arg2_stmt_num);
+			if (arg2_parent_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (_pkb.isParentEmpty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				list<int> arg2_parent_star = _pkb.getParentStar(arg2_stmt_num);
+				if (arg2_parent_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
 	else {
-		// arg1 is synonym
-		qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-		list<int> synonymStatementsArg1 = getList(arg1Type);
-		if (synonymStatementsArg1.empty() == true) {
-			return qr;
+		// Argument 1 is a synonym
+		list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			//arg must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// For each element in synonymStatementsArg1, check if they are the Parent* of arg2
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				if (_pkb.isParentStar(*it1, stoi(arg2))) {
-					qr.insertArg1Result(to_string(*it1)); 
-					qr.setIsExist(1);
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (_pkb.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// For each element in synonymStatementsArg1, check if arg1 has children. if have, add results accordingly
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				list<int> arg1Children = _pkb.getChildrenOf(stoi(arg1));
-				if (arg1Children.empty() == false) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it));
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<int> arg1_children_star = _pkb.getChildStarOf(arg1_stmt_num);
+				if (arg1_children_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_stmt_num);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// arg2 is synonym
-
+			// Argument 2 is a synonym
 			// Corner case Parent*(s,s)
 			if (arg1 == arg2) {
-				return qr;
+				return temp_result;
 			}
 
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each element in synonymStatementsArg1, check if each element in synonymStatementsArg2 fulfil isFollowStar(arg1, arg2)
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					if (_pkb.isParentStar(*it1, *it2)) {
-						outerIteratorIsValidResult = 1; 
-						qr.insertArg2Result(to_string(*it2));
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+					if (_pkb.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(to_string(arg2_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
 					}
 				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it1));
-				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	return qr;
+	return temp_result;
 }
 
-QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
-	string arg1 = modifiesClause.getArg().at(0);
-	string arg2 = modifiesClause.getArg().at(1);
-	string arg1Type = modifiesClause.getArgType().at(0);
-	string arg2Type = modifiesClause.getArgType().at(1);
+ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
+	string arg1 = modifies_clause.getArg().at(0);
+	string arg2 = modifies_clause.getArg().at(1);
+	string arg1_type = modifies_clause.getArgType().at(0);
+	string arg2_type = modifies_clause.getArgType().at(1);
 	
-	QueryResult qr;
+	ResultTable temp_result;
 
-	if (arg2Type == ARGTYPE_STRING) {
-		// arg2 must be valid var
+	if (arg2_type == ARGTYPE_STRING) {
 		if (_pkb.isValidVar(arg2) == false) {
-			return qr;
+			return temp_result;
 		}
-		list<int> arg2ModifiedBy = _pkb.getModifiedBy(arg2);
-		if (arg2ModifiedBy.empty() == true) {
-			return qr;
+		list<int> arg2_modified_by = _pkb.getModifiedBy(arg2);
+		if (arg2_modified_by.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// Check if arg1 in arg2ModifiedBy list
-			if (find(arg2ModifiedBy.begin(), arg2ModifiedBy.end(), stoi(arg1)) != arg2ModifiedBy.end()) {
-				qr.setIsExist(1);
+
+			if (find(arg2_modified_by.begin(), arg2_modified_by.end(), arg1_stmt_num) != arg2_modified_by.end()) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg1Type == ARGTYPE_ANY) {
+		else if (arg1_type == ARGTYPE_ANY) {
 			// Actually, an illegal argument for final iteration because it will be ambiguous. Legal in iteration1
 			// Query is 1 if arg2ModifiedBy is not emptyQ
-			qr.setIsExist(1);
-			return qr;
+			temp_result.SetIsQueryTrue(true);
+			return temp_result;
 		}
 		else {
-			// arg1 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-			list<int> synonymStatementsArg1 = getList(arg1Type); //For now, this should only be assign|while
-			if (synonymStatementsArg1.empty() == true) {
-				return qr;
+			// Argument 1 is a synonym
+			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+			if (synonym_stmt_list_arg1.empty() == true) {
+				return temp_result;
 			}
 
-			// For each stmt in synonymStatementsArg1, check if they modify arg2 and add results accordingly
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				if (_pkb.isModified(*it, arg2)) {
-					qr.setIsExist(1); 
-					qr.insertArg1Result(to_string(*it));
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (_pkb.isModified(arg1_stmt_num, arg2) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	else if (arg2Type == ARGTYPE_VARIABLE) {
-		// arg2 is a variable synonym
-		qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-		list<string> allVarList = _pkb.getVarList();
-		if (allVarList.empty() == true) {
-			return qr;
+	else if (arg2_type == ARGTYPE_VARIABLE) {
+		// Argument 2 is a variable synonym
+		list<string> all_variable_list = _pkb.getVarList();
+		all_variable_list.unique();
+		if (all_variable_list.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+		temp_result = ResultTable(arg2);
+		vector<string> temp_row_data;
+
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
 			}
 			
 			// Check if arg1 modifies anything
-			list<string> arg1ModifiedVar = _pkb.getModifiedBy(stoi(arg1));
-			if (arg1ModifiedVar.empty() == true) {
-				return qr;
+			list<string> arg1_modified_variables = _pkb.getModifiedBy(stoi(arg1));
+			if (arg1_modified_variables.empty() == true) {
+				return ;
 			}
 
 			// Query is 1 since arg1ModifiedVar is non empty
-			qr.setIsExist(1);
+			temp_result.SetIsQueryTrue(true);
 
-			// Add everything in arg1ModifiedVar to results in arg2
-			for (list<string>::iterator it = arg1ModifiedVar.begin(); it != arg1ModifiedVar.end(); it++) {
-				qr.insertArg2Result(*it);
+			for (auto &arg2_variable : arg1_modified_variables) {
+				temp_row_data.push_back(arg2_variable);
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg1Type == ARGTYPE_ANY) {
-			// Since allVarList is non-empty, add everything into the reuslts for arg2
-			for (list<string>::iterator it = allVarList.begin(); it != allVarList.end(); it++) {
-				qr.insertArg2Result(*it);
-				qr.setIsExist(1);
+		else if (arg1_type == ARGTYPE_ANY) {
+			for (auto &arg2_variable : all_variable_list) {
+				list<int> arg2_modified_by = _pkb.getModifiedBy(arg2_variable);
+				if (arg2_modified_by.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg2_variable);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// arg1 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-			list<int> synonymStatementsArg1 = getList(arg1Type);
-			if (synonymStatementsArg1.empty()) {
-				return qr;
+			// Argument 1 is a synonym
+			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+			if (synonym_stmt_list_arg1.empty() == true) {
+				return temp_result;
 			}
 
-			// For each statement in synonymStatementsArg1, check if they modify any of the var
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<string>::iterator it2 = allVarList.begin(); it2 != allVarList.end(); it2++) {
-					if (_pkb.isModified(*it1, *it2)) {
-						outerIteratorIsValidResult = 1; 
-						qr.insertArg2Result(*it2);
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_variable : all_variable_list) {
+					if (_pkb.isModified(arg1_stmt_num, arg2_variable) == true) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(arg2_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
 					}
 				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it1));
-				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
 	else {
-		// arg2Type is any '_', explicitly is a variable
-		list<string> allVarList = _pkb.getVarList();
-		allVarList.unique();
-		if (allVarList.empty() == true) {
-			return qr;
+		// arg2_type is any ('_'), explicitly is a variable
+		list<string> all_variable_list = _pkb.getVarList();
+		all_variable_list.unique();
+		if (all_variable_list.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// Check if arg1 modifies anything
-			list<string> arg1Modifies = _pkb.getModifiedBy(stoi(arg1));
-			if (arg1Modifies.empty() == false) {
-				qr.setIsExist(1);
+			list<string> arg1_modifies = _pkb.getModifiedBy(stoi(arg1));
+			if (arg1_modifies.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg1Type == ARGTYPE_ANY) {
-			// Since varList is non empty, something is modified
-			qr.setIsExist(1);
-			return qr;
+		else if (arg1_type == ARGTYPE_ANY) {
+			// Since all_variable_list is non empty, something is modified
+			temp_result.SetIsQueryTrue(true);
+			return temp_result;
 		}
 		else {
-			// arg1 is a synonym. as of now, this should only be assign type statements
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);;
-			list<int> synonymStatementsArg1 = getList(arg1Type);
-			if (synonymStatementsArg1.empty()) {
-				return qr;
+			// Argument 1 is a synonym
+			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+			if (synonym_stmt_list_arg1.empty() == true) {
+				return temp_result;
 			}
 
-			// For each statement in synonymStatementsArg1, check if it modifies anything
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				list<string> arg1ModifiesVar = _pkb.getModifiedBy(*it);
-				if (arg1ModifiesVar.empty() == false) {
-					qr.insertArg1Result(to_string(*it));
-					qr.setIsExist(1);
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<string> arg1_modifies = _pkb.getModifiedBy(arg1_stmt_num);
+				if (arg1_modifies.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	return qr;
+	return temp_result;
 }
 
 ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
@@ -1381,6 +1418,11 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 		}
 		else {
 			// Argument 2 is a synonym
+			// Corner case: Next(n,n)
+			if (arg1 == arg2) {
+				return temp_result;
+			}
+
 			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
@@ -1388,12 +1430,12 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 
 			temp_result = ResultTable(arg1, arg2);
 
-			for (auto &arg1_stmt : synonym_stmt_list_arg1) {
-				for (auto &arg2_stmt : synonym_stmt_list_arg2) {
-					if (_pkb.isNext(arg1_stmt, arg2_stmt) != -1) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+					if (_pkb.isNext(arg1_stmt_num, arg2_stmt_num) != -1) {
 						temp_result.SetIsQueryTrue(true);
-						temp_row_data.push_back(to_string(arg1_stmt));
-						temp_row_data.push_back(to_string(arg2_stmt));
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(to_string(arg2_stmt_num));
 						temp_result.InsertRow(temp_row_data);
 						temp_row_data.clear();
 					}
@@ -1890,174 +1932,190 @@ void QueryEvaluator::ProcessConnectedGroup()
 {
 }
 
-QueryResult QueryEvaluator::processUses(Clause usesClause) {
-	string arg1 = usesClause.getArg().at(0);
-	string arg2 = usesClause.getArg().at(1);
-	string arg1Type = usesClause.getArgType().at(0);
-	string arg2Type = usesClause.getArgType().at(1);
+ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
+	string arg1 = uses_clause.getArg().at(0);
+	string arg2 = uses_clause.getArg().at(1);
+	string arg1_type = uses_clause.getArgType().at(0);
+	string arg2_type = uses_clause.getArgType().at(1);
 
-	QueryResult qr;
+	ResultTable temp_result;
 
-	if (arg2Type == ARGTYPE_STRING) {
-		// arg2 must be valid var
+	if (arg2_type == ARGTYPE_STRING) {
 		if (_pkb.isValidVar(arg2) == false) {
-			return qr;
+			return temp_result;
 		}
 
-		// Check if arg2 is being used by anything
-		list<int> arg2UsedBy = _pkb.getUsedBy(arg2);
-		if (arg2UsedBy.empty() == true) {
-			return qr;
+		list<int> arg2_used_by = _pkb.getUsedBy(arg2);
+		if (arg2_used_by.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// Check if arg1 is in arg2UsedBy
-			if (find(arg2UsedBy.begin(), arg2UsedBy.end(), stoi(arg1)) != arg2UsedBy.end()) {
-				qr.setIsExist(1);
+			if (find(arg2_used_by.begin(), arg2_used_by.end(), arg1_stmt_num) != arg2_used_by.end()) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg1Type == ARGTYPE_ANY) {
-			// Since arg2UsedBy is non empty, this query is 1
-			qr.setIsExist(1);
-			return qr;
+		else if (arg1_type == ARGTYPE_ANY) {
+			// Since arg2_used_by is non empty, this query is true
+			temp_result.SetIsQueryTrue(true);
+			return temp_result;
 		}
 		else {
-			// arg1 is a synonym. at this point in time, should just be assign type statements
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-			list<int> synonymStatementsArg1 = getList(arg1Type);
-			if (synonymStatementsArg1.empty() == true) {
-				return qr;
+			// Argument 1 is a synonym
+			list<int> synomym_stmt_list_arg1 = getList(arg1_type);
+			if (synomym_stmt_list_arg1.empty() == true) {
+				return temp_result;
 			}
 
-			// For each statement in synonymStatementsArg1, if any statement is using arg2
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				if (_pkb.isUsed(*it, arg2)) {
-					qr.setIsExist(1); 
-					qr.insertArg1Result(to_string(*it));
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+
+			for (auto &arg1_stmt_num : synomym_stmt_list_arg1) {
+				if (_pkb.isUsed(arg1_stmt_num, arg2) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	else if (arg2Type == ARGTYPE_VARIABLE) {
-		// arg2 is a variable synonym
-		qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-		list<string> allVarList = _pkb.getVarList();
-		allVarList.unique();
-		if (allVarList.empty() == true) {
-			return qr;
+	else if (arg2_type == ARGTYPE_VARIABLE) {
+		// Argument 2 is a variable synonym
+		list<string> all_variable_list = _pkb.getVarList();
+		all_variable_list.unique();
+		if (all_variable_list.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+		temp_result = ResultTable(arg2);
+		vector<string> temp_row_data;
+
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// Check if arg1 uses anything
-			list<string> arg1UsesVar = _pkb.getUsedBy(stoi(arg1));
-			if (arg1UsesVar.empty() == true) {
-				return qr;
+			list<string> arg1_uses_variable = _pkb.getUsedBy(arg1_stmt_num);
+			if (arg1_uses_variable.empty() == true) {
+				return temp_result;
 			}
 
-			// if arg1UsesVar non empty, add everything in arg1UsesVar to results
-			qr.setIsExist(1);
-			for (list<string>::iterator it = arg1UsesVar.begin(); it != arg1UsesVar.end(); it++) {
-				qr.insertArg2Result(*it);
+			// If arg1_uses_variable non empty, add everything in arg1UsesVar to results
+			temp_result.SetIsQueryTrue(true);
+			for (auto &arg2_variable : arg1_uses_variable) {
+				temp_row_data.push_back(arg2_variable);
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg1Type == ARGTYPE_ANY) {
-			list<string> allUsedVar = _pkb.getAllUsedVar();
-			if (allUsedVar.empty() == true) {
-				return qr;
+		else if (arg1_type == ARGTYPE_ANY) {
+			list<string> all_used_variable = _pkb.getAllUsedVar();
+			if (all_used_variable.empty() == true) {
+				return temp_result;
 			}
+
 			// Add all used var into results
-			qr.setIsExist(1);
-			for (list<string>::iterator it = allUsedVar.begin(); it != allUsedVar.end(); it++) {
-				qr.insertArg2Result(*it);
+			temp_result.SetIsQueryTrue(true);
+			for (auto &arg2_variable : all_used_variable) {
+				temp_row_data.push_back(arg2_variable);
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// arg1 is a synonym (can be assign or while)
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-			list<int> synonymStatementsArg1 = getList(arg1Type);
-			if (synonymStatementsArg1.empty() == true) {
-				return qr;
+			// Argument 1 is a synonym
+			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+			if (synonym_stmt_list_arg1.empty() == true) {
+				return temp_result;
 			}
 
-			// For each statement in synonymStatementsArg1, check if they use anything. if yes, add to result
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<string>::iterator it2 = allVarList.begin(); it2 != allVarList.end(); it2++) {
-					if (_pkb.isUsed(*it1, *it2)) {
-						outerIteratorIsValidResult = 1; 
-						qr.insertArg2Result(*it2);
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_variable : all_variable_list) {
+					if (_pkb.isUsed(arg1_stmt_num, arg2_variable) == true) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(arg2_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
 					}
 				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it1));
-				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
 	else {
-		// arg2 is any, '_'
-		list<string> allVarList = _pkb.getVarList();
-		allVarList.unique();
-		if (allVarList.empty() == true) {
-			return qr;
+		// Argument 2 is any ('_')
+		list<string> all_variable_list = _pkb.getVarList();
+;		all_variable_list.unique();
+		if (all_variable_list.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
 			}
 
 			// Check if arg1 use anything
-			list<string> arg1UsesVar = _pkb.getUsedBy(stoi(arg1));
-			if (arg1UsesVar.empty() == false) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else if (arg1Type == ARGTYPE_ANY) {
-			list<string> allUsedVar = _pkb.getAllUsedVar();
-			if (allUsedVar.empty() == false) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else {
-			// arg1 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-			list<int> synonymStatementsArg1 = getList(arg1Type);
-			if (synonymStatementsArg1.empty()==true) {
-				return qr;
+			list<string> arg1_uses_var = _pkb.getUsedBy(arg1_stmt_num);
+			if (arg1_uses_var.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
 			}
 
-			// For each statement in synonymStatementsArg1, check if each of them uses something
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				list<string> arg1UsesVar = _pkb.getUsedBy(*it);
-				if (arg1UsesVar.empty() == false) {
-					qr.insertArg1Result(to_string(*it));
-					qr.setIsExist(1);
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_ANY) {
+			list<string> all_used_variable = _pkb.getAllUsedVar();
+			if (all_used_variable.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 1 is a synonym
+			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+			if (synonym_stmt_list_arg1.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<string> arg1_uses_variable = _pkb.getUsedBy(arg1_stmt_num);
+				if (arg1_uses_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	return qr;
+
+	return temp_result;
 }
 
 
