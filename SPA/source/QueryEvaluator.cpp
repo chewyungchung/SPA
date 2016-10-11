@@ -1967,8 +1967,37 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 			temp_result.SetIsQueryTrue(true);
 			return temp_result;
 		}
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (_pkb.isProcedureExist(arg1) == false) {
+				return temp_result;
+			}
+
+			if (_pkb.isUsedBy(arg1, arg2) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure. Guaranteed to have at least 1 procedure
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+			list<string> procedure_list = _pkb.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				if (_pkb.isUsedBy(arg1_procedure, arg2) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
 		else {
-			// Argument 1 is a synonym
+			// Argument 1 is a synonym of statement type
 			list<int> synomym_stmt_list_arg1 = getList(arg1_type);
 			if (synomym_stmt_list_arg1.empty() == true) {
 				return temp_result;
@@ -2037,8 +2066,47 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 
 			return temp_result;
 		}
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (_pkb.isProcedureExist(arg1) == false) {
+				return temp_result;
+			}
+
+			list<string> arg1_procedure_uses_variable = _pkb.getUsedByProc(arg1);
+			if (arg1_procedure_uses_variable.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result.SetIsQueryTrue(true);
+			for (auto &arg2_variable : arg1_procedure_uses_variable) {
+				temp_row_data.push_back(arg2_variable);
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure type. Guaranteed to have at least 1 procedure
+			temp_result = ResultTable(arg1, arg2);
+			list<string> procedure_list = _pkb.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				for (auto &arg2_variable : all_variable_list) {
+					if (_pkb.isUsedBy(arg1_procedure, arg2_variable) == true) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(arg1_procedure);
+						temp_row_data.push_back(arg2_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+
+			return temp_result;
+		}
 		else {
-			// Argument 1 is a synonym
+			// Argument 1 is a synonym of statement type
 			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
 			if (synonym_stmt_list_arg1.empty() == true) {
 				return temp_result;
@@ -2091,8 +2159,39 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 
 			return temp_result;
 		}
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (_pkb.isProcedureExist(arg1) == false) {
+				return temp_result;
+			}
+
+			list<string> arg1_procedure_uses_variable = _pkb.getUsedByProc(arg1);
+			if (arg1_procedure_uses_variable.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure type
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+			list<string> procedure_list = _pkb.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_procedure_uses_variable = _pkb.getUsedByProc(arg1_procedure);
+				if (arg1_procedure_uses_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
 		else {
-			// Argument 1 is a synonym
+			// Argument 1 is a synonym of statement type
 			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
 			if (synonym_stmt_list_arg1.empty() == true) {
 				return temp_result;
