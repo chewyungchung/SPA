@@ -1127,14 +1127,37 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 
 			return temp_result;
 		}
-		else if (arg1_type == ARGTYPE_ANY) {
-			// Actually, an illegal argument for final iteration because it will be ambiguous. Legal in iteration1
-			// Query is 1 if arg2ModifiedBy is not emptyQ
-			temp_result.SetIsQueryTrue(true);
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (_pkb.isProcedureExist(arg1) == false) {
+				return temp_result;
+			}
+
+			if (_pkb.isModifiedBy(arg1, arg2) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure type
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+			list<string> procedure_list = _pkb.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				if (_pkb.isModifiedBy(arg1_procedure, arg2) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+			
 			return temp_result;
 		}
 		else {
-			// Argument 1 is a synonym
+			// Argument 1 is a synonym of statement type
 			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
 			if (synonym_stmt_list_arg1.empty() == true) {
 				return temp_result;
@@ -1173,7 +1196,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 			}
 			
 			// Check if arg1 modifies anything
-			list<string> arg1_modified_variables = _pkb.getModifiedBy(stoi(arg1));
+			list<string> arg1_modified_variables = _pkb.getModifiedBy(arg1_stmt_num);
 			if (arg1_modified_variables.empty() == true) {
 				return ;
 			}
@@ -1189,11 +1212,16 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 
 			return temp_result;
 		}
-		else if (arg1_type == ARGTYPE_ANY) {
-			for (auto &arg2_variable : all_variable_list) {
-				list<int> arg2_modified_by = _pkb.getModifiedBy(arg2_variable);
-				if (arg2_modified_by.empty() == false) {
-					temp_result.SetIsQueryTrue(true);
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (_pkb.isProcedureExist(arg1) == false) {
+				return temp_result;
+			}
+
+			list<string> arg1_procedure_modifies_variable = _pkb.getModifiedByProc(arg1);
+			if (arg1_procedure_modifies_variable.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &arg2_variable : arg1_procedure_modifies_variable) {
 					temp_row_data.push_back(arg2_variable);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
@@ -1202,8 +1230,28 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 
 			return temp_result;
 		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure type
+			temp_result = ResultTable(arg1, arg2);
+			list<string> procedure_list = _pkb.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_procedure_modifies_variable = _pkb.getModifiedByProc(arg1_procedure);
+				if (arg1_procedure_modifies_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg2_variable : arg1_procedure_modifies_variable) {
+						temp_row_data.push_back(arg1_procedure);
+						temp_row_data.push_back(arg2_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+
+			return temp_result;
+		}
 		else {
-			// Argument 1 is a synonym
+			// Argument 1 is a synonym of statement type
 			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
 			if (synonym_stmt_list_arg1.empty() == true) {
 				return temp_result;
@@ -1212,9 +1260,10 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 			temp_result = ResultTable(arg1, arg2);
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				for (auto &arg2_variable : all_variable_list) {
-					if (_pkb.isModified(arg1_stmt_num, arg2_variable) == true) {
-						temp_result.SetIsQueryTrue(true);
+				list<string> arg1_modifies_variable = _pkb.getModifiedBy(arg1_stmt_num);
+				if (arg1_modifies_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg2_variable : arg1_modifies_variable) {
 						temp_row_data.push_back(to_string(arg1_stmt_num));
 						temp_row_data.push_back(arg2_variable);
 						temp_result.InsertRow(temp_row_data);
@@ -1247,13 +1296,39 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 
 			return temp_result;
 		}
-		else if (arg1_type == ARGTYPE_ANY) {
-			// Since all_variable_list is non empty, something is modified
-			temp_result.SetIsQueryTrue(true);
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (_pkb.isProcedureExist(arg1) == false) {
+				return temp_result;
+			}
+
+			list<string> arg1_procedure_uses_variable = _pkb.getModifiedByProc(arg1);
+			if (arg1_procedure_uses_variable.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure type
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+			list<string> procedure_list = _pkb.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_procedure_modifies_variable = _pkb.getModifiedByProc(arg1_procedure);
+				if (arg1_procedure_modifies_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
 			return temp_result;
 		}
 		else {
-			// Argument 1 is a synonym
+			// Argument 1 is a synonym of statement type
 			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
 			if (synonym_stmt_list_arg1.empty() == true) {
 				return temp_result;
@@ -2071,9 +2146,10 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 			list<string> procedure_list = _pkb.getProcedureList();
 
 			for (auto &arg1_procedure : procedure_list) {
-				for (auto &arg2_variable : all_variable_list) {
-					if (_pkb.isUsedBy(arg1_procedure, arg2_variable) == true) {
-						temp_result.SetIsQueryTrue(true);
+				list<string> arg1_procedure_uses_variable = _pkb.getUsedByProc(arg1_procedure);
+				if (arg1_procedure_uses_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg2_variable : arg1_procedure_uses_variable) {
 						temp_row_data.push_back(arg1_procedure);
 						temp_row_data.push_back(arg2_variable);
 						temp_result.InsertRow(temp_row_data);
@@ -2094,9 +2170,10 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 			temp_result = ResultTable(arg1, arg2);
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				for (auto &arg2_variable : all_variable_list) {
-					if (_pkb.isUsed(arg1_stmt_num, arg2_variable) == true) {
-						temp_result.SetIsQueryTrue(true);
+				list<string> arg1_uses_variable = _pkb.getUsedBy(arg1_stmt_num);
+				if (arg1_uses_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg2_variable : arg1_uses_variable) {
 						temp_row_data.push_back(to_string(arg1_stmt_num));
 						temp_row_data.push_back(arg2_variable);
 						temp_result.InsertRow(temp_row_data);
