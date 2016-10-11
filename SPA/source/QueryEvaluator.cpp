@@ -1962,11 +1962,6 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 
 			return temp_result;
 		}
-		else if (arg1_type == ARGTYPE_ANY) {
-			// Since arg2_used_by is non empty, this query is true
-			temp_result.SetIsQueryTrue(true);
-			return temp_result;
-		}
 		else if (arg1_type == ARGTYPE_STRING) {
 			// Argument 1 is a procedure name
 			if (_pkb.isProcedureExist(arg1) == false) {
@@ -2043,22 +2038,6 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 			// If arg1_uses_variable non empty, add everything in arg1UsesVar to results
 			temp_result.SetIsQueryTrue(true);
 			for (auto &arg2_variable : arg1_uses_variable) {
-				temp_row_data.push_back(arg2_variable);
-				temp_result.InsertRow(temp_row_data);
-				temp_row_data.clear();
-			}
-
-			return temp_result;
-		}
-		else if (arg1_type == ARGTYPE_ANY) {
-			list<string> all_used_variable = _pkb.getAllUsedVar();
-			if (all_used_variable.empty() == true) {
-				return temp_result;
-			}
-
-			// Add all used var into results
-			temp_result.SetIsQueryTrue(true);
-			for (auto &arg2_variable : all_used_variable) {
 				temp_row_data.push_back(arg2_variable);
 				temp_result.InsertRow(temp_row_data);
 				temp_row_data.clear();
@@ -2146,14 +2125,6 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 			// Check if arg1 use anything
 			list<string> arg1_uses_var = _pkb.getUsedBy(arg1_stmt_num);
 			if (arg1_uses_var.empty() == false) {
-				temp_result.SetIsQueryTrue(true);
-			}
-
-			return temp_result;
-		}
-		else if (arg1_type == ARGTYPE_ANY) {
-			list<string> all_used_variable = _pkb.getAllUsedVar();
-			if (all_used_variable.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
