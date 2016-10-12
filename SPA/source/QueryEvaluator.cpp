@@ -15,7 +15,6 @@ const string REL_WITH = "with";
 
 const string ARGTYPE_CONSTANT = "constant";
 const string ARGTYPE_ANY = "any";
-const string ARGTYPE_intEAN = "intean";
 const string ARGTYPE_VARIABLE = "variable";
 const string ARGTYPE_ASSIGN = "assign";
 const string ARGTYPE_WHILE = "while";
@@ -33,7 +32,6 @@ const string ARGTYPE_SUB_EXPR = "sub_expr";
 const string PARAM_ARG1 = "ARG1";
 const string PARAM_ARG2 = "ARG2";
 const string PARAM_PATTERN = "PATTERN";
-const string PARAM_intEAN = "intEAN";
 
 QueryEvaluator::QueryEvaluator() {
 }
