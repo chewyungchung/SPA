@@ -22,20 +22,19 @@ public:
 	QueryEvaluator();
 	~QueryEvaluator();
 	QueryEvaluator(QueryTable, PKB);
-	ResultTable evaluate();
+	vector<vector<ResultTable>> evaluate();
 
 private:
-	ResultTable intermediate_result_;
+	vector<vector<ResultTable>> intermediate_result_;
 	vector<string> _result;
 	QueryTable _qt;
 	PKB _pkb;
 
 	// TODO: Modify all process clauses return type and implementation
-	QueryResult processSuchThat(Clause suchThatClause);
 	QueryResult processSelect(Clause selectClause);
-	ResultTable ProcessPattern(Clause pattern_clause);
 	
 	// Iteration 2
+	ResultTable ProcessSuchThat(Clause such_that_clause);
 	ResultTable ProcessFollows(Clause follow_clause);
 	ResultTable ProcessFollowsT(Clause follow_star_clause);
 	ResultTable ProcessParent(Clause parent_clause);
@@ -46,16 +45,17 @@ private:
 	ResultTable ProcessNextT(Clause next_star_clause);
 	ResultTable ProcessCalls(Clause calls_clause);
 	ResultTable ProcessCallsStar(Clause calls_star_clause);
+	ResultTable ProcessPattern(Clause pattern_clause);
 	ResultTable ProcessPatternAssign(Clause pattern_assign_clause);
 	ResultTable ProcessPatternWhile(Clause pattern_while_clause);
 	ResultTable ProcessPatternIf(Clause pattern_if_clause);
+	ResultTable ProcessWith(Clause with_clause);
+	ResultTable ProcessWithName(Clause with_name_clause);
+	ResultTable ProcessWithNumber(Clause with_number_clause);
 
 	bool ProcessNoSynGroup();
 	bool ProcessNonConnectedGroup();
 	void ProcessConnectedGroup();
 
-	int isInList(list<int> inList, int item);
-	int isListEmpty(list<int> intList);
-
-	list<int> getList(string arg_type);
+	list<int> GetList(string arg_type);
 };

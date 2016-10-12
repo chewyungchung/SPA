@@ -24,6 +24,8 @@ const string ARGTYPE_PROCEDURE = "procedure";
 const string ARGTYPE_STMT = "stmt";
 const string ARGTYPE_PROG_LINE = "prog_line";
 const string ARGTYPE_CALLS = "calls";
+const string ARGTYPE_CALLS_NAME = "calls_name";
+const string ARGTYPE_CALLS_NUMBER = "calls_number";
 const string ARGTYPE_EXPR = "expr";
 const string ARGTYPE_SUB_EXPR = "sub_expr";
 
@@ -44,8 +46,11 @@ QueryEvaluator::QueryEvaluator(QueryTable qt, PKB pkb) {
 	_pkb = pkb;
 }
 
-ResultTable QueryEvaluator::evaluate() {
+vector<vector<ResultTable>> QueryEvaluator::evaluate() {
 	// Check if the QueryTable given by validator is NULL. Return NULL if 1
+	vector<vector<ResultTable>> intermediary_result;
+
+
 	if (_qt.isNullQuery() == 1) {
 		intermediate_result_.SetIsQueryTrue(false);
 		return intermediate_result_;
@@ -64,11 +69,13 @@ ResultTable QueryEvaluator::evaluate() {
 
 	ProcessConnectedGroup();
 
+	return intermediary_result;
 
+	/*
 	// Below obsolete for iteration 1. Upgrade for iteration 2 above
 	// Process all such that and pattern clause, and finally select clause
 	if (_qt.getSuchThatClause().isClauseNull() == -1) {
-		_qt.setSuchThatResult(processSuchThat(_qt.getSuchThatClause()));
+		_qt.setSuchThatResult(ProcessSuchThat(_qt.getSuchThatClause()));
 	}
 	if (_qt.getPatternClause().isClauseNull() == -1) {
 		_qt.setPatternResult(ProcessPattern(_qt.getPatternClause()));
@@ -77,6 +84,7 @@ ResultTable QueryEvaluator::evaluate() {
 		_qt.setSelectResult(processSelect(_qt.getSelectClause()));
 	}
 	return intermediate_result_;
+	*/
 }
 
 QueryResult QueryEvaluator::processSelect(Clause selectClause) {
@@ -122,7 +130,7 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 	else {
 		// Results should be returning stmt#
 		if (expectedResultType == ARGTYPE_ASSIGN || expectedResultType == ARGTYPE_WHILE) {
-			list<int> expectedResultStatements = getList(expectedResultType);
+			list<int> expectedResultStatements = GetList(expectedResultType);
 			if (expectedResultStatements.empty() == true) {
 				return qr;
 			}
@@ -147,29 +155,32 @@ QueryResult QueryEvaluator::processSelect(Clause selectClause) {
 	return qr;
 }
 
-QueryResult QueryEvaluator::processSuchThat(Clause suchThatClause) {
-	string relation = suchThatClause.getRelation();
-	QueryResult suchThatResult;
+ResultTable QueryEvaluator::ProcessSuchThat(Clause such_that_clause) {
+	string relation = such_that_clause.getRelation();
+	ResultTable temp_result;
 
 	if (relation == REL_FOLLOWS) {
-		//suchThatResult = ProcessFollows(suchThatClause);
+		temp_result = ProcessFollows(such_that_clause);
 	}
 	else if (relation == REL_FOLLOWS_STAR) {
-		//suchThatResult = ProcessFollowsT(suchThatClause);
+		temp_result = ProcessFollowsT(such_that_clause);
 	}
 	else if (relation == REL_PARENT) {
-		suchThatResult = ProcessParent(suchThatClause);
+		temp_result = ProcessParent(such_that_clause);
 	}
 	else if (relation == REL_PARENT_STAR) {
-		suchThatResult = ProcessParentT(suchThatClause);
+		temp_result = ProcessParentT(such_that_clause);
 	}
 	else if (relation == REL_MODIFIES) {
-		suchThatResult = ProcessModifies(suchThatClause);
+		temp_result = ProcessModifies(such_that_clause);
 	}
 	else if (relation == REL_USES) {
-		suchThatResult = ProcessUses(suchThatClause);
+		temp_result = ProcessUses(such_that_clause);
 	}
-	return suchThatResult;
+	else if (relation == REL_PATTERN) {
+		temp_result = ProcessPattern(such_that_clause);
+	}
+	return temp_result;
 }
 
 ResultTable QueryEvaluator::ProcessPattern(Clause pattern_clause) {
@@ -231,7 +242,7 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -274,7 +285,7 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -297,7 +308,7 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 	}
 	else {
 		// Argument 1 is a synonym
-		list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
 		if (synonym_stmt_list_arg1.empty() == true) {
 			return temp_result;
 		}
@@ -342,7 +353,7 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 				return temp_result;
 			}
 			
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -405,7 +416,7 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -448,7 +459,7 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 		}
 		else {
 			// Argument 2 is synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -471,7 +482,7 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 	}
 	else {
 		// Argument 1 is a synonym
-		list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
 		if (synonym_stmt_list_arg1.empty() == true) {
 			return temp_result;
 		}
@@ -516,7 +527,7 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 				return temp_result;
 			}
 
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -581,7 +592,7 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -624,7 +635,7 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -647,7 +658,7 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 	else 
 	{
 		// Argument 1 is a synonym
-		list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
 		if (synonym_stmt_list_arg1.empty() == true) {
 			return temp_result;
 		}
@@ -694,7 +705,7 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 				return temp_result;
 			}
 
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -757,7 +768,7 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -800,7 +811,7 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -823,7 +834,7 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 	}
 	else {
 		// Argument 1 is a synonym
-		list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
 		if (synonym_stmt_list_arg1.empty() == true) {
 			return temp_result;
 		}
@@ -868,7 +879,7 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 				return temp_result;
 			}
 
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -954,7 +965,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 		}
 		else {
 			// Argument 1 is a synonym of statement type
-			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+			list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
 			if (synonym_stmt_list_arg1.empty() == true) {
 				return temp_result;
 			}
@@ -1048,7 +1059,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 		}
 		else {
 			// Argument 1 is a synonym of statement type
-			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+			list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
 			if (synonym_stmt_list_arg1.empty() == true) {
 				return temp_result;
 			}
@@ -1125,7 +1136,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 		}
 		else {
 			// Argument 1 is a synonym of statement type
-			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+			list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
 			if (synonym_stmt_list_arg1.empty() == true) {
 				return temp_result;
 			}
@@ -1184,7 +1195,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -1228,7 +1239,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -1250,7 +1261,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 	}
 	else {
 		// Argument 1 is a synonym
-		list<int>synonym_stmt_list_arg1 = getList(arg1_type);
+		list<int>synonym_stmt_list_arg1 = GetList(arg1_type);
 		if (synonym_stmt_list_arg1.empty() == true) {
 			return temp_result;
 		}
@@ -1294,7 +1305,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 				return temp_result;
 			}
 
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -1355,7 +1366,7 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -1398,7 +1409,7 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -1421,7 +1432,7 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 	}
 	else {
 		// Argument 1 is a synonym
-		list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
 		if (synonym_stmt_list_arg1.empty() == true) {
 			return temp_result;
 		}
@@ -1461,7 +1472,7 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 		}
 		else {
 			// Argument 2 is a synonym
-			list<int> synonym_stmt_list_arg2 = getList(arg2_type);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
 			if (synonym_stmt_list_arg2.empty() == true) {
 				return temp_result;
 			}
@@ -1796,7 +1807,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 	string arg1_type = pattern_assign_clause.getArgType().at(1);
 	string arg2_type = pattern_assign_clause.getArgType().at(2);
 
-	list<int> all_assign_statements = getList(ARGTYPE_ASSIGN);
+	list<int> all_assign_statements = GetList(ARGTYPE_ASSIGN);
 
 	ResultTable temp_result;
 
@@ -1978,12 +1989,226 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 
 ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
 {
-	return ResultTable();
+	string pattern_while_syn = pattern_while_clause.getArg().at(0);
+	string arg1 = pattern_while_clause.getArg().at(1);
+	string arg1_type = pattern_while_clause.getArgType().at(1);
+
+	ResultTable temp_result = ResultTable(pattern_while_syn);
+	vector<string> temp_row_data;
+
+	if (arg1_type == ARGTYPE_STRING) {
+		if (_pkb.isValidVar(arg1) == false) {
+			return temp_result;
+		}
+
+		list<int> while_stmt_with_arg1_control_variable = _pkb.getWhileListWithControlVariable(arg1);
+		if (while_stmt_with_arg1_control_variable.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &while_stmt_num : while_stmt_with_arg1_control_variable) {
+				temp_row_data.push_back(to_string(while_stmt_num));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		list<int> all_while_list = _pkb.getWhileList();
+		if (all_while_list.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &while_stmt_num : all_while_list) {
+				temp_row_data.push_back(to_string(while_stmt_num));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
+	else {
+		// Argument 1 is a synonym
+		list<string> all_variable_list = _pkb.getVarList();
+		if (all_variable_list.empty() == false) {
+			temp_result = ResultTable(pattern_while_syn, arg1);
+			for (auto &arg1_variable : all_variable_list) {
+				list<int> while_with_arg1_control_variable = _pkb.getWhileListWithControlVariable(arg1_variable);
+				if (while_with_arg1_control_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &while_stmt_num : while_with_arg1_control_variable) {
+						temp_row_data.push_back(to_string(while_stmt_num));
+						temp_row_data.push_back(arg1_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+		}
+
+		return temp_result;
+	}
+
+	return temp_result;
 }
 
 ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
 {
-	return ResultTable();
+	string pattern_if_syn = pattern_if_clause.getArg().at(0);
+	string arg1 = pattern_if_clause.getArg().at(1);
+	string arg1_type = pattern_if_clause.getArgType().at(1);
+
+	ResultTable temp_result = ResultTable(pattern_if_syn);
+	vector<string> temp_row_data;
+
+	if (arg1_type == ARGTYPE_STRING) {
+		if (_pkb.isValidVar(arg1) == false) {
+			return temp_result;
+		}
+
+		list<int> if_with_arg1_control_variable = _pkb.getifListWithControlVariable(arg1);
+		if (if_with_arg1_control_variable.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &if_stmt_num : if_with_arg1_control_variable) {
+				temp_row_data.push_back(to_string(if_stmt_num));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		list<int> all_if_list = _pkb.getIfList();
+		if (all_if_list.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &if_stmt_num : all_if_list) {
+				temp_row_data.push_back(to_string(if_stmt_num));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
+	else {
+		// Argument 1 is a synonym
+		list<string> all_variable_list = _pkb.getVarList();
+		if (all_variable_list.empty() == false) {
+			temp_result = ResultTable(pattern_if_syn, arg1);
+			for (auto &arg1_variable : all_variable_list) {
+				list<int> if_with_arg1_control_variable = _pkb.getWhileListWithControlVariable(arg1_variable);
+				if (if_with_arg1_control_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &if_stmt_num : if_with_arg1_control_variable) {
+						temp_row_data.push_back(to_string(if_stmt_num));
+						temp_row_data.push_back(arg1_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+		}
+
+		return temp_result;
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessWith(Clause with_clause)
+{
+	string arg1_type = with_clause.getArgType().at(0);
+	string arg2_type = with_clause.getArgType().at(1);
+
+	ResultTable temp_result;
+
+	if ((arg1_type != ARGTYPE_PROCEDURE) && (arg1_type != ARGTYPE_CALLS_NAME) && (arg1_type != ARGTYPE_VARIABLE)) {
+		temp_result = ProcessWithName(with_clause);
+	}
+	else {
+		temp_result = ProcessWithNumber(with_clause);
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
+{
+	string arg1 = with_name_clause.getArg().at(0);
+	string arg2 = with_name_clause.getArg().at(1);
+	string arg1_type = with_name_clause.getArgType().at(0);
+	string arg2_type = with_name_clause.getArgType().at(1);
+
+	ResultTable temp_result = ResultTable(arg1, arg2);
+	vector<string> temp_row_data;
+
+	list<string> arg1_data_list;
+	list<string> arg2_data_list;
+
+	if (arg1_type == ARGTYPE_PROCEDURE) {
+		arg1_data_list = _pkb.getProcedureList();
+	}
+	else if (arg1_type == ARGTYPE_VARIABLE) {
+		arg1_data_list = _pkb.getVarList();
+	}
+	else if (arg1_type == ARGTYPE_CALLS_NAME) {
+		arg1_data_list = _pkb.getCalledProcNamesList();
+	}
+
+	if (arg2_type == ARGTYPE_PROCEDURE) {
+		arg2_data_list = _pkb.getProcedureList();
+	}
+	else if (arg2_type == ARGTYPE_VARIABLE) {
+		arg2_data_list = _pkb.getVarList();
+	}
+	else if (arg2_type == ARGTYPE_CALLS_NAME) {
+		arg2_data_list = _pkb.getCalledProcNamesList();
+	}
+
+	if ((arg1_data_list.empty() == false) && (arg2_data_list.empty() == false)) {
+		for (auto &arg1_data : arg1_data_list) {
+			for (auto &arg2_data : arg2_data_list) {
+				if (arg1_data == arg2_data) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_data);
+					temp_row_data.push_back(arg2_data);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+		}
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
+{
+	string arg1 = with_number_clause.getArg().at(0);
+	string arg2 = with_number_clause.getArg().at(1);
+	string arg1_type = with_number_clause.getArgType().at(0);
+	string arg2_type = with_number_clause.getArgType().at(1);
+
+	ResultTable temp_result = ResultTable(arg1, arg2);
+	vector<string> temp_row_data;
+
+	list<int> arg1_data_list = GetList(arg1_type);
+	list<int> arg2_data_list = GetList(arg2_type);
+
+	if ((arg1_data_list.empty() == false) && (arg2_data_list.empty() == false)) {
+		for (auto &arg1_stmt_num : arg1_data_list) {
+			for (auto &arg2_stmt_num : arg2_data_list) {
+				if (arg1_stmt_num == arg2_stmt_num) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_row_data.clear();
+				}
+			}
+		}
+	}
+
+	return temp_result;
 }
 
 bool QueryEvaluator::ProcessNoSynGroup()
@@ -2062,7 +2287,7 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 		}
 		else {
 			// Argument 1 is a synonym of statement type
-			list<int> synomym_stmt_list_arg1 = getList(arg1_type);
+			list<int> synomym_stmt_list_arg1 = GetList(arg1_type);
 			if (synomym_stmt_list_arg1.empty() == true) {
 				return temp_result;
 			}
@@ -2156,7 +2381,7 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 		}
 		else {
 			// Argument 1 is a synonym of statement type
-			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+			list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
 			if (synonym_stmt_list_arg1.empty() == true) {
 				return temp_result;
 			}
@@ -2234,7 +2459,7 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 		}
 		else {
 			// Argument 1 is a synonym of statement type
-			list<int> synonym_stmt_list_arg1 = getList(arg1_type);
+			list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
 			if (synonym_stmt_list_arg1.empty() == true) {
 				return temp_result;
 			}
@@ -2259,38 +2484,27 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 	return temp_result;
 }
 
+list<int> QueryEvaluator::GetList(string arg_type) {
+	list<int> wanted_list;
 
-int QueryEvaluator::isInList(list<int> inList, int item) {
-	if (find(inList.begin(), inList.end(), item) != inList.end()) {
-		return 1;
+	if (arg_type == ARGTYPE_ASSIGN) {
+		wanted_list = _pkb.getAssignList();
 	}
-	return -1;
-}
-
-int QueryEvaluator::isListEmpty(list<int> inList) {
-	if (inList.empty() == true) {
-		return -1;
+	else if (arg_type == ARGTYPE_WHILE) {
+		wanted_list = _pkb.getWhileList();
 	}
-
-	return 1;
-}
-
-list<int> QueryEvaluator::getList(string argType) {
-	list<int> wantedList;
-	if (argType == ARGTYPE_ASSIGN) {
-		wantedList = _pkb.getAssignList();
-	}
-	else if (argType == ARGTYPE_WHILE) {
-		wantedList = _pkb.getWhileList();
-	}
-	else if (argType == ARGTYPE_IF) {
-		wantedList = _pkb.getIfList();
+	else if (arg_type == ARGTYPE_IF) {
+		wanted_list = _pkb.getIfList();
 	} 
-	else if (argType == ARGTYPE_CALLS) {
-		wantedList = _pkb.getCallList();
+	else if (arg_type == ARGTYPE_CALLS) {
+		wanted_list = _pkb.getCallList();
 	}
-	else if (argType == ARGTYPE_STMT || argType == ARGTYPE_PROG_LINE) {
-		wantedList = _pkb.getStmtList();
+	else if (arg_type == ARGTYPE_STMT || arg_type == ARGTYPE_PROG_LINE) {
+		wanted_list = _pkb.getStmtList();
 	}
-	return wantedList;
+	else if (arg_type == ARGTYPE_CONSTANT) {
+		wanted_list = _pkb.getConstantList();
+	}
+
+	return wanted_list;
 }
