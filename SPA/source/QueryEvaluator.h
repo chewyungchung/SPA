@@ -33,19 +33,22 @@ private:
 	// TODO: Modify all process clauses return type and implementation
 	QueryResult processSuchThat(Clause suchThatClause);
 	QueryResult processSelect(Clause selectClause);
-	QueryResult processPattern(Clause patternClause);
-	ResultTable ProcessFollows(Clause followClause);
-	ResultTable ProcessFollowsT(Clause followTClause);
-	ResultTable ProcessParent(Clause parentClause);
-	ResultTable ProcessParentT(Clause parentTClause);
-	ResultTable ProcessUses(Clause usesClause);
-	ResultTable ProcessModifies(Clause modifiesClause);
+	ResultTable ProcessPattern(Clause pattern_clause);
 	
 	// Iteration 2
+	ResultTable ProcessFollows(Clause follow_clause);
+	ResultTable ProcessFollowsT(Clause follow_star_clause);
+	ResultTable ProcessParent(Clause parent_clause);
+	ResultTable ProcessParentT(Clause parent_star_clause);
+	ResultTable ProcessUses(Clause uses_clause);
+	ResultTable ProcessModifies(Clause modifies_clause);
 	ResultTable ProcessNext(Clause next_clause);
 	ResultTable ProcessNextT(Clause next_star_clause);
 	ResultTable ProcessCalls(Clause calls_clause);
 	ResultTable ProcessCallsStar(Clause calls_star_clause);
+	ResultTable ProcessPatternAssign(Clause pattern_assign_clause);
+	ResultTable ProcessPatternWhile(Clause pattern_while_clause);
+	ResultTable ProcessPatternIf(Clause pattern_if_clause);
 
 	bool ProcessNoSynGroup();
 	bool ProcessNonConnectedGroup();
@@ -54,5 +57,5 @@ private:
 	int isInList(list<int> inList, int item);
 	int isListEmpty(list<int> intList);
 
-	list<int> getList(string argType);
+	list<int> getList(string arg_type);
 };
