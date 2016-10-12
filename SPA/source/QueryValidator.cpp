@@ -25,6 +25,7 @@ QueryTable QueryValidator::parse() {
 		// Return a null pointer to indicate that an invalid query has been sent in
 		return QueryTable(true);
 	}
+	_qt.optimize();
 	return _qt;
 }
 
@@ -70,7 +71,6 @@ void QueryValidator::matchDeclaration() {
 			}
 		}
 	}
-
 }
 
 void QueryValidator::matchDeclarationVar(string entity) {
@@ -100,71 +100,113 @@ void QueryValidator::matchDeclarationVar(string entity) {
 		// End declaration for this entity type
 		match(";");
 	}
+	_qt.setSynEntityMap(_synToEntityMap);
 }
 
 void QueryValidator::matchSelect() {
+	// does not work for such that ( match such but does not match that!!!)
+	string previousClause = "none";
 	match("Select");
 	matchSelectResult();
-	// Check the first clause - query is invalid if "and" is the first clause
-	if (_nextToken.getTokenName() != "and") {
-		// Match 'Such That' | 'Pattern' | 'And' | 'With' |
-		while (_nextToken.getTokenName() == "such" || _nextToken.getTokenName() == "pattern" ||
-			_nextToken.getTokenName() == "and" || _nextToken.getTokenName() == "with") {
-			matchClause();
+	// Match 'Such That' | 'Pattern' | 'And' | 'With' |
+	while (_nextToken.getTokenName() == "such" || _nextToken.getTokenName() == "pattern" || _nextToken.getTokenName() == "with" ||
+		_nextToken.getTokenName() == "and") {
+		if (_nextToken.getTokenName != "and") {
+			previousClause = _nextToken.getTokenName();
+			matchClause(previousClause);
 			restrainCommonSynonym();
 		}
-		if (_nextToken.getTokenName() != "") {
-			throw (QueryException("Invalid Query!"));
+		else {
+			if (previousClause != "none") {
+				matchClause(previousClause);
+			}
+			else {
+				throw (QueryException("Invalid Query : Query begins with an AND clause"));
+			}
 		}
 	}
-	else {
-		throw(QueryException("Invalid Query : Invalid Starting Clause"));
+	if (_nextToken.getTokenName() != "") {
+		throw (QueryException("Invalid Query!"));
 	}
 }
 
 void QueryValidator::matchSelectResult() {
+	//"Select" result-cl (suchthat-cl | with-cl | pattern-cl 
+	//result-cl : tuple | "BOOLEAN"
+	//tuple : elem | "<" elem ("," elem)* ">"
+	//elem : synonym | attrRef
+	vector<string> selectArg, selectArgType;
+	string syn, synType, prevToken;
 	if (_nextToken.getTokenName() == "BOOLEAN") {
-		// Could declare SelectClause here and init it in QueryTable to return
 		vector<string> selectArg1({ "BOOLEAN" });
 		Clause selectClause("SELECT", selectArg1, selectArg1);
 		_qt.setSelectClause(selectClause);
 		match("BOOLEAN");
 	}
-	else {
-		// If not BOOLEAN, should be a synonym. Match it
-		string syn = _nextToken.getTokenName();
-		//unordered_map<string, string>::iterator  it = _synToEntityMap.find(syn);
-		//if (it->second.compare("") == 0) {
+	else if (_nextToken.getTokenType == IDENT) {
+		syn = _nextToken.getTokenName();
+		synType = _synToEntityMap[syn];
 		if (_synToEntityMap.count(syn) == 0) {
 			throw(QueryException("Invalid Query : Unexpected synonym '" + syn + "' in Select clause"));
 		}
+		// result-cl is a synonym or attrRef 
+		// attrRef: synonym.attrName
 		else {
-			// If syn not found in map, JIBABOM. Else match it
-			vector<string> selectArg1({ syn });
-			vector<string> selectArgType({ _synToEntityMap[syn] });
-			Clause selectClause("select", selectArg1, selectArgType);
-			_qt.setSelectClause(selectClause);
+			selectArg.push_back(syn);
+			selectArgType.push_back(_synToEntityMap[syn]);
+			match(syn);
+			if (_nextToken.getTokenType != DOT) {
+				Clause selectClause("select", selectArg, selectArgType);
+				_qt.setSelectClause(selectClause);
+				match(_nextToken.getTokenName);
+			}
+			else {
+				string attrName = _nextToken.getTokenName();
+				if (isAttrNameValid(attrName) && synTypeAndAttrNameMatches(synType, attrName)) {
+					selectArg.push_back(attrName);
+					Clause selectClause("select", selectArg, selectArgType);
+					_qt.setSelectClause(selectClause);
+					match(attrName);
+				}
+			}
 		}
-		match(syn);
+	}
+	else {
+		if (_nextToken.getTokenName() == "<") {
+			match("<");
+			while (_nextToken.getTokenName() != ">") {
+				if (_nextToken.getTokenType() == IDENT) {
+					syn = _nextToken.getTokenName();
+					synType = _synToEntityMap[syn];
+					selectArg.push_back(syn);
+					selectArgType.push_back(synType);
+					match(syn);
+				}
+				else if (_nextToken.getTokenType() == COMMA) {
+					match(COMMA);
+					if (_nextToken.getTokenName() == ">") {
+						throw(QueryException("Invalid Query: Incorrect tuple format"));
+					}
+				}
+			}
+			match(">");
+		}
 	}
 }
 
-void QueryValidator::matchClause() {
-	if (_nextToken.getTokenName() == "such") {
+void QueryValidator::matchClause(string previousClause) {
+	if (previousClause == "such") {
 		matchSuchThat();
 	}
-	else if (_nextToken.getTokenName() == "pattern") {
+	else if (previousClause == "pattern") {
 		matchPattern();
 	}
-	else if (_nextToken.getTokenName() == "and") {
-		matchAnd();
-	}
-	else if (_nextToken.getTokenName() == "with") {
+	else if (previousClause == "with") {
 		matchWith();
 	}
 	else {
-		// No SUCHTHAT, PATTERN, AND or WITH clause, query should be invalid
-		throw(QueryException("Invalid Query: Unexpected token '" + _nextToken.getTokenName() + "'; Expecting 'SUCH THAT', 'PATTERN', 'AND' or 'WITH'"));
+		// No SUCHTHAT, PATTERN, or WITH clause, query should be invalid
+		throw(QueryException("Invalid Query: Unexpected token '" + _nextToken.getTokenName() + "'; Expecting 'SUCH THAT', 'PATTERN', or 'WITH'"));
 	}
 }
 
@@ -179,11 +221,6 @@ void QueryValidator::matchPattern() {
 	matchPatternAssign();
 }
 
-void QueryValidator::matchAnd() {
-	match("and");
-	matchRelation();
-}
-
 void QueryValidator::matchWith() {
 	match("with");
 	matchWithClause();
@@ -192,7 +229,6 @@ void QueryValidator::matchWith() {
 void QueryValidator::matchWithClause() {
 	bool arg1Valid = false;
 	bool arg2Valid = false;
-	//int firstTokenType;
 	string withTypeLHS, withTypeRHS;
 	int type;
 	string synonym, synType, attrName, argName, argType;
@@ -211,7 +247,7 @@ void QueryValidator::matchWithClause() {
 			//firstTokenType = it->first;
 			it++;
 			attrName = it->second;
-			if (isAttrTypeValid(attrName) &&
+			if (isAttrNameValid(attrName) &&
 				synTypeAndAttrNameMatches(synType, attrName)) {
 				arg1Valid = true;
 				withTypeLHS = getWithType(attrName, synType);
@@ -220,18 +256,28 @@ void QueryValidator::matchWithClause() {
 		withArg.push_back(synonym);
 		withArgType.push_back(synType);
 	}
-	// SYNONYM (for prog_line only)
+	// all other ref options i.e.IDENT | INTEGER | PROG_LINE | SYNONYM
 	else {
 		for (vector<pair<int, string>>::const_iterator it = arg1.begin(); it != arg1.end(); it++) {
 			type = it->first;
-			argName = it->second; 
+			argName = it->second;
 			withTypeLHS = getWithType(type);
 		}
-		//if the first arg happen to be a synonym, it can only be a prog_line
-		bool found = find(_synToEntityMap.begin(), _synToEntityMap.end(), argName) != _synToEntityMap.end();
-		if (found && _synToEntityMap[argName] == "prog_line") {
-			argType = "prog_line";
-			arg1Valid = true;
+		// only synonym of prog_line type is allowed
+		if (type == IDENT) {
+			if (_synToEntityMap[argName] != "" && _synToEntityMap[argName] == "prog_line") {
+				_synToUseCountMap[argName] += 1;
+				arg1Valid = true;
+				argType = _synToEntityMap[argName];
+			}
+		}
+		else if (type == STRING) {
+			arg1Valid = _relTable.isArg1Valid(withTypeLHS, "string");
+			argType = "string";
+		}
+		else if (type == INTEGER) {
+			arg1Valid = _relTable.isArg1Valid(withTypeLHS, "constant");
+			argType = "constant";
 		}
 		withArg.push_back(argName);
 		withArgType.push_back(argType);
@@ -245,7 +291,7 @@ void QueryValidator::matchWithClause() {
 			//int secondTokenType = it->first;
 			it++;
 			attrName = it->second;
-			if (isAttrTypeValid(attrName) &&
+			if (isAttrNameValid(attrName) &&
 				synTypeAndAttrNameMatches(synType, attrName)) {
 				arg2Valid = true;
 				withTypeRHS = getWithType(attrName, synType);
@@ -254,26 +300,28 @@ void QueryValidator::matchWithClause() {
 		withArg.push_back(synonym);
 		withArgType.push_back(synType);
 	}
-	// all other ref options i.e.IDENT | INTEGER | PROG_LINE 
+	// all other ref options i.e.IDENT | INTEGER | SYNONYM (prog_line)
 	else {
 		for (vector<pair<int, string>>::const_iterator it = arg2.begin(); it != arg2.end(); it++) {
 			type = it->first;
 			argName = it->second;
 			withTypeRHS = getWithType(type);
 		}
-		bool found = find(_synToEntityMap.begin(), _synToEntityMap.end(), argName) != _synToEntityMap.end();
-		if (found && _synToEntityMap[argName] == "prog_line") {
-			argType = "prog_line";
-			arg2Valid = true;
-		}
+		// only synonym of prog_line type is allowed
 		if (type == IDENT) {
-			argType = "ident";
-			arg2Valid = true;
-
+			if (_synToEntityMap[argName] != "" && _synToEntityMap[argName] == "prog_line") {
+				_synToUseCountMap[argName] += 1;
+				arg2Valid = true;
+				argType = _synToEntityMap[argName];
+			}
+		}
+		else if (type == STRING) {
+			arg2Valid = _relTable.isArg1Valid(withTypeRHS, "string");
+			argType = "string";
 		}
 		else if (type == INTEGER) {
-			argType = "integer"; //argType = "constant";
-			arg2Valid = true;
+			arg2Valid = _relTable.isArg1Valid(withTypeRHS, "constant");
+			argType = "constant";
 		}
 		withArg.push_back(argName);
 		withArgType.push_back(argType);
@@ -281,7 +329,8 @@ void QueryValidator::matchWithClause() {
 	if (arg1Valid && arg2Valid) {
 		if (withTypeLHS == withTypeRHS) {
 			Clause withClause(withTypeLHS, withArg, withArgType);
-			_qt.setWithClause(withClause);
+			_withClauses.push_back(withClause);
+			_qt.setWithClause(_withClauses);
 		}
 	}
 	else {
@@ -292,10 +341,12 @@ void QueryValidator::matchWithClause() {
 vector<pair<int, string>> QueryValidator::matchRef() {
 	// ref : attrRef | synonyn | IDENT | INTEGER
 	// attrRef : synonym.attrName
+	string synonym, argument;
+	int tokenType;
 	_nextToken = getToken();
 	if (_nextToken.getTokenType() == IDENT) {
-		string synonym = _nextToken.getTokenName();
-		int tokenType = _nextToken.getTokenType();
+		synonym = _nextToken.getTokenName();
+		tokenType = _nextToken.getTokenType();
 		match(synonym);
 		if (_nextToken.getTokenType() != DOT) {
 			return vector<pair<int, string>>{{ tokenType, synonym }};
@@ -307,9 +358,18 @@ vector<pair<int, string>> QueryValidator::matchRef() {
 			return vector<pair<int, string>>{ {tokenType, synonym}, {attrType, attrName} };
 		}
 	}
+	else if (_nextToken.getTokenName() == "\"") {
+		// '"' IDENT '"'
+		match("\"");
+		argument = _nextToken.getTokenName();
+		tokenType = STRING;
+		match(argument);
+		// Some funny thing here
+		match("\"");
+	}
 	else if (_nextToken.getTokenType() == INTEGER) {
-		string argument = _nextToken.getTokenName();
-		int tokenType = _nextToken.getTokenType();
+		argument = _nextToken.getTokenName();
+		tokenType = _nextToken.getTokenType();
 		match(argument);
 		return vector<pair<int, string>>{ { tokenType, argument }};
 	}
@@ -319,9 +379,9 @@ vector<pair<int, string>> QueryValidator::matchRef() {
 	}
 }
 
-bool QueryValidator::isAttrTypeValid(string attrType) {
+bool QueryValidator::isAttrNameValid(string attrName) {
 	for (vector<string>::const_iterator it = ATTRIBUTE_TYPES.begin(); it != ATTRIBUTE_TYPES.end(); it++) {
-		if (attrType != *it) {
+		if (attrName != *it) {
 			return false;
 		}
 	}
@@ -397,10 +457,10 @@ string QueryValidator::getWithType(string attrName, string synType) {
 string QueryValidator::getWithType(int argType) {
 	string withType; 
 	if (argType == IDENT) {
-		withType = "name";
+		withType = "withName";
 	}
 	else if (argType == INTEGER) {
-		withType = "integer";
+		withType = "withInt";
 	}
 	return withType;
 }
@@ -428,7 +488,6 @@ void QueryValidator::matchPatternAssign() {
 			match("\"");
 			arg2 = matchFactor();
 			match("\"");
-			match("_");
 			arg2MatchFactor = 1;
 		}
 		if (arg2MatchFactor == -1) {
@@ -470,14 +529,121 @@ void QueryValidator::matchPatternAssign() {
 		}
 
 		if (isArg1Valid && isArg2Valid) {
-			vector<string> patternArg({ arg1.second, arg2.second, synAssign });
-			vector<string> patternArgType({ arg1Type,arg2Type, synAssignType });
-			Clause patternClause("patternAssign", patternArg, patternArgType);
-			_qt.setPatternClause(patternClause);
+			vector<string> patternArg({ synAssign, arg1.second, arg2.second });
+			vector<string> patternArgType({ synAssignType, arg1Type,arg2Type });
+			Clause patternClause("pattern", patternArg, patternArgType);
+			_patternClauses.push_back(patternClause);
+			_qt.setPatternClause(_patternClauses);
 		}
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected token '" + _nextToken.getTokenName() + "'; Expected valid synAssign"));
+	}
+}
+
+void QueryValidator::matchPatternWhile() {
+	// while : synonym (varRef ,"_")
+	// varRef : synonym | "_" | "IDENT"
+	string syn = _nextToken.getTokenName();
+	string synType;
+	pair<int, string> arg1, arg2;
+	// Check the syn to entity map and verify if it is "assign" or not. If NOT, ERROR!!!!!!!!!!!!!!!!
+	if (_synToEntityMap[syn] == "while") {
+		synType = _synToEntityMap[syn];
+		_synToUseCountMap[syn] += 1;
+		match(syn);
+		match("(");
+		arg1 = matchEntRef();
+		match(",");
+		if (_nextToken.getTokenName() == "_") {
+			match("_");
+			arg2 = pair<int, string>(UNDERSCORE, "_");
+		}
+		match(")");
+	}
+	// Validate arg1 & arg2
+	int isArg1Valid = -1;
+	int isArg2Valid = -1;
+	string arg1Type, arg2Type;
+	if (arg1.first == IDENT) {
+		if (_synToEntityMap[arg1.second] != "") {
+			_synToUseCountMap[arg1.second] += 1;
+			isArg1Valid = _relTable.isArg1Valid("patternWhile", _synToEntityMap[arg1.second]);
+			arg1Type = _synToEntityMap[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		isArg1Valid = _relTable.isArg1Valid("patternWhile", "_");
+		arg1Type = "any";
+	}
+	else if (arg1.first == STRING) {
+		isArg1Valid = _relTable.isArg1Valid("patternWhile", "string");
+		arg1Type = "string";
+	}
+	else if (arg2.first == UNDERSCORE) {
+		isArg2Valid = _relTable.isArg2Valid("patternWhile", "_");
+		arg2Type = "any";
+	}
+
+	if (isArg1Valid && isArg2Valid) {
+		vector<string> patternArg({ syn, arg1.second, arg2.second });
+		vector<string> patternArgType({ synType, arg1Type,arg2Type });
+		Clause patternClause("pattern", patternArg, patternArgType);
+		_patternClauses.push_back(patternClause);
+		_qt.setPatternClause(_patternClauses);
+	}
+}
+
+void QueryValidator::matchPatternIf() {
+	// if : synonym (varRef, "_", "_")
+	// varRef : synonym | "_" | "IDENT"
+	string syn = _nextToken.getTokenName();
+	string synType;
+	pair<int, string> arg1, arg2;
+	// Check the syn to entity map and verify if it is "assign" or not. If NOT, ERROR!!!!!!!!!!!!!!!!
+	if (_synToEntityMap[syn] == "if") {
+		synType = _synToEntityMap[syn];
+		_synToUseCountMap[syn] += 1;
+		match(syn);
+		match("(");
+		arg1 = matchEntRef();
+		match(",");
+		if (_nextToken.getTokenName() == "_") {
+			match("_");
+			arg2 = pair<int, string>(UNDERSCORE, "_");
+		}
+		match(")");
+	}
+	// Validate arg1 & arg2
+	int isArg1Valid = -1;
+	int isArg2Valid = -1;
+	string arg1Type, arg2Type;
+	if (arg1.first == IDENT) {
+		if (_synToEntityMap[arg1.second] != "") {
+			_synToUseCountMap[arg1.second] += 1;
+			isArg1Valid = _relTable.isArg1Valid("patternIf", _synToEntityMap[arg1.second]);
+			arg1Type = _synToEntityMap[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		isArg1Valid = _relTable.isArg1Valid("patternIf", "_");
+		arg1Type = "any";
+	}
+	else if (arg1.first == STRING) {
+		isArg1Valid = _relTable.isArg1Valid("patternIf", "string");
+		arg1Type = "string";
+	}
+	else if (arg2.first == UNDERSCORE) {
+		isArg2Valid = _relTable.isArg2Valid("patternIf", "_");
+		arg2Type = "any";
+	}
+
+	if (isArg1Valid && isArg2Valid) {
+		vector<string> patternArg({ syn, arg1.second, arg2.second });
+		vector<string> patternArgType({ synType, arg1Type,arg2Type });
+		Clause patternClause("pattern", patternArg, patternArgType);
+		_patternClauses.push_back(patternClause);
+		_qt.setPatternClause(_patternClauses);
 	}
 }
 
@@ -582,8 +748,9 @@ void QueryValidator::matchFollow() {
 	if (arg1Valid && arg2Valid) {
 		vector<string> followsArg({ arg1.second,arg2.second });
 		vector<string> followsArgType ({ arg1Type,arg2Type });
-		Clause followClause("follows", followsArg, followsArgType);
-		_qt.setSuchThatClause(followClause);
+		Clause followsRelation("follows", followsArg, followsArgType);
+		_suchThatClauses.push_back(followsRelation);
+		_qt.setSuchThatClause(_suchThatClauses);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for follows"));
@@ -637,8 +804,9 @@ void QueryValidator::matchFollowStar() {
 	if (arg1Valid && arg2Valid) {
 		vector<string> followsStarArg({ arg1.second,arg2.second });
 		vector<string> followsStarArgType({ arg1Type,arg2Type });
-		Clause followStarClause("follows*", followsStarArg, followsStarArgType);
-		_qt.setSuchThatClause(followStarClause);
+		Clause followsStarRel("follows*", followsStarArg, followsStarArgType);
+		_suchThatClauses.push_back(followsStarRel);
+		_qt.setSuchThatClause(_suchThatClauses);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for follows*"));
@@ -692,7 +860,9 @@ void QueryValidator::matchParent() {
 		vector<string> parentArg({ arg1.second,arg2.second });
 		vector<string> parentArgType({ arg1Type,arg2Type });
 		Clause parentClause("parent", parentArg, parentArgType);
-		_qt.setSuchThatClause(parentClause);
+		Clause parentRel("parent", parentArg, parentArgType);
+		_suchThatClauses.push_back(parentRel);
+		_qt.setSuchThatClause(_suchThatClauses);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for parent"));
@@ -745,8 +915,9 @@ void QueryValidator::matchParentStar() {
 	if (arg1Valid && arg2Valid) {
 		vector<string> parentStarArg({ arg1.second,arg2.second });
 		vector<string> parentStarArgType({ arg1Type,arg2Type });
-		Clause parentStarClause("parent*", parentStarArg, parentStarArgType);
-		_qt.setSuchThatClause(parentStarClause);
+		Clause parentStarRel("parent*", parentStarArg, parentStarArgType);
+		_suchThatClauses.push_back(parentStarRel);
+		_qt.setSuchThatClause(_suchThatClauses);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for parent*"));
@@ -780,6 +951,11 @@ void QueryValidator::matchModifies() {
 		arg1Valid = _relTable.isArg1Valid("modifies", "constant");
 		arg1Type = "constant";
 	}
+	// arg 1 is a procedure e.g. Modifies("First", "x")
+	else if (arg1.first == STRING) {
+		arg1Valid = _relTable.isArg1Valid("modifies", "string");
+		arg1Type = "string";
+	}
 	if (arg2.first == IDENT) {
 		if (_synToEntityMap[arg2.second] != "") {
 			_synToUseCountMap[arg2.second] += 1;
@@ -799,8 +975,9 @@ void QueryValidator::matchModifies() {
 	if (arg1Valid && arg2Valid) {
 		vector<string> modifiesArg({ arg1.second,arg2.second });
 		vector<string> modifiesArgType({ arg1Type,arg2Type });
-		Clause modifiesClause("modifies", modifiesArg, modifiesArgType);
-		_qt.setSuchThatClause(modifiesClause);
+		Clause modifiesRel("modifies", modifiesArg, modifiesArgType);
+		_suchThatClauses.push_back(modifiesRel);
+		_qt.setSuchThatClause(_suchThatClauses);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for modifies"));
@@ -854,8 +1031,9 @@ void QueryValidator::matchUses() {
 	if (arg1Valid && arg2Valid) {
 		vector<string> usesArg({ arg1.second,arg2.second });
 		vector<string> usesArgType({ arg1Type,arg2Type });
-		Clause usesClause("uses", usesArg, usesArgType);
-		_qt.setSuchThatClause(usesClause);
+		Clause usesRel("uses", usesArg, usesArgType);
+		_suchThatClauses.push_back(usesRel);
+		_qt.setSuchThatClause(_suchThatClauses);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for uses"));
@@ -886,6 +1064,10 @@ void QueryValidator::matchCalls() {
 		arg1Valid = _relTable.isArg1Valid("calls", "_");
 		arg1Type = "any";
 	}
+	else if (arg1.first == STRING) {
+		arg1Valid = _relTable.isArg1Valid("calls", "string");
+		arg1Type = "string";
+	}
 	/* call rel does not accept int as parameter
 	else if (arg1.first == INTEGER) {
 		arg1Valid = _relTable.isArg1Valid("calls", "constant");
@@ -903,6 +1085,10 @@ void QueryValidator::matchCalls() {
 		arg2Valid = _relTable.isArg2Valid("calls", "_");
 		arg2Type = "any";
 	}
+	else if (arg2.first == STRING) {
+		arg2Valid = _relTable.isArg2Valid("calls", "string");
+		arg2Type = "string";
+	}
 	/* call rel does not accept int as parameter
 	else if (arg2.first == INTEGER) {
 		arg2Valid = _relTable.isArg2Valid("calls", "constant");
@@ -912,8 +1098,9 @@ void QueryValidator::matchCalls() {
 	if (arg1Valid && arg2Valid) {
 		vector<string> callsArg({ arg1.second,arg2.second });
 		vector<string> callsArgType({ arg1Type,arg2Type });
-		Clause callsClause("calls", callsArg, callsArgType);
-		_qt.setSuchThatClause(callsClause);
+		Clause callsRel("calls", callsArg, callsArgType);
+		_suchThatClauses.push_back(callsRel);
+		_qt.setSuchThatClause(_suchThatClauses);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for calls"));
@@ -943,12 +1130,10 @@ void QueryValidator::matchCallsStar() {
 		arg1Valid = _relTable.isArg1Valid("calls*", "_");
 		arg1Type = "any";
 	}
-	/* call rel does not accept int as parameter
-	else if (arg1.first == INTEGER) {
-		arg1Valid = _relTable.isArg1Valid("calls*", "constant");
-		arg1Type = "constant";
+	else if (arg1.first == STRING) {
+		arg1Valid = _relTable.isArg1Valid("calls*", "string");
+		arg1Type = "string";
 	}
-	*/
 	if (arg2.first == IDENT) {
 		if (_synToEntityMap[arg2.second] != "") {
 			_synToUseCountMap[arg1.second] += 1;
@@ -960,17 +1145,16 @@ void QueryValidator::matchCallsStar() {
 		arg2Valid = _relTable.isArg2Valid("calls*", "_");
 		arg2Type = "any";
 	}
-	/* call rel does not accept int as parameter
-	else if (arg2.first == INTEGER) {
-		arg2Valid = _relTable.isArg2Valid("calls*", "constant");
-		arg2Type = "constant";
+	else if (arg2.first == STRING) {
+		arg2Valid = _relTable.isArg2Valid("calls*", "string");
+		arg2Type = "string";
 	}
-	*/
 	if (arg1Valid && arg2Valid) {
 		vector<string> callsStarArg({ arg1.second,arg2.second });
 		vector<string> callsStarArgType({ arg1Type,arg2Type });
-		Clause callsStarClause("calls*", callsStarArg, callsStarArgType);
-		_qt.setSuchThatClause(callsStarClause);
+		Clause callsStarRel("calls*", callsStarArg, callsStarArgType);
+		_suchThatClauses.push_back(callsStarRel);
+		_qt.setSuchThatClause(_suchThatClauses);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for calls*"));
@@ -1023,8 +1207,9 @@ void QueryValidator::matchNext() {
 	if (arg1Valid && arg2Valid) {
 		vector<string> nextArg({ arg1.second,arg2.second });
 		vector<string> nextArgType({ arg1Type,arg2Type });
-		Clause nextClause("next", nextArg, nextArgType);
-		_qt.setSuchThatClause(nextClause);
+		Clause nextRel("next", nextArg, nextArgType);
+		_suchThatClauses.push_back(nextRel);
+		_qt.setSuchThatClause(_suchThatClauses);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for next"));
@@ -1077,8 +1262,9 @@ void QueryValidator::matchNextStar() {
 	if (arg1Valid && arg2Valid) {
 		vector<string> nextStarArg({ arg1.second,arg2.second });
 		vector<string> nextStarArgType({ arg1Type,arg2Type });
-		Clause nextStarClause("nextStar", nextStarArg, nextStarArgType);
-		_qt.setSuchThatClause(nextStarClause);
+		Clause nextStarRel("next*", nextStarArg, nextStarArgType);
+		_suchThatClauses.push_back(nextStarRel);
+		_qt.setSuchThatClause(_suchThatClauses);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for nextStar"));

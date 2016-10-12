@@ -45,14 +45,16 @@ public:
 	void matchDeclarationVar(string token); 
 	void matchSelect();
 	void matchSelectResult();
-	void matchClause();
+	void matchClause(string previousClause);
 	void matchSuchThat();
 	void matchPattern();
-	void matchAnd();
 	void matchWith();
 	void matchWithClause();
 	void matchPatternAssign();
+	void matchPatternWhile();
+	void matchPatternIf();
 	pair<int,string> matchFactor();
+	//pair<int,string> matchExpr();
 	void matchRelation();
 	void matchFollow();
 	void matchFollowStar();
@@ -70,7 +72,7 @@ public:
 	pair<int,string> matchEntRef();
 	vector<pair<int, string>> matchRef();
 
-	bool isAttrTypeValid(string attrType);
+	bool isAttrNameValid(string attrType);
 	bool synTypeAndAttrNameMatches(string synType, string attrName);
 
 	string getWithType(string attrName, string synType);
@@ -84,5 +86,7 @@ private:
 	unordered_map<string, string> _synToEntityMap;
 	map<string, int> _synToUseCountMap;
 	string _queryString;
-
+	vector<Clause> _suchThatClauses;
+	vector<Clause> _withClauses;
+	vector<Clause> _patternClauses;
 };
