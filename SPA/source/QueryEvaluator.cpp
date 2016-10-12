@@ -11,6 +11,7 @@ const string REL_NEXT_STAR = "next*";
 const string REL_CALLS = "calls";
 const string REL_CALLS_STAR = "calls*";
 const string REL_PATTERN = "pattern";
+const string REL_WITH = "with";
 
 const string ARGTYPE_CONSTANT = "constant";
 const string ARGTYPE_ANY = "any";
@@ -41,118 +42,42 @@ QueryEvaluator::~QueryEvaluator() {
 }
 
 
-QueryEvaluator::QueryEvaluator(QueryTable qt, PKB pkb) {
-	_qt = qt;
-	_pkb = pkb;
+QueryEvaluator::QueryEvaluator(QueryTable input_query, PKB pkb) {
+	input_query_ = input_query;
+	pkb_ = pkb;
 }
 
-vector<vector<ResultTable>> QueryEvaluator::evaluate() {
+vector<vector<ResultTable>> QueryEvaluator::Evaluate() {
 	// Check if the QueryTable given by validator is NULL. Return NULL if 1
-	vector<vector<ResultTable>> intermediary_result;
+	vector<vector<ResultTable>> empty_table;
 
-
-	if (_qt.isNullQuery() == 1) {
-		intermediate_result_.SetIsQueryTrue(false);
-		return intermediate_result_;
+	if (input_query_.isNullQuery() == true) {
+		return empty_table;
 	}
 
-	// Iteration 2
-	if (ProcessNoSynGroup() == false) {
-		intermediate_result_.SetIsQueryTrue(false);
-		return intermediate_result_;
+	if (ProcessNonRelatedGroup() == false) {
+		return empty_table;
+	} 
+
+	if (ProcessConnectedGroup() == false) {
+		return empty_table;
 	}
 
-	if (ProcessNonConnectedGroup() == false) {
-		intermediate_result_.SetIsQueryTrue(false);
-		return intermediate_result_;
-	}
-
-	ProcessConnectedGroup();
-
-	return intermediary_result;
-
-	/*
-	// Below obsolete for iteration 1. Upgrade for iteration 2 above
-	// Process all such that and pattern clause, and finally select clause
-	if (_qt.getSuchThatClause().isClauseNull() == -1) {
-		_qt.setSuchThatResult(ProcessSuchThat(_qt.getSuchThatClause()));
-	}
-	if (_qt.getPatternClause().isClauseNull() == -1) {
-		_qt.setPatternResult(ProcessPattern(_qt.getPatternClause()));
-	}
-	if (_qt.getSelectClause().isClauseNull() == -1) {
-		_qt.setSelectResult(processSelect(_qt.getSelectClause()));
-	}
 	return intermediate_result_;
-	*/
 }
 
-QueryResult QueryEvaluator::processSelect(Clause selectClause) {
-	// Results that output stmt#: 
-	// -> stmt | assign | while | prog_line
-	// Other results:
-	// -> variable | intean | constant
-
-	string expectedResultSynonym = selectClause.getArg().at(0);
-	string expectedResultType = selectClause.getArgType().at(0);
-	QueryResult qr;
-
-	qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
-
-	if (expectedResultType == ARGTYPE_VARIABLE) {
-		list<string> varList = _pkb.getVarList();
-		if (varList.empty() == true) {
-			return qr;
-		}
-		qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
-		qr.setIsExist(1);
-		for (list<string>::iterator it = varList.begin(); it != varList.end(); it++) {
-			qr.insertArg1Result(*it);
-		}
+ResultTable QueryEvaluator::ProcessClause(Clause input_clause)
+{
+	string relation = input_clause.getRelation();
+	if (relation == REL_PATTERN) {
+		return ProcessPattern(input_clause);
 	}
-	else if (expectedResultType == ARGTYPE_intEAN) {
-		qr.setArgToSynonymMapping(PARAM_ARG1, PARAM_intEAN);
-		qr.setIsExist(1);
-		return qr;
-	}
-	else if (expectedResultType == ARGTYPE_CONSTANT) {
-		list<int> constantList = _pkb.getConstantList();
-		if (constantList.empty() == true) {
-			return qr;
-		}
-		qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
-		qr.setIsExist(1);
-		for (list<int>::iterator it = constantList.begin(); it != constantList.end(); it++) {
-			qr.insertArg1Result(to_string(*it));
-		}
-		return qr;
+	else if (relation == REL_WITH) {
+		return ProcessWith(input_clause);
 	}
 	else {
-		// Results should be returning stmt#
-		if (expectedResultType == ARGTYPE_ASSIGN || expectedResultType == ARGTYPE_WHILE) {
-			list<int> expectedResultStatements = GetList(expectedResultType);
-			if (expectedResultStatements.empty() == true) {
-				return qr;
-			}
-			qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
-			qr.setIsExist(1);
-			for (list<int>::iterator it = expectedResultStatements.begin(); it != expectedResultStatements.end(); it++) {
-				qr.insertArg1Result(to_string(*it));
-			}
-			return qr;
-		} 
-		else {
-			// expectedResultType should be either stmt OR progline
-			int statementCount = _pkb.getStatementCount(); // Should always be >= 1
-			qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
-			qr.setIsExist(1);
-			for (int i = 1; i <= statementCount; i++) {
-				qr.insertArg1Result(to_string(i));
-			}
-			return qr;
-		}
+		return ProcessSuchThat(input_clause);
 	}
-	return qr;
 }
 
 ResultTable QueryEvaluator::ProcessSuchThat(Clause such_that_clause) {
@@ -210,11 +135,11 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 
 	if (arg1_type == ARGTYPE_CONSTANT) {
 		int arg1_stmt_num = stoi(arg1);
-		if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 			return temp_result;
 		}
 
-		if (_pkb.getFollower(arg1_stmt_num) == -1) {
+		if (pkb_.getFollower(arg1_stmt_num) == -1) {
 			return temp_result;
 		}
 
@@ -225,11 +150,11 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 				return temp_result;
 			}
 
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
-			if (_pkb.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+			if (pkb_.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
 				temp_result.SetIsQueryTrue(true);
 			}
 			
@@ -251,7 +176,7 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				if (_pkb.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+				if (pkb_.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -266,18 +191,18 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 	else if (arg1_type == ARGTYPE_ANY) {
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
-			if (_pkb.getFollowedFrom(arg2_stmt_num) != -1) {
+			if (pkb_.getFollowedFrom(arg2_stmt_num) != -1) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			if (_pkb.isFollowEmpty() == false) {
+			if (pkb_.isFollowEmpty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -294,7 +219,7 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				if (_pkb.getFollowedFrom(arg2_stmt_num) != -1) {
+				if (pkb_.getFollowedFrom(arg2_stmt_num) != -1) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -318,12 +243,12 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				if (_pkb.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+				if (pkb_.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -336,7 +261,7 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				if (_pkb.getFollower(arg1_stmt_num) != -1) {
+				if (pkb_.getFollower(arg1_stmt_num) != -1) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -362,7 +287,7 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-					if (_pkb.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+					if (pkb_.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
 						temp_result.SetIsQueryTrue(true);
 						temp_row_data.push_back(to_string(arg1_stmt_num));
 						temp_row_data.push_back(to_string(arg2_stmt_num));
@@ -389,18 +314,18 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 
 	if (arg1_type == ARGTYPE_CONSTANT) {
 		int arg1_stmt_num = stoi(arg1);
-		if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 			return temp_result;
 		}
 
-		list<int> arg1_follower_star = _pkb.getFollowerStar(arg1_stmt_num);
+		list<int> arg1_follower_star = pkb_.getFollowerStar(arg1_stmt_num);
 		if (arg1_follower_star.empty() == true) {
 			return temp_result;
 		}
 
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
@@ -425,7 +350,7 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				if (_pkb.isFollowsStar(arg1_stmt_num, arg2_stmt_num) == true) {
+				if (pkb_.isFollowsStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -439,11 +364,11 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 	else if (arg1_type == ARGTYPE_ANY) {
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
-			list<int> arg2_followed_from_star = _pkb.getFollowedFromStar(arg2_stmt_num);
+			list<int> arg2_followed_from_star = pkb_.getFollowedFromStar(arg2_stmt_num);
 			if (arg2_followed_from_star.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -451,7 +376,7 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			if (_pkb.isFollowEmpty() == false) {
+			if (pkb_.isFollowEmpty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -468,7 +393,7 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				list<int> arg2_followed_from_star = _pkb.getFollowedFromStar(arg2_stmt_num);
+				list<int> arg2_followed_from_star = pkb_.getFollowedFromStar(arg2_stmt_num);
 				if (arg2_followed_from_star.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
@@ -492,12 +417,12 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 
 		if(arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				if (_pkb.isFollowsStar(arg1_stmt_num, arg2_stmt_num) == true) {
+				if (pkb_.isFollowsStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -509,7 +434,7 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				list<int> arg1_follower_star = _pkb.getFollowerStar(arg1_stmt_num);
+				list<int> arg1_follower_star = pkb_.getFollowerStar(arg1_stmt_num);
 				if (arg1_follower_star.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
@@ -536,7 +461,7 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-					if (_pkb.isFollowsStar(arg1_stmt_num, arg2_stmt_num)) {
+					if (pkb_.isFollowsStar(arg1_stmt_num, arg2_stmt_num)) {
 						temp_result.SetIsQueryTrue(true);
 						temp_row_data.push_back(to_string(arg1_stmt_num));
 						temp_row_data.push_back(to_string(arg2_stmt_num));
@@ -564,22 +489,22 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 	if (arg1_type == ARGTYPE_CONSTANT)
 	{
 		int arg1_stmt_num = stoi(arg1);
-		if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 			return temp_result;
 		}
 
-		list<int> arg1_children = _pkb.getChildrenOf(arg1_stmt_num);
+		list<int> arg1_children = pkb_.getChildrenOf(arg1_stmt_num);
 		if (arg1_children.empty() == true) {
 			return temp_result;
 		}
 
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
-			if (_pkb.isParentOf(arg1_stmt_num, arg2_stmt_num)) {
+			if (pkb_.isParentOf(arg1_stmt_num, arg2_stmt_num)) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -601,7 +526,7 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				if (_pkb.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
+				if (pkb_.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -615,11 +540,11 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 	else if (arg1_type == ARGTYPE_ANY) {
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
-			if (_pkb.getParentOf(arg2_stmt_num) != -1) {
+			if (pkb_.getParentOf(arg2_stmt_num) != -1) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -627,7 +552,7 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
 			// If ParentTable is non empty (with relationships), existential query
-			if (_pkb.isParentEmpty() == false) {
+			if (pkb_.isParentEmpty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -644,7 +569,7 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				if (_pkb.getParentOf(arg2_stmt_num) != -1) {
+				if (pkb_.getParentOf(arg2_stmt_num) != -1) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -668,12 +593,12 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				if (_pkb.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
+				if (pkb_.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -686,7 +611,7 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				list<int> arg1_children = _pkb.getChildrenOf(arg1_stmt_num);
+				list<int> arg1_children = pkb_.getChildrenOf(arg1_stmt_num);
 				if (arg1_children.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
@@ -714,7 +639,7 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-					if (_pkb.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
+					if (pkb_.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
 						temp_result.SetIsQueryTrue(true);
 						temp_row_data.push_back(to_string(arg1_stmt_num));
 						temp_row_data.push_back(to_string(arg2_stmt_num));
@@ -741,18 +666,18 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 
 	if (arg1_type == ARGTYPE_CONSTANT) {
 		int arg1_stmt_num = stoi(arg1);
-		if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 			return temp_result;
 		}
 
-		list<int> arg1_children_star = _pkb.getChildStarOf(arg1_stmt_num);
+		list<int> arg1_children_star = pkb_.getChildStarOf(arg1_stmt_num);
 		if (arg1_children_star.empty() == true) {
 			return temp_result;
 		}
 
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
@@ -777,7 +702,7 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				if (_pkb.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
+				if (pkb_.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -791,11 +716,11 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 	else if (arg1_type == ARGTYPE_ANY) {
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
-			list<int> arg2_parent_star = _pkb.getParentStar(arg2_stmt_num);
+			list<int> arg2_parent_star = pkb_.getParentStar(arg2_stmt_num);
 			if (arg2_parent_star.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -803,7 +728,7 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			if (_pkb.isParentEmpty() == false) {
+			if (pkb_.isParentEmpty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -820,7 +745,7 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				list<int> arg2_parent_star = _pkb.getParentStar(arg2_stmt_num);
+				list<int> arg2_parent_star = pkb_.getParentStar(arg2_stmt_num);
 				if (arg2_parent_star.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
@@ -844,12 +769,12 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				if (_pkb.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
+				if (pkb_.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -861,7 +786,7 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				list<int> arg1_children_star = _pkb.getChildStarOf(arg1_stmt_num);
+				list<int> arg1_children_star = pkb_.getChildStarOf(arg1_stmt_num);
 				if (arg1_children_star.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
@@ -888,7 +813,7 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-					if (_pkb.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
+					if (pkb_.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
 						temp_result.SetIsQueryTrue(true);
 						temp_row_data.push_back(to_string(arg1_stmt_num));
 						temp_row_data.push_back(to_string(arg2_stmt_num));
@@ -913,17 +838,17 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 	ResultTable temp_result;
 
 	if (arg2_type == ARGTYPE_STRING) {
-		if (_pkb.isValidVar(arg2) == false) {
+		if (pkb_.isValidVar(arg2) == false) {
 			return temp_result;
 		}
-		list<int> arg2_modified_by = _pkb.getModifiedBy(arg2);
+		list<int> arg2_modified_by = pkb_.getModifiedBy(arg2);
 		if (arg2_modified_by.empty() == true) {
 			return temp_result;
 		}
 
 		if (arg1_type == ARGTYPE_CONSTANT) {
 			int arg1_stmt_num = stoi(arg1);
-			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 				return temp_result;
 			}
 
@@ -936,11 +861,11 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 		}
 		else if (arg1_type == ARGTYPE_STRING) {
 			// Argument 1 is a procedure name
-			if (_pkb.isProcedureExist(arg1) == false) {
+			if (pkb_.isProcedureExist(arg1) == false) {
 				return temp_result;
 			}
 
-			if (_pkb.isModifiedBy(arg1, arg2) == true) {
+			if (pkb_.isModifiedBy(arg1, arg2) == true) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -950,10 +875,10 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 			// Argument 1 is a synonym of procedure type
 			temp_result = ResultTable(arg1);
 			vector<string> temp_row_data;
-			list<string> procedure_list = _pkb.getProcedureList();
+			list<string> procedure_list = pkb_.getProcedureList();
 
 			for (auto &arg1_procedure : procedure_list) {
-				if (_pkb.isModifiedBy(arg1_procedure, arg2) == true) {
+				if (pkb_.isModifiedBy(arg1_procedure, arg2) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg1_procedure);
 					temp_result.InsertRow(temp_row_data);
@@ -974,7 +899,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				if (_pkb.isModified(arg1_stmt_num, arg2) == true) {
+				if (pkb_.isModified(arg1_stmt_num, arg2) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -987,7 +912,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 	}
 	else if (arg2_type == ARGTYPE_VARIABLE) {
 		// Argument 2 is a variable synonym
-		list<string> all_variable_list = _pkb.getVarList();
+		list<string> all_variable_list = pkb_.getVarList();
 		all_variable_list.unique();
 		if (all_variable_list.empty() == true) {
 			return temp_result;
@@ -998,12 +923,12 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 
 		if (arg1_type == ARGTYPE_CONSTANT) {
 			int arg1_stmt_num = stoi(arg1);
-			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 				return temp_result;
 			}
 			
 			// Check if arg1 modifies anything
-			list<string> arg1_modified_variables = _pkb.getModifiedBy(arg1_stmt_num);
+			list<string> arg1_modified_variables = pkb_.getModifiedBy(arg1_stmt_num);
 			if (arg1_modified_variables.empty() == true) {
 				return ;
 			}
@@ -1021,11 +946,11 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 		}
 		else if (arg1_type == ARGTYPE_STRING) {
 			// Argument 1 is a procedure name
-			if (_pkb.isProcedureExist(arg1) == false) {
+			if (pkb_.isProcedureExist(arg1) == false) {
 				return temp_result;
 			}
 
-			list<string> arg1_procedure_modifies_variable = _pkb.getModifiedByProc(arg1);
+			list<string> arg1_procedure_modifies_variable = pkb_.getModifiedByProc(arg1);
 			if (arg1_procedure_modifies_variable.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &arg2_variable : arg1_procedure_modifies_variable) {
@@ -1040,10 +965,10 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 		else if (arg1_type == ARGTYPE_PROCEDURE) {
 			// Argument 1 is a synonym of procedure type
 			temp_result = ResultTable(arg1, arg2);
-			list<string> procedure_list = _pkb.getProcedureList();
+			list<string> procedure_list = pkb_.getProcedureList();
 
 			for (auto &arg1_procedure : procedure_list) {
-				list<string> arg1_procedure_modifies_variable = _pkb.getModifiedByProc(arg1_procedure);
+				list<string> arg1_procedure_modifies_variable = pkb_.getModifiedByProc(arg1_procedure);
 				if (arg1_procedure_modifies_variable.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &arg2_variable : arg1_procedure_modifies_variable) {
@@ -1067,7 +992,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 			temp_result = ResultTable(arg1, arg2);
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				list<string> arg1_modifies_variable = _pkb.getModifiedBy(arg1_stmt_num);
+				list<string> arg1_modifies_variable = pkb_.getModifiedBy(arg1_stmt_num);
 				if (arg1_modifies_variable.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &arg2_variable : arg1_modifies_variable) {
@@ -1084,7 +1009,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 	}
 	else {
 		// arg2_type is any ('_'), explicitly is a variable
-		list<string> all_variable_list = _pkb.getVarList();
+		list<string> all_variable_list = pkb_.getVarList();
 		all_variable_list.unique();
 		if (all_variable_list.empty() == true) {
 			return temp_result;
@@ -1092,11 +1017,11 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 
 		if (arg1_type == ARGTYPE_CONSTANT) {
 			int arg1_stmt_num = stoi(arg1);
-			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 				return temp_result;
 			}
 
-			list<string> arg1_modifies = _pkb.getModifiedBy(stoi(arg1));
+			list<string> arg1_modifies = pkb_.getModifiedBy(stoi(arg1));
 			if (arg1_modifies.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -1105,11 +1030,11 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 		}
 		else if (arg1_type == ARGTYPE_STRING) {
 			// Argument 1 is a procedure name
-			if (_pkb.isProcedureExist(arg1) == false) {
+			if (pkb_.isProcedureExist(arg1) == false) {
 				return temp_result;
 			}
 
-			list<string> arg1_procedure_uses_variable = _pkb.getModifiedByProc(arg1);
+			list<string> arg1_procedure_uses_variable = pkb_.getModifiedByProc(arg1);
 			if (arg1_procedure_uses_variable.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -1120,10 +1045,10 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 			// Argument 1 is a synonym of procedure type
 			temp_result = ResultTable(arg1);
 			vector<string> temp_row_data;
-			list<string> procedure_list = _pkb.getProcedureList();
+			list<string> procedure_list = pkb_.getProcedureList();
 
 			for (auto &arg1_procedure : procedure_list) {
-				list<string> arg1_procedure_modifies_variable = _pkb.getModifiedByProc(arg1_procedure);
+				list<string> arg1_procedure_modifies_variable = pkb_.getModifiedByProc(arg1_procedure);
 				if (arg1_procedure_modifies_variable.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg1_procedure);
@@ -1145,7 +1070,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				list<string> arg1_modifies = _pkb.getModifiedBy(arg1_stmt_num);
+				list<string> arg1_modifies = pkb_.getModifiedBy(arg1_stmt_num);
 				if (arg1_modifies.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
@@ -1171,15 +1096,15 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 
 	if (arg1_type == ARGTYPE_CONSTANT) {
 		int arg1_stmt_num = stoi(arg1);
-		if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 			return temp_result;
 		}
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (!_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (!pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
-			if (_pkb.isNext(arg1_stmt_num, arg2_stmt_num) == true) {
+			if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) == true) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -1187,7 +1112,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
 			// Check if there is a statement that can be executed after arg1_stmt_num
-			if (_pkb.getExecutedAfter(arg1_stmt_num) != -1) {
+			if (pkb_.getExecutedAfter(arg1_stmt_num) != -1) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -1206,7 +1131,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 
 			// For each statemet of arg2_type, check if arg1_stmt_num is executed before it
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				if (_pkb.isNext(arg1_stmt_num, arg2_stmt_num) != -1) {
+				if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) != -1) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -1220,18 +1145,18 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 	else if (arg1_type == ARGTYPE_ANY) {
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 			
-			if (_pkb.getExecutedBefore(arg2_stmt_num) != -1) {
+			if (pkb_.getExecutedBefore(arg2_stmt_num) != -1) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			if (_pkb.isNextEmpty() == false) {
+			if (pkb_.isNextEmpty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -1248,7 +1173,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				if (_pkb.getExecutedBefore(arg2_stmt_num) != -1) {
+				if (pkb_.getExecutedBefore(arg2_stmt_num) != -1) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -1271,12 +1196,12 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				if (_pkb.isNext(arg1_stmt_num, arg2_stmt_num) == true) {
+				if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -1288,7 +1213,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				if (_pkb.getExecutedAfter(arg1_stmt_num) != -1) {
+				if (pkb_.getExecutedAfter(arg1_stmt_num) != -1) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -1314,7 +1239,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-					if (_pkb.isNext(arg1_stmt_num, arg2_stmt_num) != -1) {
+					if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) != -1) {
 						temp_result.SetIsQueryTrue(true);
 						temp_row_data.push_back(to_string(arg1_stmt_num));
 						temp_row_data.push_back(to_string(arg2_stmt_num));
@@ -1340,24 +1265,24 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 
 	if (arg1_type == ARGTYPE_CONSTANT) {
 		int arg1_stmt_num = stoi(arg1);
-		if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 			return temp_result;
 		}
 
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
-			if (_pkb.isNextStar(arg1_stmt_num, arg2_stmt_num) == true) {
+			if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num) == true) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			list<int> executed_after_arg1_list = _pkb.getExecutedAfterStar(arg1_stmt_num);
+			list<int> executed_after_arg1_list = pkb_.getExecutedAfterStar(arg1_stmt_num);
 			if (executed_after_arg1_list.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -1375,7 +1300,7 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				if (_pkb.isNextStar(arg1_stmt_num, arg2_stmt_num) == true) {
+				if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -1389,11 +1314,11 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 	else if (arg1_type == ARGTYPE_ANY) {
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
-			list<int> executed_before_arg2_list = _pkb.getExecutedBeforeStar(arg2_stmt_num);
+			list<int> executed_before_arg2_list = pkb_.getExecutedBeforeStar(arg2_stmt_num);
 			if (executed_before_arg2_list.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -1401,7 +1326,7 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			if (_pkb.isNextEmpty() == false) {
+			if (pkb_.isNextEmpty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
 			
@@ -1418,7 +1343,7 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				list<int> executed_before_star_arg2 = _pkb.getExecutedBeforeStar(arg2_stmt_num);
+				list<int> executed_before_star_arg2 = pkb_.getExecutedBeforeStar(arg2_stmt_num);
 				if (executed_before_star_arg2.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
@@ -1442,12 +1367,12 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (_pkb.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				if (_pkb.isNextStar(arg1_stmt_num, arg2_stmt_num) == true) {
+				if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -1459,7 +1384,7 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				list<int> executed_after_star_arg1 = _pkb.getExecutedAfterStar(arg1_stmt_num);
+				list<int> executed_after_star_arg1 = pkb_.getExecutedAfterStar(arg1_stmt_num);
 				if (executed_after_star_arg1.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
@@ -1481,7 +1406,7 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 			
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-					if (_pkb.isNextStar(arg1_stmt_num, arg2_stmt_num)) {
+					if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num)) {
 						temp_result.SetIsQueryTrue(true);
 						temp_row_data.push_back(to_string(arg1_stmt_num));
 						temp_row_data.push_back(to_string(arg2_stmt_num));
@@ -1508,23 +1433,23 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 	ResultTable temp_result;
 
 	if (arg1_type == ARGTYPE_STRING) {
-		if (_pkb.isProcedureExist(arg1) == false) {
+		if (pkb_.isProcedureExist(arg1) == false) {
 			return temp_result;
 		}
 
 		if (arg2_type == ARGTYPE_STRING) {
-			if (_pkb.isProcedureExist(arg2) == false) {
+			if (pkb_.isProcedureExist(arg2) == false) {
 				return temp_result;
 			}
 
-			if (_pkb.isCall(arg1, arg2) == true) {
+			if (pkb_.isCall(arg1, arg2) == true) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			list<string> arg1_callee = _pkb.getCallee(arg1);
+			list<string> arg1_callee = pkb_.getCallee(arg1);
 			if (arg1_callee.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -1536,7 +1461,7 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 			temp_result = ResultTable(arg2);
 			vector<string> temp_row_data;
 			
-			list<string> arg1_callee_list = _pkb.getCallee(arg1);
+			list<string> arg1_callee_list = pkb_.getCallee(arg1);
 			if (arg1_callee_list.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &arg1_callee : arg1_callee_list) {
@@ -1551,11 +1476,11 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 	}
 	else if (arg1_type == ARGTYPE_ANY) {
 		if (arg2_type == ARGTYPE_STRING) {
-			if (_pkb.isProcedureExist(arg2) == false) {
+			if (pkb_.isProcedureExist(arg2) == false) {
 				return temp_result;
 			}
 
-			list<string> arg2_caller = _pkb.getCaller(arg2);
+			list<string> arg2_caller = pkb_.getCaller(arg2);
 			if (arg2_caller.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -1563,7 +1488,7 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			if (_pkb.isCallExist() == true) {
+			if (pkb_.isCallExist() == true) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -1571,12 +1496,12 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 		}
 		else {
 			// Argument 2 is a synonym of procedure type. Should not be empt
-			list<string> procedure_list = _pkb.getProcedureList();
+			list<string> procedure_list = pkb_.getProcedureList();
 			temp_result = ResultTable(arg2);
 			vector<string> temp_row_data;
 
 			for (auto &arg2_procedure : procedure_list) {
-				list<string> arg2_caller = _pkb.getCaller(arg2);
+				list<string> arg2_caller = pkb_.getCaller(arg2);
 				if (arg2_caller.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg2_procedure);
@@ -1590,16 +1515,16 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 	}
 	else {
 		// Argument 1 is a synonym of procedure type. Should not be empty
-		list<string> procedure_list = _pkb.getProcedureList();
+		list<string> procedure_list = pkb_.getProcedureList();
 		temp_result = ResultTable(arg1);
 		vector<string> temp_row_data;
 
 		if (arg2_type == ARGTYPE_STRING) {
-			if (_pkb.isProcedureExist(arg2) == false) {
+			if (pkb_.isProcedureExist(arg2) == false) {
 				return temp_result;
 			}
 
-			list<string> arg2_caller_list = _pkb.getCaller(arg2);
+			list<string> arg2_caller_list = pkb_.getCaller(arg2);
 			if (arg2_caller_list.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &arg2_caller : arg2_caller_list) {
@@ -1613,7 +1538,7 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
 			for (auto &arg1_procedure : procedure_list) {
-				list<string> arg1_callee = _pkb.getCallee(arg1_procedure);
+				list<string> arg1_callee = pkb_.getCallee(arg1_procedure);
 				if (arg1_callee.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg1_procedure);
@@ -1633,7 +1558,7 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 			temp_result = ResultTable(arg1, arg2);
 
 			for (auto &arg1_procedure : procedure_list) {
-				list<string> arg1_callee_list = _pkb.getCallee(arg1);
+				list<string> arg1_callee_list = pkb_.getCallee(arg1);
 				if (arg1_callee_list.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &arg1_callee : arg1_callee_list) {
@@ -1662,23 +1587,23 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 	ResultTable temp_result;
 
 	if (arg1_type == ARGTYPE_STRING) {
-		if (_pkb.isProcedureExist(arg1) == false) {
+		if (pkb_.isProcedureExist(arg1) == false) {
 			return temp_result;
 		}
 
 		if (arg2_type == ARGTYPE_STRING) {
-			if (_pkb.isProcedureExist(arg2) == false) {
+			if (pkb_.isProcedureExist(arg2) == false) {
 				return temp_result;
 			}
 
-			if (_pkb.isCallStar(arg1, arg2) == true) {
+			if (pkb_.isCallStar(arg1, arg2) == true) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			list<string> arg1_callee_star = _pkb.getCalleeStar(arg1);
+			list<string> arg1_callee_star = pkb_.getCalleeStar(arg1);
 			if (arg1_callee_star.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -1690,7 +1615,7 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 			temp_result = ResultTable(arg2);
 			vector<string> temp_row_data;
 
-			list<string> arg1_callee_star_list = _pkb.getCalleeStar(arg1);
+			list<string> arg1_callee_star_list = pkb_.getCalleeStar(arg1);
 			if (arg1_callee_star_list.empty() == false) {
 				for (auto &arg1_callee_star : arg1_callee_star_list) {
 					temp_row_data.push_back(arg1_callee_star);
@@ -1704,11 +1629,11 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 	}
 	else if (arg1_type == ARGTYPE_ANY) {
 		if (arg2_type == ARGTYPE_STRING) {
-			if (_pkb.isProcedureExist(arg2) == false) {
+			if (pkb_.isProcedureExist(arg2) == false) {
 				return temp_result;
 			}
 
-			list<string> arg2_caller_star = _pkb.getCallerStar(arg2);
+			list<string> arg2_caller_star = pkb_.getCallerStar(arg2);
 			if (arg2_caller_star.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -1716,7 +1641,7 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			if (_pkb.isCallExist() == true) {
+			if (pkb_.isCallExist() == true) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -1724,12 +1649,12 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 		}
 		else {
 			// Argument 2 is a synonym of procedure type
-			list<string> procedure_list = _pkb.getProcedureList();
+			list<string> procedure_list = pkb_.getProcedureList();
 			temp_result = ResultTable(arg2);
 			vector<string> temp_row_data;
 
 			for (auto &arg2_procedure : procedure_list) {
-				list<string> arg2_caller_star = _pkb.getCallerStar(arg2);
+				list<string> arg2_caller_star = pkb_.getCallerStar(arg2);
 				if (arg2_caller_star.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg2_procedure);
@@ -1743,16 +1668,16 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 	}
 	else {
 		// Argument 1 is a synonym of procedure type. Should not be empty
-		list<string> procedure_list = _pkb.getProcedureList();
+		list<string> procedure_list = pkb_.getProcedureList();
 		temp_result = ResultTable(arg1);
 		vector<string> temp_row_data;
 
 		if (arg2_type == ARGTYPE_STRING) {
-			if (_pkb.isProcedureExist(arg2) == false) {
+			if (pkb_.isProcedureExist(arg2) == false) {
 				return temp_result;
 			}
 
-			list<string> arg2_caller_star_list = _pkb.getCallerStar(arg2);
+			list<string> arg2_caller_star_list = pkb_.getCallerStar(arg2);
 			if (arg2_caller_star_list.empty() == false) {
 				for (auto &arg2_caller_star : arg2_caller_star_list) {
 					temp_row_data.push_back(arg2_caller_star);
@@ -1765,7 +1690,7 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
 			for (auto &arg1_procedure : procedure_list) {
-				list<string> arg1_callee_star = _pkb.getCalleeStar(arg1);
+				list<string> arg1_callee_star = pkb_.getCalleeStar(arg1);
 				if (arg1_callee_star.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg1_procedure);
@@ -1781,7 +1706,7 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 			temp_result = ResultTable(arg1, arg2);
 
 			for (auto &arg1_procedure : procedure_list) {
-				list<string> arg1_caller_star_list = _pkb.getCallerStar(arg1);
+				list<string> arg1_caller_star_list = pkb_.getCallerStar(arg1);
 				if (arg1_caller_star_list.empty() == false) {
 					for (auto &arg1_caller_star : arg1_caller_star_list) {
 						temp_row_data.push_back(arg1_procedure);
@@ -1819,11 +1744,11 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 	vector<string> temp_row_data;
 
 	if (arg1_type == ARGTYPE_STRING) {
-		if (_pkb.isValidVar(arg1) == false) {
+		if (pkb_.isValidVar(arg1) == false) {
 			return temp_result;
 		}
 		if (arg2_type == ARGTYPE_ANY) {
-			list<int> arg1_modified_by = _pkb.getModifiedBy(arg1);
+			list<int> arg1_modified_by = pkb_.getModifiedBy(arg1);
 			if (arg1_modified_by.empty() == true) {
 				return temp_result;
 			}
@@ -1839,7 +1764,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_EXPR) {
-			list<int> assign_with_expression = _pkb.getAssignWithExpression(arg2);
+			list<int> assign_with_expression = pkb_.getAssignWithExpression(arg2);
 			if (assign_with_expression.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &pattern_assign_syn_stmt_num : assign_with_expression) {
@@ -1852,7 +1777,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_SUB_EXPR) {
-			list<int> assign_with_sub_expression = _pkb.getAssignWithSubExpr(arg2);
+			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpr(arg2);
 			if (assign_with_sub_expression.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
@@ -1871,7 +1796,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 	}
 	else if (arg1_type == ARGTYPE_ANY) {
 		if (arg2_type == ARGTYPE_ANY) {
-			list<int> all_assign_list = _pkb.getAssignList();
+			list<int> all_assign_list = pkb_.getAssignList();
 			if (all_assign_list.empty() == true) {
 				return temp_result;
 			}
@@ -1887,7 +1812,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_EXPR) {
-			list<int> assign_with_expression = _pkb.getAssignWithExpression(arg2);
+			list<int> assign_with_expression = pkb_.getAssignWithExpression(arg2);
 			if (assign_with_expression.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &pattern_assign_syn_stmt_num : assign_with_expression) {
@@ -1900,7 +1825,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_SUB_EXPR) {
-			list<int> assign_with_sub_expression = _pkb.getAssignWithSubExpr(arg2);
+			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpr(arg2);
 			if (assign_with_sub_expression.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
@@ -1915,7 +1840,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 	}
 	else {
 		// Argument 1 is a variable synonym
-		list<string> all_variable_list = _pkb.getVarList();
+		list<string> all_variable_list = pkb_.getVarList();
 		if (all_variable_list.empty() == true) {
 			return temp_result;
 		}
@@ -1925,7 +1850,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 
 		if (arg2_type == ARGTYPE_ANY) {
 			for (auto &pattern_assign_syn_stmt_num : all_assign_statements) {
-				list<string> pattern_assign_syn_modifies_variables = _pkb.getModifiedBy(pattern_assign_syn_stmt_num);
+				list<string> pattern_assign_syn_modifies_variables = pkb_.getModifiedBy(pattern_assign_syn_stmt_num);
 				if (pattern_assign_syn_modifies_variables.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &arg1_variable : pattern_assign_syn_modifies_variables) {
@@ -1941,13 +1866,13 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_EXPR) {
-			list<int> assign_with_expression = _pkb.getAssignWithExpression(arg2);
+			list<int> assign_with_expression = pkb_.getAssignWithExpression(arg2);
 			if (assign_with_expression.empty() == true) {
 				return temp_result;
 			}
 
 			for (auto &pattern_assign_syn_stmt_num : assign_with_expression) {
-				list<string> pattern_assign_syn_modifies_variables = _pkb.getModifiedBy(pattern_assign_syn_stmt_num);
+				list<string> pattern_assign_syn_modifies_variables = pkb_.getModifiedBy(pattern_assign_syn_stmt_num);
 				if (pattern_assign_syn_modifies_variables.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &arg1_variable : pattern_assign_syn_modifies_variables) {
@@ -1962,13 +1887,13 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_SUB_EXPR) {
-			list<int> assign_with_sub_expression = _pkb.getAssignWithSubExpr(arg2);
+			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpr(arg2);
 			if (assign_with_sub_expression.empty() == true) {
 				return temp_result;
 			}
 
 			for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
-				list<string> pattern_assign_syn_modifies_variables = _pkb.getModifiedBy(pattern_assign_syn_stmt_num);
+				list<string> pattern_assign_syn_modifies_variables = pkb_.getModifiedBy(pattern_assign_syn_stmt_num);
 				if (pattern_assign_syn_modifies_variables.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &arg1_variable : pattern_assign_syn_modifies_variables) {
@@ -1997,11 +1922,11 @@ ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
 	vector<string> temp_row_data;
 
 	if (arg1_type == ARGTYPE_STRING) {
-		if (_pkb.isValidVar(arg1) == false) {
+		if (pkb_.isValidVar(arg1) == false) {
 			return temp_result;
 		}
 
-		list<int> while_stmt_with_arg1_control_variable = _pkb.getWhileListWithControlVariable(arg1);
+		list<int> while_stmt_with_arg1_control_variable = pkb_.getWhileListWithControlVariable(arg1);
 		if (while_stmt_with_arg1_control_variable.empty() == false) {
 			temp_result.SetIsQueryTrue(true);
 			for (auto &while_stmt_num : while_stmt_with_arg1_control_variable) {
@@ -2014,7 +1939,7 @@ ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
 		return temp_result;
 	}
 	else if (arg1_type == ARGTYPE_ANY) {
-		list<int> all_while_list = _pkb.getWhileList();
+		list<int> all_while_list = pkb_.getWhileList();
 		if (all_while_list.empty() == false) {
 			temp_result.SetIsQueryTrue(true);
 			for (auto &while_stmt_num : all_while_list) {
@@ -2028,11 +1953,11 @@ ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
 	}
 	else {
 		// Argument 1 is a synonym
-		list<string> all_variable_list = _pkb.getVarList();
+		list<string> all_variable_list = pkb_.getVarList();
 		if (all_variable_list.empty() == false) {
 			temp_result = ResultTable(pattern_while_syn, arg1);
 			for (auto &arg1_variable : all_variable_list) {
-				list<int> while_with_arg1_control_variable = _pkb.getWhileListWithControlVariable(arg1_variable);
+				list<int> while_with_arg1_control_variable = pkb_.getWhileListWithControlVariable(arg1_variable);
 				if (while_with_arg1_control_variable.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &while_stmt_num : while_with_arg1_control_variable) {
@@ -2061,11 +1986,11 @@ ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
 	vector<string> temp_row_data;
 
 	if (arg1_type == ARGTYPE_STRING) {
-		if (_pkb.isValidVar(arg1) == false) {
+		if (pkb_.isValidVar(arg1) == false) {
 			return temp_result;
 		}
 
-		list<int> if_with_arg1_control_variable = _pkb.getifListWithControlVariable(arg1);
+		list<int> if_with_arg1_control_variable = pkb_.getifListWithControlVariable(arg1);
 		if (if_with_arg1_control_variable.empty() == false) {
 			temp_result.SetIsQueryTrue(true);
 			for (auto &if_stmt_num : if_with_arg1_control_variable) {
@@ -2078,7 +2003,7 @@ ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
 		return temp_result;
 	}
 	else if (arg1_type == ARGTYPE_ANY) {
-		list<int> all_if_list = _pkb.getIfList();
+		list<int> all_if_list = pkb_.getIfList();
 		if (all_if_list.empty() == false) {
 			temp_result.SetIsQueryTrue(true);
 			for (auto &if_stmt_num : all_if_list) {
@@ -2092,11 +2017,11 @@ ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
 	}
 	else {
 		// Argument 1 is a synonym
-		list<string> all_variable_list = _pkb.getVarList();
+		list<string> all_variable_list = pkb_.getVarList();
 		if (all_variable_list.empty() == false) {
 			temp_result = ResultTable(pattern_if_syn, arg1);
 			for (auto &arg1_variable : all_variable_list) {
-				list<int> if_with_arg1_control_variable = _pkb.getWhileListWithControlVariable(arg1_variable);
+				list<int> if_with_arg1_control_variable = pkb_.getWhileListWithControlVariable(arg1_variable);
 				if (if_with_arg1_control_variable.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &if_stmt_num : if_with_arg1_control_variable) {
@@ -2146,23 +2071,23 @@ ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 	list<string> arg2_data_list;
 
 	if (arg1_type == ARGTYPE_PROCEDURE) {
-		arg1_data_list = _pkb.getProcedureList();
+		arg1_data_list = pkb_.getProcedureList();
 	}
 	else if (arg1_type == ARGTYPE_VARIABLE) {
-		arg1_data_list = _pkb.getVarList();
+		arg1_data_list = pkb_.getVarList();
 	}
 	else if (arg1_type == ARGTYPE_CALLS_NAME) {
-		arg1_data_list = _pkb.getCalledProcNamesList();
+		arg1_data_list = pkb_.getCalledProcNamesList();
 	}
 
 	if (arg2_type == ARGTYPE_PROCEDURE) {
-		arg2_data_list = _pkb.getProcedureList();
+		arg2_data_list = pkb_.getProcedureList();
 	}
 	else if (arg2_type == ARGTYPE_VARIABLE) {
-		arg2_data_list = _pkb.getVarList();
+		arg2_data_list = pkb_.getVarList();
 	}
 	else if (arg2_type == ARGTYPE_CALLS_NAME) {
-		arg2_data_list = _pkb.getCalledProcNamesList();
+		arg2_data_list = pkb_.getCalledProcNamesList();
 	}
 
 	if ((arg1_data_list.empty() == false) && (arg2_data_list.empty() == false)) {
@@ -2211,19 +2136,48 @@ ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 	return temp_result;
 }
 
-bool QueryEvaluator::ProcessNoSynGroup()
+bool QueryEvaluator::ProcessNonRelatedGroup()
 {
+	vector<Clause> non_related_group = input_query_.getNoSynGroup();
+	ResultTable temp_result;
 
-	return false;
+	for (auto &no_syn_clause : non_related_group) {
+		temp_result = ProcessClause(no_syn_clause);
+		if (temp_result.IsQueryTrue() == false) {
+			return false;
+		}
+	}
+
+	non_related_group = input_query_.getNonConnectedGroup();
+	for (auto &non_connected_clause : non_related_group) {
+		temp_result = ProcessClause(non_connected_clause);
+		if (temp_result.IsQueryTrue() == false) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
-bool QueryEvaluator::ProcessNonConnectedGroup()
+bool QueryEvaluator::ProcessConnectedGroup()
 {
-	return false;
-}
+	vector<vector<Clause>> connected_group = input_query_.getConnectedGroup();
+	vector<ResultTable> group_intermediate_result;
+	ResultTable temp_result;
 
-void QueryEvaluator::ProcessConnectedGroup()
-{
+	for (auto &group : connected_group) {
+		for (auto &connected_clause : group) {
+			temp_result = ProcessClause(connected_clause);
+			if (temp_result.IsQueryTrue() == false) {
+				return false;
+			}
+			group_intermediate_result.push_back(temp_result);
+		}
+		intermediate_result_.push_back(group_intermediate_result);
+		group_intermediate_result.clear();
+	}
+
+	return true;
 }
 
 ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
@@ -2235,18 +2189,18 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 	ResultTable temp_result;
 
 	if (arg2_type == ARGTYPE_STRING) {
-		if (_pkb.isValidVar(arg2) == false) {
+		if (pkb_.isValidVar(arg2) == false) {
 			return temp_result;
 		}
 
-		list<int> arg2_used_by = _pkb.getUsedBy(arg2);
+		list<int> arg2_used_by = pkb_.getUsedBy(arg2);
 		if (arg2_used_by.empty() == true) {
 			return temp_result;
 		}
 
 		if (arg1_type == ARGTYPE_CONSTANT) {
 			int arg1_stmt_num = stoi(arg1);
-			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 				return temp_result;
 			}
 
@@ -2258,11 +2212,11 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 		}
 		else if (arg1_type == ARGTYPE_STRING) {
 			// Argument 1 is a procedure name
-			if (_pkb.isProcedureExist(arg1) == false) {
+			if (pkb_.isProcedureExist(arg1) == false) {
 				return temp_result;
 			}
 
-			if (_pkb.isUsedBy(arg1, arg2) == true) {
+			if (pkb_.isUsedBy(arg1, arg2) == true) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -2272,10 +2226,10 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 			// Argument 1 is a synonym of procedure. Guaranteed to have at least 1 procedure
 			temp_result = ResultTable(arg1);
 			vector<string> temp_row_data;
-			list<string> procedure_list = _pkb.getProcedureList();
+			list<string> procedure_list = pkb_.getProcedureList();
 
 			for (auto &arg1_procedure : procedure_list) {
-				if (_pkb.isUsedBy(arg1_procedure, arg2) == true) {
+				if (pkb_.isUsedBy(arg1_procedure, arg2) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg1_procedure);
 					temp_result.InsertRow(temp_row_data);
@@ -2296,7 +2250,7 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg1_stmt_num : synomym_stmt_list_arg1) {
-				if (_pkb.isUsed(arg1_stmt_num, arg2) == true) {
+				if (pkb_.isUsed(arg1_stmt_num, arg2) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -2309,7 +2263,7 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 	}
 	else if (arg2_type == ARGTYPE_VARIABLE) {
 		// Argument 2 is a variable synonym
-		list<string> all_variable_list = _pkb.getVarList();
+		list<string> all_variable_list = pkb_.getVarList();
 		all_variable_list.unique();
 		if (all_variable_list.empty() == true) {
 			return temp_result;
@@ -2320,11 +2274,11 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 
 		if (arg1_type == ARGTYPE_CONSTANT) {
 			int arg1_stmt_num = stoi(arg1);
-			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 				return temp_result;
 			}
 
-			list<string> arg1_uses_variable = _pkb.getUsedBy(arg1_stmt_num);
+			list<string> arg1_uses_variable = pkb_.getUsedBy(arg1_stmt_num);
 			if (arg1_uses_variable.empty() == true) {
 				return temp_result;
 			}
@@ -2341,11 +2295,11 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 		}
 		else if (arg1_type == ARGTYPE_STRING) {
 			// Argument 1 is a procedure name
-			if (_pkb.isProcedureExist(arg1) == false) {
+			if (pkb_.isProcedureExist(arg1) == false) {
 				return temp_result;
 			}
 
-			list<string> arg1_procedure_uses_variable = _pkb.getUsedByProc(arg1);
+			list<string> arg1_procedure_uses_variable = pkb_.getUsedByProc(arg1);
 			if (arg1_procedure_uses_variable.empty() == true) {
 				return temp_result;
 			}
@@ -2362,10 +2316,10 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 		else if (arg1_type == ARGTYPE_PROCEDURE) {
 			// Argument 1 is a synonym of procedure type. Guaranteed to have at least 1 procedure
 			temp_result = ResultTable(arg1, arg2);
-			list<string> procedure_list = _pkb.getProcedureList();
+			list<string> procedure_list = pkb_.getProcedureList();
 
 			for (auto &arg1_procedure : procedure_list) {
-				list<string> arg1_procedure_uses_variable = _pkb.getUsedByProc(arg1_procedure);
+				list<string> arg1_procedure_uses_variable = pkb_.getUsedByProc(arg1_procedure);
 				if (arg1_procedure_uses_variable.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &arg2_variable : arg1_procedure_uses_variable) {
@@ -2389,7 +2343,7 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 			temp_result = ResultTable(arg1, arg2);
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				list<string> arg1_uses_variable = _pkb.getUsedBy(arg1_stmt_num);
+				list<string> arg1_uses_variable = pkb_.getUsedBy(arg1_stmt_num);
 				if (arg1_uses_variable.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &arg2_variable : arg1_uses_variable) {
@@ -2406,7 +2360,7 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 	}
 	else {
 		// Argument 2 is any ('_')
-		list<string> all_variable_list = _pkb.getVarList();
+		list<string> all_variable_list = pkb_.getVarList();
 ;		all_variable_list.unique();
 		if (all_variable_list.empty() == true) {
 			return temp_result;
@@ -2414,12 +2368,12 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 
 		if (arg1_type == ARGTYPE_CONSTANT) {
 			int arg1_stmt_num = stoi(arg1);
-			if (_pkb.isValidStmt(arg1_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
 				return temp_result;
 			}
 
 			// Check if arg1 use anything
-			list<string> arg1_uses_var = _pkb.getUsedBy(arg1_stmt_num);
+			list<string> arg1_uses_var = pkb_.getUsedBy(arg1_stmt_num);
 			if (arg1_uses_var.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -2428,11 +2382,11 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 		}
 		else if (arg1_type == ARGTYPE_STRING) {
 			// Argument 1 is a procedure name
-			if (_pkb.isProcedureExist(arg1) == false) {
+			if (pkb_.isProcedureExist(arg1) == false) {
 				return temp_result;
 			}
 
-			list<string> arg1_procedure_uses_variable = _pkb.getUsedByProc(arg1);
+			list<string> arg1_procedure_uses_variable = pkb_.getUsedByProc(arg1);
 			if (arg1_procedure_uses_variable.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
@@ -2443,10 +2397,10 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 			// Argument 1 is a synonym of procedure type
 			temp_result = ResultTable(arg1);
 			vector<string> temp_row_data;
-			list<string> procedure_list = _pkb.getProcedureList();
+			list<string> procedure_list = pkb_.getProcedureList();
 
 			for (auto &arg1_procedure : procedure_list) {
-				list<string> arg1_procedure_uses_variable = _pkb.getUsedByProc(arg1_procedure);
+				list<string> arg1_procedure_uses_variable = pkb_.getUsedByProc(arg1_procedure);
 				if (arg1_procedure_uses_variable.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg1_procedure);
@@ -2468,7 +2422,7 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 			vector<string> temp_row_data;
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				list<string> arg1_uses_variable = _pkb.getUsedBy(arg1_stmt_num);
+				list<string> arg1_uses_variable = pkb_.getUsedBy(arg1_stmt_num);
 				if (arg1_uses_variable.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg1_stmt_num));
@@ -2488,22 +2442,22 @@ list<int> QueryEvaluator::GetList(string arg_type) {
 	list<int> wanted_list;
 
 	if (arg_type == ARGTYPE_ASSIGN) {
-		wanted_list = _pkb.getAssignList();
+		wanted_list = pkb_.getAssignList();
 	}
 	else if (arg_type == ARGTYPE_WHILE) {
-		wanted_list = _pkb.getWhileList();
+		wanted_list = pkb_.getWhileList();
 	}
 	else if (arg_type == ARGTYPE_IF) {
-		wanted_list = _pkb.getIfList();
+		wanted_list = pkb_.getIfList();
 	} 
 	else if (arg_type == ARGTYPE_CALLS) {
-		wanted_list = _pkb.getCallList();
+		wanted_list = pkb_.getCallList();
 	}
 	else if (arg_type == ARGTYPE_STMT || arg_type == ARGTYPE_PROG_LINE) {
-		wanted_list = _pkb.getStmtList();
+		wanted_list = pkb_.getStmtList();
 	}
 	else if (arg_type == ARGTYPE_CONSTANT) {
-		wanted_list = _pkb.getConstantList();
+		wanted_list = pkb_.getConstantList();
 	}
 
 	return wanted_list;

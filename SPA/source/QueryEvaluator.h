@@ -20,20 +20,16 @@ class QueryEvaluator {
 
 public:
 	QueryEvaluator();
-	~QueryEvaluator();
 	QueryEvaluator(QueryTable, PKB);
-	vector<vector<ResultTable>> evaluate();
+	vector<vector<ResultTable>> Evaluate();
 
 private:
 	vector<vector<ResultTable>> intermediate_result_;
 	vector<string> _result;
-	QueryTable _qt;
-	PKB _pkb;
+	QueryTable input_query_;
+	PKB pkb_;
 
-	// TODO: Modify all process clauses return type and implementation
-	QueryResult processSelect(Clause selectClause);
-	
-	// Iteration 2
+	ResultTable ProcessClause(Clause input_clause);
 	ResultTable ProcessSuchThat(Clause such_that_clause);
 	ResultTable ProcessFollows(Clause follow_clause);
 	ResultTable ProcessFollowsT(Clause follow_star_clause);
@@ -53,9 +49,8 @@ private:
 	ResultTable ProcessWithName(Clause with_name_clause);
 	ResultTable ProcessWithNumber(Clause with_number_clause);
 
-	bool ProcessNoSynGroup();
-	bool ProcessNonConnectedGroup();
-	void ProcessConnectedGroup();
+	bool ProcessNonRelatedGroup();
+	bool ProcessConnectedGroup();
 
 	list<int> GetList(string arg_type);
 };
