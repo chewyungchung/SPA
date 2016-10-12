@@ -23,6 +23,7 @@ QueryTable QueryValidator::parse() {
 		// Output error message onto console. Purely debug for now
 		cout << e.what() << endl;
 		// Return a null pointer to indicate that an invalid query has been sent in
+		// TODO: Check QueryTable implementation for marking as null query
 		return QueryTable(true);
 	}
 	_qt.optimize();
@@ -58,6 +59,7 @@ void QueryValidator::matchDeclaration() {
 	if (_nextToken.getTokenName() != "Select") {
 		// Check if the next token are any of the accepted design entities
 		// Iteration 1: 'stmt' | 'assign' | 'while' | 'variable' | 'constant' | 'prog_line'
+		// Iteration 2: 'calls' | 'if' | 'procedure'
 		for (vector<string>::const_iterator it = DESIGN_ENTITIES.begin(); it != DESIGN_ENTITIES.end();) {
 			if (_nextToken.getTokenName() == *it) {
 				match(*it);
@@ -73,6 +75,7 @@ void QueryValidator::matchDeclaration() {
 	}
 }
 
+// TODO: Check if synonym are KEYWORDS. Reject when they are.
 void QueryValidator::matchDeclarationVar(string entity) {
 	string synonym = _nextToken.getTokenName();
 
@@ -114,11 +117,11 @@ void QueryValidator::matchSelect() {
 		if (_nextToken.getTokenName != "and") {
 			previousClause = _nextToken.getTokenName();
 			matchClause(previousClause);
-			restrainCommonSynonym();
+			restrainCommonSynonym(); // TODO: Remove this because this was to make sure that there are no more than 1 common syn. Iteration 2 dont care.
 		}
 		else {
-			if (previousClause != "none") {
-				matchClause(previousClause);
+			if (previousClause != "none") { // TODO: Previous clause might be "such". Might not have catered for --> Select a s.t. Follows(s1,s2) and Parent(s1,s2). You are matching 
+				matchClause(previousClause); // Select a s.t. Follows(s1,s2) and s.t. Parent(s1,s2)
 			}
 			else {
 				throw (QueryException("Invalid Query : Query begins with an AND clause"));
@@ -131,10 +134,10 @@ void QueryValidator::matchSelect() {
 }
 
 void QueryValidator::matchSelectResult() {
-	//"Select" result-cl (suchthat-cl | with-cl | pattern-cl 
-	//result-cl : tuple | "BOOLEAN"
-	//tuple : elem | "<" elem ("," elem)* ">"
-	//elem : synonym | attrRef
+	// "Select" result-cl (suchthat-cl | with-cl | pattern-cl 
+	// result-cl : tuple | "BOOLEAN" // Iteration 2: result-cl : synonym | "BOOLEAN"
+	// tuple : elem | "<" elem ("," elem)* ">"
+	// elem : synonym | attrRef
 	vector<string> selectArg, selectArgType;
 	string syn, synType, prevToken;
 	if (_nextToken.getTokenName() == "BOOLEAN") {
@@ -163,7 +166,7 @@ void QueryValidator::matchSelectResult() {
 			else {
 				string attrName = _nextToken.getTokenName();
 				if (isAttrNameValid(attrName) && synTypeAndAttrNameMatches(synType, attrName)) {
-					selectArg.push_back(attrName);
+					selectArg.push_back(attrName); // TODO: Check with cher lin about this
 					Clause selectClause("select", selectArg, selectArgType);
 					_qt.setSelectClause(selectClause);
 					match(attrName);
@@ -177,13 +180,13 @@ void QueryValidator::matchSelectResult() {
 			while (_nextToken.getTokenName() != ">") {
 				if (_nextToken.getTokenType() == IDENT) {
 					syn = _nextToken.getTokenName();
-					synType = _synToEntityMap[syn];
+					synType = _synToEntityMap[syn]; //TODO: Should check if the synonym has been declared before using the map.count() just in case
 					selectArg.push_back(syn);
 					selectArgType.push_back(synType);
 					match(syn);
 				}
 				else if (_nextToken.getTokenType() == COMMA) {
-					match(COMMA);
+					match(COMMA); // TODO: Currently, this query might pass --> Select <s1,,,,s2> s.t. ...
 					if (_nextToken.getTokenName() == ">") {
 						throw(QueryException("Invalid Query: Incorrect tuple format"));
 					}
@@ -216,7 +219,7 @@ void QueryValidator::matchSuchThat() {
 	matchRelation();
 }
 
-void QueryValidator::matchPattern() {
+void QueryValidator::matchPattern() { // TODO: Update match for pattern-if and pattern-while
 	match("pattern");
 	matchPatternAssign();
 }
@@ -349,7 +352,7 @@ vector<pair<int, string>> QueryValidator::matchRef() {
 		tokenType = _nextToken.getTokenType();
 		match(synonym);
 		if (_nextToken.getTokenType() != DOT) {
-			return vector<pair<int, string>>{{ tokenType, synonym }};
+			return vector<pair<int, string>>{{ tokenType, synonym }}; // TODO: This case means the synonym must be prog_line.
 		}
 		match(".");
 		if (_nextToken.getTokenType() == IDENT) {
@@ -381,13 +384,14 @@ vector<pair<int, string>> QueryValidator::matchRef() {
 
 bool QueryValidator::isAttrNameValid(string attrName) {
 	for (vector<string>::const_iterator it = ATTRIBUTE_TYPES.begin(); it != ATTRIBUTE_TYPES.end(); it++) {
-		if (attrName != *it) {
+		if (attrName != *it) { // TODO: Might always return false.
 			return false;
 		}
 	}
 	return true;
 }
 
+// TODO: Conditions can be shorten. Not urgent tho.
 bool QueryValidator::synTypeAndAttrNameMatches(string synType, string attrName) {
 	if (synType == "procedure") {
 		if (attrName == "procName") {
@@ -476,7 +480,7 @@ void QueryValidator::matchPatternAssign() {
 	// Check the syn to entity map and verify if it is "assign" or not. If NOT, ERROR!!!!!!!!!!!!!!!!
 	if (_synToEntityMap[synAssign] == "assign") {
 		synAssignType = _synToEntityMap[synAssign];
-		_synToUseCountMap[synAssign] += 1;
+		_synToUseCountMap[synAssign] += 1; // TODO: Can remove
 		match(synAssign);
 		match("(");
 		arg1 = matchEntRef();
@@ -502,7 +506,7 @@ void QueryValidator::matchPatternAssign() {
 		string arg1Type, arg2Type;
 		if (arg1.first == IDENT) {
 			if (_synToEntityMap[arg1.second] != "") {
-				_synToUseCountMap[arg1.second] += 1;
+				_synToUseCountMap[arg1.second] += 1; // Can remove
 				isArg1Valid = _relTable.isArg1Valid("patternAssign", _synToEntityMap[arg1.second]);
 				arg1Type = _synToEntityMap[arg1.second];
 			}
@@ -927,7 +931,7 @@ void QueryValidator::matchParentStar() {
 void QueryValidator::matchModifies() {
 	// Check if arguments, num of arguments are valid
 	match("(");
-	pair<int,string> arg1 = matchStmtRef();
+	pair<int,string> arg1 = matchStmtRef(); // TODO: Might need to change and cater for entRef also. Since now can be procedure/"string"
 	match(",");
 	pair<int, string> arg2 = matchEntRef();
 	match(")");
@@ -987,7 +991,7 @@ void QueryValidator::matchModifies() {
 void QueryValidator::matchUses() {
 	// Check if arguments, num of arguments are valid
 	match("(");
-	pair<int,string> arg1 = matchStmtRef();
+	pair<int,string> arg1 = matchStmtRef(); // TODO: Same as modifies. Need cater for ModifiesP
 	match(",");
 	pair<int,string> arg2 = matchEntRef();
 	match(")");
@@ -1334,6 +1338,7 @@ pair<int,string> QueryValidator::matchEntRef() {
 	return pair<int,string>(tokenType, argument);
 }
 
+// TODO: Remove this cause it was for iteration 1
 void QueryValidator::restrainCommonSynonym() {
 	int commonSynCount = 0;
 	for (map<string, int>::iterator it = _synToUseCountMap.begin(); it != _synToUseCountMap.end(); it++) {

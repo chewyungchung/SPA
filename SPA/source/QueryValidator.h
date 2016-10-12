@@ -27,14 +27,14 @@ const vector<string> DESIGN_ENTITIES({
 const vector<string> ATTRIBUTE_TYPES({
 	"stmt#",
 	"varName",
-	"constant",
+	"constant", // should be value e.g. constant.value
 	"procName"
 });
 
 class QueryValidator{
 public:
 	QueryValidator();
-	~QueryValidator();
+	~QueryValidator(); // best remove
 	QueryValidator(string entity);
 	QueryTable parse();
 	
