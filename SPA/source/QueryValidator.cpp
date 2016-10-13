@@ -458,34 +458,36 @@ string QueryValidator::getWithTypeByAttrName(string attrName)
 }
 
 void QueryValidator::matchPatternAssign() {
-	// pattern-cl : ‘pattern’ syn-assign (entRef, expression-spec)
-	// expression-spec : ‘_’ ‘"’ factor ‘"’ ‘_’ | ‘_’
-	// factor : var_name | const_value
+	// pattern-cl : ‘pattern’ syn-assign (varRef, expression-spec | _)
+	// expression-spec : ‘_’ ‘"’ expr ‘"’ ‘_’ | ‘"’ expr ‘"’
 	string synAssign = next_token_.getTokenName();
 	string synAssignType;
-	int arg2MatchFactor = -1;
+	bool is_sub_expr = false;
 	pair<int, string> arg1, arg2;
 	// Check the syn to entity map and verify if it is "assign" or not. If NOT, ERROR!!!!!!!!!!!!!!!!
 	if (syn_to_entity_map_[synAssign] == "assign") {
 		synAssignType = syn_to_entity_map_[synAssign];
-		_synToUseCountMap[synAssign] += 1; // TODO: Can remove
 		match(synAssign);
 		match("(");
-		arg1 = matchEntRef();
+		arg1 = matchVarRef();
 		match(",");
 		if (next_token_.getTokenName() == "_") {
 			match("_");
+			is_sub_expr = true;
 		}
 		if (next_token_.getTokenName() == "\"") {
 			match("\"");
-			arg2 = matchFactor();
+			if (is_sub_expr == true) {
+				arg2 = matchSubExpr();
+			}
+			else {
+				arg2 = matchExpr();
+			}
 			match("\"");
-			arg2MatchFactor = 1;
+			if (is_sub_expr == true) {
+				match("_");
+			}
 		}
-		if (arg2MatchFactor == -1) {
-			arg2 = pair<int, string>(UNDERSCORE, "_");
-		}
-
 		match(")");
 
 		// Validate arg1 & arg2
@@ -494,7 +496,6 @@ void QueryValidator::matchPatternAssign() {
 		string arg1Type, arg2Type;
 		if (arg1.first == IDENT) {
 			if (syn_to_entity_map_[arg1.second] != "") {
-				_synToUseCountMap[arg1.second] += 1; // Can remove
 				isArg1Valid = rel_table_.isArg1Valid("patternAssign", syn_to_entity_map_[arg1.second]);
 				arg1Type = syn_to_entity_map_[arg1.second];
 			}
@@ -536,107 +537,52 @@ void QueryValidator::matchPatternAssign() {
 void QueryValidator::matchPatternWhile() {
 	// while : synonym (varRef ,"_")
 	// varRef : synonym | "_" | "IDENT"
-	string syn = next_token_.getTokenName();
-	string synType;
-	pair<int, string> arg1, arg2;
-	// Check the syn to entity map and verify if it is "assign" or not. If NOT, ERROR!!!!!!!!!!!!!!!!
-	if (syn_to_entity_map_[syn] == "while") {
-		synType = syn_to_entity_map_[syn];
-		_synToUseCountMap[syn] += 1;
-		match(syn);
+	string while_syn, while_control_var_type;
+	bool is_control_variable_valid = false;
+	pair<int, string> while_control_variable;
+	if (syn_to_entity_map_[while_syn] == "while") {
+		match(while_syn);
 		match("(");
-		arg1 = matchEntRef();
+		while_control_variable = matchVarRef();
 		match(",");
-		if (next_token_.getTokenName() == "_") {
-			match("_");
-			arg2 = pair<int, string>(UNDERSCORE, "_");
-		}
+		match("_");
+		match(",");
+		match("_");
 		match(")");
-	}
-	// Validate arg1 & arg2
-	int isArg1Valid = -1;
-	int isArg2Valid = -1;
-	string arg1Type, arg2Type;
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
-			isArg1Valid = rel_table_.isArg1Valid("patternWhile", syn_to_entity_map_[arg1.second]);
-			arg1Type = syn_to_entity_map_[arg1.second];
+
+		if (while_control_variable.first == IDENT) {
+			if (syn_to_entity_map_[while_control_variable.second] != "") {
+				is_control_variable_valid = rel_table_.isArg1Valid("patternWhile", syn_to_entity_map_[while_control_variable.second]);
+				while_control_var_type = syn_to_entity_map_[while_control_variable.second];
+			}
+		}
+		else if (while_control_variable.first == UNDERSCORE) {
+			is_control_variable_valid = true;
+			while_control_var_type = "any";
+		}
+		else if (while_control_variable.first == STRING) {
+			is_control_variable_valid = true;
+			is_control_variable_valid = "string";
+		}
+
+		if (is_control_variable_valid == true) {
+			vector<string> while_arg = { while_syn, while_control_variable.second };
+			vector<string> while_arg_type = { "while", while_control_var_type };
+			Clause pattern_while_clause("while", while_arg, while_arg_type);
+			query_table_.AddPatternClause(pattern_while_clause);
+		}
+		else {
+			throw(QueryException("Invalid Query : Unexpected control variable for pattern-while '" + while_control_var_type + "'"));
 		}
 	}
-	else if (arg1.first == UNDERSCORE) {
-		isArg1Valid = rel_table_.isArg1Valid("patternWhile", "_");
-		arg1Type = "any";
-	}
-	else if (arg1.first == STRING) {
-		isArg1Valid = rel_table_.isArg1Valid("patternWhile", "string");
-		arg1Type = "string";
-	}
-	else if (arg2.first == UNDERSCORE) {
-		isArg2Valid = rel_table_.isArg2Valid("patternWhile", "_");
-		arg2Type = "any";
-	}
-
-	if (isArg1Valid && isArg2Valid) {
-		vector<string> patternArg({ syn, arg1.second, arg2.second });
-		vector<string> patternArgType({ synType, arg1Type,arg2Type });
-		Clause patternClause("pattern", patternArg, patternArgType);
-		_patternClauses.push_back(patternClause);
-		query_table_.setPatternClause(_patternClauses);
+	else {
+		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.getTokenName() + "'; Expected valid while synonym"));
 	}
 }
 
 void QueryValidator::matchPatternIf() {
 	// if : synonym (varRef, "_", "_")
 	// varRef : synonym | "_" | "IDENT"
-	string syn = next_token_.getTokenName();
-	string synType;
-	pair<int, string> arg1, arg2;
-	// Check the syn to entity map and verify if it is "assign" or not. If NOT, ERROR!!!!!!!!!!!!!!!!
-	if (syn_to_entity_map_[syn] == "if") {
-		synType = syn_to_entity_map_[syn];
-		_synToUseCountMap[syn] += 1;
-		match(syn);
-		match("(");
-		arg1 = matchEntRef();
-		match(",");
-		if (next_token_.getTokenName() == "_") {
-			match("_");
-			arg2 = pair<int, string>(UNDERSCORE, "_");
-		}
-		match(")");
-	}
-	// Validate arg1 & arg2
-	int isArg1Valid = -1;
-	int isArg2Valid = -1;
-	string arg1Type, arg2Type;
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
-			isArg1Valid = rel_table_.isArg1Valid("patternIf", syn_to_entity_map_[arg1.second]);
-			arg1Type = syn_to_entity_map_[arg1.second];
-		}
-	}
-	else if (arg1.first == UNDERSCORE) {
-		isArg1Valid = rel_table_.isArg1Valid("patternIf", "_");
-		arg1Type = "any";
-	}
-	else if (arg1.first == STRING) {
-		isArg1Valid = rel_table_.isArg1Valid("patternIf", "string");
-		arg1Type = "string";
-	}
-	else if (arg2.first == UNDERSCORE) {
-		isArg2Valid = rel_table_.isArg2Valid("patternIf", "_");
-		arg2Type = "any";
-	}
-
-	if (isArg1Valid && isArg2Valid) {
-		vector<string> patternArg({ syn, arg1.second, arg2.second });
-		vector<string> patternArgType({ synType, arg1Type,arg2Type });
-		Clause patternClause("pattern", patternArg, patternArgType);
-		_patternClauses.push_back(patternClause);
-		query_table_.setPatternClause(_patternClauses);
-	}
 }
 
 pair<int,string> QueryValidator::matchFactor() {
@@ -708,7 +654,6 @@ void QueryValidator::matchFollow() {
 
 	if (arg1.first == IDENT) {
 		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = rel_table_.isArg1Valid("follows", syn_to_entity_map_[arg1.second]);
 			arg1Type = syn_to_entity_map_[arg1.second];
 		}
@@ -723,7 +668,6 @@ void QueryValidator::matchFollow() {
 	}
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
-			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = rel_table_.isArg2Valid("follows", syn_to_entity_map_[arg2.second]);
 			arg2Type = syn_to_entity_map_[arg2.second];
 		}
@@ -764,7 +708,6 @@ void QueryValidator::matchFollowStar() {
 
 	if (arg1.first == IDENT) {
 		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = rel_table_.isArg1Valid("follows*", syn_to_entity_map_[arg1.second]);
 			arg1Type = syn_to_entity_map_[arg1.second];
 		}
@@ -779,7 +722,6 @@ void QueryValidator::matchFollowStar() {
 	}
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
-			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = rel_table_.isArg2Valid("follows*", syn_to_entity_map_[arg2.second]);
 			arg2Type = syn_to_entity_map_[arg2.second];
 		}
@@ -819,7 +761,6 @@ void QueryValidator::matchParent() {
 
 	if (arg1.first == IDENT) {
 		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = rel_table_.isArg1Valid("parent", syn_to_entity_map_[arg1.second]);
 			arg1Type = syn_to_entity_map_[arg1.second];
 		}
@@ -834,7 +775,6 @@ void QueryValidator::matchParent() {
 	}
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
-			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = rel_table_.isArg2Valid("parent", syn_to_entity_map_[arg2.second]);
 			arg2Type = syn_to_entity_map_[arg2.second];
 		}
@@ -875,7 +815,6 @@ void QueryValidator::matchParentStar() {
 
 	if (arg1.first == IDENT) {
 		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = rel_table_.isArg1Valid("parent*", syn_to_entity_map_[arg1.second]);
 			arg1Type = syn_to_entity_map_[arg1.second];
 		}
@@ -890,7 +829,6 @@ void QueryValidator::matchParentStar() {
 	}
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg2Valid = rel_table_.isArg2Valid("parent*", syn_to_entity_map_[arg2.second]);
 			arg2Type = syn_to_entity_map_[arg2.second];
 		}
@@ -930,7 +868,6 @@ void QueryValidator::matchModifies() {
 
 	if (arg1.first == IDENT) {
 		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = rel_table_.isArg1Valid("modifies", syn_to_entity_map_[arg1.second]);
 			arg1Type = syn_to_entity_map_[arg1.second];
 		}
@@ -950,7 +887,6 @@ void QueryValidator::matchModifies() {
 	}
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
-			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = rel_table_.isArg2Valid("modifies", syn_to_entity_map_[arg2.second]);
 			arg2Type = syn_to_entity_map_[arg2.second];
 		}
@@ -991,7 +927,6 @@ void QueryValidator::matchUses() {
 
 	if (arg1.first == IDENT) {
 		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = rel_table_.isArg1Valid("uses", syn_to_entity_map_[arg1.second]);
 			arg1Type = syn_to_entity_map_[arg1.second];
 		}
@@ -1006,7 +941,6 @@ void QueryValidator::matchUses() {
 	}
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
-			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = rel_table_.isArg2Valid("uses", syn_to_entity_map_[arg2.second]);
 			arg2Type = syn_to_entity_map_[arg2.second];
 		}
@@ -1047,7 +981,6 @@ void QueryValidator::matchCalls() {
 
 	if (arg1.first == IDENT) {
 		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = rel_table_.isArg1Valid("calls", syn_to_entity_map_[arg1.second]);
 			arg1Type = syn_to_entity_map_[arg1.second];
 		}
@@ -1068,7 +1001,6 @@ void QueryValidator::matchCalls() {
 	*/
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
-			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = rel_table_.isArg2Valid("calls", syn_to_entity_map_[arg2.second]);
 			arg2Type = syn_to_entity_map_[arg2.second];
 		}
@@ -1113,7 +1045,6 @@ void QueryValidator::matchCallsStar() {
 
 	if (arg1.first == IDENT) {
 		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = rel_table_.isArg1Valid("calls*", syn_to_entity_map_[arg1.second]);
 			arg1Type = syn_to_entity_map_[arg1.second];
 		}
@@ -1128,7 +1059,6 @@ void QueryValidator::matchCallsStar() {
 	}
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg2Valid = rel_table_.isArg2Valid("calls*", syn_to_entity_map_[arg2.second]);
 			arg2Type = syn_to_entity_map_[arg2.second];
 		}
@@ -1167,7 +1097,6 @@ void QueryValidator::matchNext() {
 
 	if (arg1.first == IDENT) {
 		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = rel_table_.isArg1Valid("next", syn_to_entity_map_[arg1.second]);
 			arg1Type = syn_to_entity_map_[arg1.second];
 		}
@@ -1182,7 +1111,6 @@ void QueryValidator::matchNext() {
 	}
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
-			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = rel_table_.isArg2Valid("next", syn_to_entity_map_[arg2.second]);
 			arg2Type = syn_to_entity_map_[arg2.second];
 		}
@@ -1222,7 +1150,6 @@ void QueryValidator::matchNextStar() {
 
 	if (arg1.first == IDENT) {
 		if (syn_to_entity_map_[arg1.second] != "") {
-			_synToUseCountMap[arg1.second] += 1;
 			arg1Valid = rel_table_.isArg1Valid("next*", syn_to_entity_map_[arg1.second]);
 			arg1Type = syn_to_entity_map_[arg1.second];
 		}
@@ -1237,7 +1164,6 @@ void QueryValidator::matchNextStar() {
 	}
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
-			_synToUseCountMap[arg2.second] += 1;
 			arg2Valid = rel_table_.isArg2Valid("next*", syn_to_entity_map_[arg2.second]);
 			arg2Type = syn_to_entity_map_[arg2.second];
 		}
@@ -1261,6 +1187,16 @@ void QueryValidator::matchNextStar() {
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for nextStar"));
 	}
+}
+
+pair<int,string> QueryValidator::matchExpr()
+{
+	return pair<int, string>();
+}
+
+pair<int,string> QueryValidator::matchSubExpr()
+{
+	return pair<int, string>();
 }
 
 pair<int,string> QueryValidator::matchStmtRef() {
@@ -1324,4 +1260,36 @@ pair<int,string> QueryValidator::matchEntRef() {
 	}
 	
 	return pair<int,string>(tokenType, argument);
+}
+
+pair<int, string> QueryValidator::matchVarRef()
+{
+	// entRef : synonym | ‘_’ | ‘"’ IDENT ‘"’
+	string argument;
+	int tokenType;
+	if (next_token_.getTokenType() == IDENT) {
+		// synonym
+		argument = next_token_.getTokenName();
+		tokenType = next_token_.getTokenType();
+		match(argument);
+	}
+	else if (next_token_.getTokenName() == "_") {
+		// '_'
+		argument = "_";
+		tokenType = next_token_.getTokenType();
+		match(argument);
+	}
+	else if (next_token_.getTokenName() == "\"") {
+		// '"' IDENT '"'
+		match("\"");
+		argument = next_token_.getTokenName();
+		tokenType = STRING;
+		match(argument);
+		match("\"");
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.getTokenName() + "'; Expected entRef token"));
+	}
+
+	return pair<int, string>(tokenType, argument);
 }

@@ -77,8 +77,11 @@ public:
 	void matchNext();
 	void matchNextStar();
 
+	pair<int, string> matchExpr();
+	pair<int, string> matchSubExpr();
 	pair<int,string> matchStmtRef();
 	pair<int,string> matchEntRef();
+	pair<int, string> matchVarRef();
 	QueryValidator::Ref matchRef();
 
 	bool synTypeAndAttrNameMatches(string synType, string attrName);
@@ -92,10 +95,7 @@ private:
 	QueryTokenizer tokenizer_;
 	RelationTable rel_table_;
 	unordered_map<string, string> syn_to_entity_map_;
-	map<string, int> _synToUseCountMap;
 	string query_string_;
-	string with_type_left = "";
-	string with_type_right = "";
 
 	vector<Clause> _suchThatClauses;
 	vector<Clause> _withClauses;
