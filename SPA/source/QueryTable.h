@@ -1,6 +1,5 @@
 #pragma once
 
-#include<stdio.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -17,7 +16,6 @@ class QueryTable {
 public:
 
 	QueryTable();
-	~QueryTable();
 	QueryTable(int isNull);
 	QueryTable(Clause selectClause, vector<Clause> withClause, vector<Clause> suchThatClause, vector<Clause> patternClause);
 
@@ -38,38 +36,20 @@ public:
 	vector<Clause> getSuchThatClauses();
 	vector<Clause> getWithClauses();
 	vector<Clause> getPatternClauses();
-	QueryResult getSelectResult();
-	QueryResult getSuchThatResult();
-	QueryResult getPatternResult();
 
-	int isSelectResultEmpty();
-	int isSuchThatResultEmpty();
-	int isPatternResultEmpty();
 	int isNullQuery();
-
 	bool isSynonym(string arg);
-
 	string getSynType(string);
 
 	// Set
 	void setSelectClause(Clause selectClause);
-	void setSuchThatClause(vector<Clause> suchThatClause);
-	void setWithClause(vector<Clause> withClause);
-	void setPatternClause(vector<Clause> patternClause);
-	void setSelectResult(QueryResult qr);
-	void setSuchThatResult(QueryResult qr);
-	void setPatternResult(QueryResult qr);
-
 	void setSynEntityMap(unordered_map<string, string> synToEntityMap);
-
 	void AddWithClause(Clause with_clause);
 	void AddSuchThatClause(Clause such_that_clause);
 	void AddPatternClause(Clause pattern_clause);
 
 private:
-	
 	unordered_map<string, string> _synEntityMap; 
-	
 	Clause _selectClause;
 	vector<Clause> _suchThatClauses;
 	vector<Clause> _withClauses;

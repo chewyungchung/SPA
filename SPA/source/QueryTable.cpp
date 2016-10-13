@@ -18,10 +18,6 @@ QueryTable::QueryTable(Clause selectClause, vector<Clause> suchThatClauses, vect
 	_patternClauses = patternClauses;
 }
 
-// Destructor
-QueryTable::~QueryTable() {
-}
-
 void QueryTable::optimize() {
 	initialiseWeightTable();
 	replaceWithClauses(); 
@@ -238,16 +234,8 @@ Clause QueryTable::getSelectClause() {
 	return _selectClause;
 }
 
-QueryResult QueryTable::getSelectResult() {
-	return _selectResult;
-}
-
 vector<Clause> QueryTable::getSuchThatClauses() {
 	return _suchThatClauses;
-}
-
-QueryResult QueryTable::getSuchThatResult() {
-	return _suchThatResult;
 }
 
 vector<Clause> QueryTable::getWithClauses() {
@@ -258,9 +246,6 @@ vector<Clause> QueryTable::getPatternClauses() {
 	return _patternClauses;
 }
 
-QueryResult QueryTable::getPatternResult() {
-	return _patternResult;
-}
 
 string QueryTable::getSynType(string syn) {
 	if (_synEntityMap.find(syn) != _synEntityMap.end()) {
@@ -271,33 +256,6 @@ string QueryTable::getSynType(string syn) {
 	return "NO HAVE";
 }
 
-int QueryTable::isSelectResultEmpty() {
-	if (_selectResult.isArg1ResultEmpty() == true && _selectResult.isArg2ResultEmpty() == true) {
-		return 1;
-	}
-	else {
-		return -1;
-	}
-}
-
-int QueryTable::isSuchThatResultEmpty() {
-	if (_suchThatResult.isArg1ResultEmpty() == true && _suchThatResult.isArg2ResultEmpty() == true) {
-		return 1;
-	}
-	else {
-		return -1;
-	}
-}
-
-int QueryTable::isPatternResultEmpty() {
-	if (_patternResult.isArg1ResultEmpty() == true && _patternResult.isArg2ResultEmpty() == true && _patternResult.isPatternResultEmpty() == true) {
-		return 1;
-	}
-	else {
-		return -1;
-	}
-}
-
 int QueryTable::isNullQuery() {
 	return _isNull;
 }
@@ -305,36 +263,6 @@ int QueryTable::isNullQuery() {
 void QueryTable::setSelectClause(Clause selectClause)
 {
 	_selectClause = selectClause;
-	_isNull = -1;
-}
-
-void QueryTable::setSuchThatClause(vector<Clause> suchThatClause) {
-	_suchThatClauses = suchThatClause;
-	_isNull = -1;
-}
-
-void QueryTable::setWithClause(vector<Clause> withClause) {
-	_withClauses = withClause;
-	_isNull = -1;
-}
-
-void QueryTable::setPatternClause(vector<Clause> patternClause) {
-	_patternClauses = patternClause;
-	_isNull = -1;
-}
-
-void QueryTable::setSelectResult(QueryResult selectResult) {
-	_selectResult = selectResult;
-	_isNull = -1;
-}
-
-void QueryTable::setSuchThatResult(QueryResult suchThatResult) {
-	_suchThatResult = suchThatResult;
-	_isNull = -1;
-}
-
-void QueryTable::setPatternResult(QueryResult patternResult) {
-	_patternResult = patternResult;
 	_isNull = -1;
 }
 
