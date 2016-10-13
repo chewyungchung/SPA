@@ -546,8 +546,6 @@ void QueryValidator::matchPatternWhile() {
 		while_control_variable = matchVarRef();
 		match(",");
 		match("_");
-		match(",");
-		match("_");
 		match(")");
 
 		if (while_control_variable.first == IDENT) {
@@ -583,6 +581,47 @@ void QueryValidator::matchPatternWhile() {
 void QueryValidator::matchPatternIf() {
 	// if : synonym (varRef, "_", "_")
 	// varRef : synonym | "_" | "IDENT"
+	string if_syn, if_control_var_type;
+	bool is_control_variable_valid = false;
+	pair<int, string> if_control_variable;
+	if (syn_to_entity_map_[if_syn] == "if") {
+		match(if_syn);
+		match("(");
+		if_control_variable = matchVarRef();
+		match(",");
+		match("_");
+		match(",");
+		match("_");
+		match(")");
+
+		if (if_control_variable.first == IDENT) {
+			if (syn_to_entity_map_[if_control_variable.second] != "") {
+				is_control_variable_valid = rel_table_.isArg1Valid("patternIf", syn_to_entity_map_[if_control_variable.second]);
+				if_control_var_type = syn_to_entity_map_[if_control_variable.second];
+			}
+		}
+		else if (if_control_variable.first == UNDERSCORE) {
+			is_control_variable_valid = true;
+			if_control_var_type = "any";
+		}
+		else if (if_control_variable.first == STRING) {
+			is_control_variable_valid = true;
+			is_control_variable_valid = "string";
+		}
+
+		if (is_control_variable_valid == true) {
+			vector<string> if_arg = { if_syn, if_control_variable.second };
+			vector<string> if_arg_type = { "if", if_control_var_type };
+			Clause pattern_if_clause("if", if_arg, if_arg_type);
+			query_table_.AddPatternClause(pattern_if_clause);
+		}
+		else {
+			throw(QueryException("Invalid Query : Unexpected control variable for pattern-if '" + if_control_var_type + "'"));
+		}
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.getTokenName() + "'; Expected valid if synonym"));
+	}
 }
 
 pair<int,string> QueryValidator::matchFactor() {
