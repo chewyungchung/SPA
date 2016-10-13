@@ -457,87 +457,84 @@ string QueryValidator::getWithTypeByAttrName(string attrName)
 	}
 }
 
-void QueryValidator::matchPatternAssign() {
-	// pattern-cl : ‘pattern’ syn-assign (varRef, expression-spec | _)
-	// expression-spec : ‘_’ ‘"’ expr ‘"’ ‘_’ | ‘"’ expr ‘"’
-	string synAssign = next_token_.getTokenName();
-	string synAssignType;
+void QueryValidator::matchPatternAssign()
+{
+	string assign_syn = next_token_.getTokenName();
+	string assign_var_ref_syn, assign_var_ref_type, expression_type;
+	pair<int, string> assign_var_ref;
 	bool is_sub_expr = false;
-	pair<int, string> arg1, arg2;
-	// Check the syn to entity map and verify if it is "assign" or not. If NOT, ERROR!!!!!!!!!!!!!!!!
-	if (syn_to_entity_map_[synAssign] == "assign") {
-		synAssignType = syn_to_entity_map_[synAssign];
-		match(synAssign);
+	bool is_any = false;
+	bool is_assign_var_ref_valid = false;
+
+	if (syn_to_entity_map_[assign_syn] == "assign") {
+		match(assign_syn);
 		match("(");
-		arg1 = matchVarRef();
+		assign_var_ref = matchVarRef();
 		match(",");
-		if (next_token_.getTokenName() == "_") {
+		if (next_token_.getTokenType() == UNDERSCORE) {
 			match("_");
-			is_sub_expr = true;
-		}
-		if (next_token_.getTokenName() == "\"") {
-			match("\"");
-			if (is_sub_expr == true) {
-				arg2 = matchSubExpr();
-			}
-			else {
-				arg2 = matchExpr();
-			}
-			match("\"");
-			if (is_sub_expr == true) {
+			is_any = true;
+			expression_string_ = "_";
+			if (next_token_.getTokenType() == DOUBLE_QUOTE) {
+				is_sub_expr = true;
+				is_any = false;
+				match("\"");
+				expression_string_ = "";
+				matchExpr();
+				match("\"");
 				match("_");
 			}
 		}
-		match(")");
+		else if (next_token_.getTokenType == DOUBLE_QUOTE) {
+			match("\"");
+			matchExpr();
+			match("\"");
+		}
 
-		// Validate arg1 & arg2
-		int isArg1Valid = -1;
-		int isArg2Valid = -1;
-		string arg1Type, arg2Type;
-		if (arg1.first == IDENT) {
-			if (syn_to_entity_map_[arg1.second] != "") {
-				isArg1Valid = rel_table_.isArg1Valid("patternAssign", syn_to_entity_map_[arg1.second]);
-				arg1Type = syn_to_entity_map_[arg1.second];
+		if (assign_var_ref.first == IDENT) {
+			if (syn_to_entity_map_[assign_var_ref.second] != "") {
+				assign_var_ref_type = syn_to_entity_map_[assign_var_ref.second];
+				is_assign_var_ref_valid = rel_table_.isArg1Valid("patternAssign", assign_var_ref_type);
 			}
 		}
-		else if (arg1.first == UNDERSCORE) {
-			isArg1Valid = rel_table_.isArg1Valid("patternAssign", "_");
-			arg1Type = "any";
+		else if (assign_var_ref.first == UNDERSCORE) {
+			is_assign_var_ref_valid = true;
+			assign_var_ref_type = "any";
 		}
-		else if (arg1.first == STRING) {
-			isArg1Valid = rel_table_.isArg1Valid("patternAssign", "string");
-			arg1Type = "string";
-		}
-		if (arg2.first == IDENT) {;
-			isArg2Valid = rel_table_.isArg2Valid("patternAssign", "string");
-			arg2Type = "string";
-		}
-		else if (arg2.first == INTEGER) {
-			isArg2Valid = rel_table_.isArg2Valid("patternAssign", "constant");
-			arg2Type = "constant";
-		}
-		else if (arg2.first == UNDERSCORE) {
-			isArg2Valid = rel_table_.isArg2Valid("patternAssign", "_");
-			arg2Type = "any";
+		else if (assign_var_ref.first == STRING) {
+			is_assign_var_ref_valid = true;
+			assign_var_ref_type = "string";
 		}
 
-		if (isArg1Valid && isArg2Valid) {
-			vector<string> patternArg({ synAssign, arg1.second, arg2.second });
-			vector<string> patternArgType({ synAssignType, arg1Type,arg2Type });
-			Clause patternClause("pattern", patternArg, patternArgType);
-			_patternClauses.push_back(patternClause);
-			query_table_.setPatternClause(_patternClauses);
+		if (is_assign_var_ref_valid == true) {
+			if (is_sub_expr == true) {
+				expression_type = "sub_expr";
+			} 
+			else if (is_any == true) {
+				expression_type = "any";
+			}
+			else {
+				expression_type = "expr";
+			}
+			vector<string> assign_arg = { assign_syn, assign_var_ref.second , expression_string_ };
+			vector<string> assign_arg_type = { "assign", assign_var_ref_type, expression_type };
+			Clause pattern_assign_clause("pattern", assign_arg, assign_arg_type);
+			query_table_.AddPatternClause(pattern_assign_clause);
+		}
+		else {
+			throw(QueryException("Invalid Query : Unexpected varRef for pattern-assign '" + assign_var_ref_type + "'"));
 		}
 	}
 	else {
-		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.getTokenName() + "'; Expected valid synAssign"));
+		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.getTokenName() + "'; Expected valid assign synonym"));
 	}
 }
 
 void QueryValidator::matchPatternWhile() {
 	// while : synonym (varRef ,"_")
 	// varRef : synonym | "_" | "IDENT"
-	string while_syn, while_control_var_type;
+	string while_syn = next_token_.getTokenName();
+	string while_control_var_type;
 	bool is_control_variable_valid = false;
 	pair<int, string> while_control_variable;
 	if (syn_to_entity_map_[while_syn] == "while") {
@@ -550,8 +547,8 @@ void QueryValidator::matchPatternWhile() {
 
 		if (while_control_variable.first == IDENT) {
 			if (syn_to_entity_map_[while_control_variable.second] != "") {
-				is_control_variable_valid = rel_table_.isArg1Valid("patternWhile", syn_to_entity_map_[while_control_variable.second]);
 				while_control_var_type = syn_to_entity_map_[while_control_variable.second];
+				is_control_variable_valid = rel_table_.isArg1Valid("patternWhile", while_control_var_type);
 			}
 		}
 		else if (while_control_variable.first == UNDERSCORE) {
@@ -581,7 +578,8 @@ void QueryValidator::matchPatternWhile() {
 void QueryValidator::matchPatternIf() {
 	// if : synonym (varRef, "_", "_")
 	// varRef : synonym | "_" | "IDENT"
-	string if_syn, if_control_var_type;
+	string if_syn = next_token_.getTokenName();
+	string if_control_var_type;
 	bool is_control_variable_valid = false;
 	pair<int, string> if_control_variable;
 	if (syn_to_entity_map_[if_syn] == "if") {
@@ -596,8 +594,8 @@ void QueryValidator::matchPatternIf() {
 
 		if (if_control_variable.first == IDENT) {
 			if (syn_to_entity_map_[if_control_variable.second] != "") {
-				is_control_variable_valid = rel_table_.isArg1Valid("patternIf", syn_to_entity_map_[if_control_variable.second]);
 				if_control_var_type = syn_to_entity_map_[if_control_variable.second];
+				is_control_variable_valid = rel_table_.isArg1Valid("patternIf", if_control_var_type);
 			}
 		}
 		else if (if_control_variable.first == UNDERSCORE) {

@@ -96,6 +96,7 @@ private:
 	RelationTable rel_table_;
 	unordered_map<string, string> syn_to_entity_map_;
 	string query_string_;
+	string expression_string_ = "";
 
 	vector<Clause> _suchThatClauses;
 	vector<Clause> _withClauses;
