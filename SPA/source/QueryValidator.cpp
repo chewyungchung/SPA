@@ -942,8 +942,7 @@ void QueryValidator::matchModifies() {
 		vector<string> modifiesArg({ arg1.second,arg2.second });
 		vector<string> modifiesArgType({ arg1Type,arg2Type });
 		Clause modifiesRel("modifies", modifiesArg, modifiesArgType);
-		_suchThatClauses.push_back(modifiesRel);
-		query_table_.setSuchThatClause(_suchThatClauses);
+		query_table_.AddSuchThatClause(modifiesRel);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for modifies"));
@@ -1000,8 +999,7 @@ void QueryValidator::matchUses() {
 		vector<string> usesArg({ arg1.second,arg2.second });
 		vector<string> usesArgType({ arg1Type,arg2Type });
 		Clause usesRel("uses", usesArg, usesArgType);
-		_suchThatClauses.push_back(usesRel);
-		query_table_.setSuchThatClause(_suchThatClauses);
+		query_table_.AddSuchThatClause(usesRel);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for uses"));
