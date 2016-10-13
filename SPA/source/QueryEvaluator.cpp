@@ -14,6 +14,7 @@ const string REL_PATTERN = "pattern";
 const string REL_WITH = "with";
 
 const string ARGTYPE_CONSTANT = "constant";
+const string ARGTYPE_CONSTANT_VALUE = "value";
 const string ARGTYPE_ANY = "any";
 const string ARGTYPE_VARIABLE = "variable";
 const string ARGTYPE_ASSIGN = "assign";
@@ -23,9 +24,9 @@ const string ARGTYPE_STRING = "string";
 const string ARGTYPE_PROCEDURE = "procedure";
 const string ARGTYPE_STMT = "stmt";
 const string ARGTYPE_PROG_LINE = "prog_line";
-const string ARGTYPE_CALLS = "calls";
-const string ARGTYPE_CALLS_NAME = "calls_name";
-const string ARGTYPE_CALLS_NUMBER = "calls_number";
+const string ARGTYPE_CALLS = "call";
+const string ARGTYPE_CALLS_NAME = "call_name";
+const string ARGTYPE_CALLS_NUMBER = "call_number";
 const string ARGTYPE_EXPR = "expr";
 const string ARGTYPE_SUB_EXPR = "sub_expr";
 
@@ -35,10 +36,6 @@ const string PARAM_PATTERN = "PATTERN";
 
 QueryEvaluator::QueryEvaluator() {
 }
-
-QueryEvaluator::~QueryEvaluator() {
-}
-
 
 QueryEvaluator::QueryEvaluator(QueryTable input_query, PKB pkb) {
 	input_query_ = input_query;
@@ -2454,7 +2451,7 @@ list<int> QueryEvaluator::GetList(string arg_type) {
 	else if (arg_type == ARGTYPE_STMT || arg_type == ARGTYPE_PROG_LINE) {
 		wanted_list = pkb_.getStmtList();
 	}
-	else if (arg_type == ARGTYPE_CONSTANT) {
+	else if (arg_type == ARGTYPE_CONSTANT_VALUE) {
 		wanted_list = pkb_.getConstantList();
 	}
 
