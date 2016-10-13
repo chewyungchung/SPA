@@ -27,7 +27,7 @@ const vector<string> DESIGN_ENTITIES({
 const vector<string> ATTRIBUTE_TYPES({
 	"stmt#",
 	"varName",
-	"constant", // should be value e.g. constant.value
+	"value",
 	"procName"
 });
 
@@ -44,11 +44,16 @@ public:
 	void matchDeclaration();
 	void matchDeclarationVar(string token); 
 	void matchSelect();
-	void matchSelectResult();
+	void matchResultClause();
+	void matchTupleResult();
+	void matchResultClauseElement(bool is_tuple);
 	void matchClause(string previousClause);
 	void matchSuchThat();
+	void matchPatternClause();
 	void matchPattern();
 	void matchWith();
+	void matchAttrCond();
+	void matchAttrCompare();
 	void matchWithClause();
 	void matchPatternAssign();
 	void matchPatternWhile();
@@ -71,21 +76,30 @@ public:
 	pair<int,string> matchStmtRef();
 	pair<int,string> matchEntRef();
 	vector<pair<int, string>> matchRef();
+	pair<int, string> matchRefNew(bool is_left);
 
 	bool isAttrNameValid(string attrType);
 	bool synTypeAndAttrNameMatches(string synType, string attrName);
+	bool isLegalWith(string syn_one, string syn_two);
+	bool IsNameType(string syn_type);
+	bool IsStatementType(string syn_type);
+
 
 	string getWithType(string attrName, string synType);
 	string getWithType(int argType);
+	string getWithType(string syn_type);
 	
 private:
-	QueryTable _qt;
-	QueryToken _nextToken;
-	QueryTokenizer _tokenizer;
-	RelationTable _relTable;
-	unordered_map<string, string> _synToEntityMap;
+	QueryTable query_table_;
+	QueryToken next_token_;
+	QueryTokenizer tokenizer_;
+	RelationTable rel_table_;
+	unordered_map<string, string> syn_to_entity_map_;
 	map<string, int> _synToUseCountMap;
-	string _queryString;
+	string query_string_;
+	string with_type_left = "";
+	string with_type_right = "";
+
 	vector<Clause> _suchThatClauses;
 	vector<Clause> _withClauses;
 	vector<Clause> _patternClauses;

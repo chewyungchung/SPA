@@ -342,3 +342,18 @@ void QueryTable::setSynEntityMap(unordered_map<string, string> synEntityMap) {
 	_synEntityMap = synEntityMap;
 }
 
+void QueryTable::AddWithClause(Clause with_clause)
+{
+	_withClauses.push_back(with_clause);
+}
+
+void QueryTable::AddSuchThatClause(Clause such_that_clause)
+{
+	_suchThatClauses.push_back(such_that_clause);
+}
+
+void QueryTable::AddPatternClause(Clause pattern_clause)
+{
+	_patternClauses.push_back(pattern_clause);
+}
+

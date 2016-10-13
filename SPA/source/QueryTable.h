@@ -59,10 +59,12 @@ public:
 	void setSelectResult(QueryResult qr);
 	void setSuchThatResult(QueryResult qr);
 	void setPatternResult(QueryResult qr);
-	void setIsSuchThatAvail(int val);
-	void setIsPatternAvail(int val);
 
 	void setSynEntityMap(unordered_map<string, string> synToEntityMap);
+
+	void AddWithClause(Clause with_clause);
+	void AddSuchThatClause(Clause such_that_clause);
+	void AddPatternClause(Clause pattern_clause);
 
 private:
 	
@@ -82,7 +84,7 @@ private:
 	vector<vector<Clause>> _connectedGroups;
 	vector<Clause> _nonConnectedGroup;
 
-	WeightTable _weightTable;
+	//WeightTable _weightTable;
 
 	int _isNull;
 };
