@@ -11,7 +11,7 @@
 #include "QueryException.h"
 
 using namespace std;
-
+ 
 const vector<string> DESIGN_ENTITIES({
 	"stmt",
 	"assign",
@@ -33,6 +33,13 @@ const vector<string> ATTRIBUTE_TYPES({
 
 class QueryValidator{
 public:
+	struct Ref {
+		string value = "";
+		string arg_type = "";
+		string with_type = "";
+		int token_type = ERROR;
+	};
+
 	QueryValidator();
 	~QueryValidator(); // best remove
 	QueryValidator(string entity);
@@ -52,9 +59,7 @@ public:
 	void matchPatternClause();
 	void matchPattern();
 	void matchWith();
-	void matchAttrCond();
 	void matchAttrCompare();
-	void matchWithClause();
 	void matchPatternAssign();
 	void matchPatternWhile();
 	void matchPatternIf();
@@ -71,23 +76,15 @@ public:
 	void matchCallsStar();
 	void matchNext();
 	void matchNextStar();
-	void restrainCommonSynonym();
 
 	pair<int,string> matchStmtRef();
 	pair<int,string> matchEntRef();
-	vector<pair<int, string>> matchRef();
-	pair<int, string> matchRefNew(bool is_left);
+	QueryValidator::Ref matchRef();
 
-	bool isAttrNameValid(string attrType);
 	bool synTypeAndAttrNameMatches(string synType, string attrName);
-	bool isLegalWith(string syn_one, string syn_two);
-	bool IsNameType(string syn_type);
-	bool IsStatementType(string syn_type);
-
-
-	string getWithType(string attrName, string synType);
-	string getWithType(int argType);
-	string getWithType(string syn_type);
+	bool IsRefCompatible(Ref left_ref, Ref right_ref);
+ 
+	string getWithTypeByAttrName(string attrName);
 	
 private:
 	QueryTable query_table_;

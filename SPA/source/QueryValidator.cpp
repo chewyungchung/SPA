@@ -222,7 +222,7 @@ void QueryValidator::matchResultClauseElement(bool is_tuple)
 
 	if (next_token_.getTokenName() == ".") {
 		string attribute_type = next_token_.getTokenName();
-		if ((isAttrNameValid(attribute_type) == true) && (synTypeAndAttrNameMatches(result_syn_type, attribute_type) == true)) {
+		if (synTypeAndAttrNameMatches(result_syn_type, attribute_type) == true) {
 			// To be completed in iteration 3
 		}
 		else {
@@ -297,287 +297,34 @@ void QueryValidator::matchPattern() { // TODO: Update match for pattern-if and p
 
 void QueryValidator::matchWith() {
 	match("with");
-	matchAttrCond();
+	matchAttrCompare();
 	while (next_token_.getTokenName() == "and") {
 		match("and");
-		matchAttrCond();
+		matchAttrCompare();
 	}
-}
-
-void QueryValidator::matchAttrCond()
-{
-	// attrCompare: ref '=' ref
-	// Get left and right. Then check validity and then create the with clause
-	
 }
 
 void QueryValidator::matchAttrCompare()
 {
 	vector<string> with_arg, with_arg_type;
-	pair<int, string> with_left = matchRefNew(true);
+	Ref left_ref = matchRef();
 	match("=");
-	pair<int, string> with_right = matchRefNew(false);
+	Ref right_ref = matchRef();
 
-	if ((with_left.first == STRING && with_right.first == INTEGER) || (with_left.first == INTEGER && with_right.first == INTEGER)) {
-		throw(QueryException("Invalid Query : Mismatch attributes, '" + with_left.second + "' and '" + with_right.second + "'"));
+	if (IsRefCompatible(left_ref, right_ref) == true) {
+		with_arg.push_back(left_ref.value);
+		with_arg.push_back(right_ref.value);
+		with_arg_type.push_back(left_ref.arg_type);
+		with_arg_type.push_back(right_ref.arg_type);
+		Clause with_clause("with", with_arg, with_arg_type);
+		query_table_.AddWithClause(with_clause);
 	}
-
-	if (with_left.first == IDENT) {
-		if (with_right.first == IDENT) {
-			if (isLegalWith(with_left.second, with_right.second) == true) {
-				with_arg.push_back(with_left.second);
-				with_arg.push_back(with_right.second);
-				if (with_type_left == "name") {
-					if (syn_to_entity_map_[with_left.second] == "call") {
-						with_arg_type.push_back("call_name");
-					}
-					else {
-						with_arg_type.push_back(syn_to_entity_map_[with_left.second]);
-					}
-
-					if (syn_to_entity_map_[with_right.second] == "call") {
-						with_arg_type.push_back("call_name");
-					}
-				}
-				else {
-					if (syn_to_entity_map_[with_right.second] == "call") {
-						with_arg_type.push_back("call_number");
-					}
-					else {
-						with_arg_type.push_back(syn_to_entity_map_[with_left.second]);
-					}
-				}
-				Clause with_clause("with", with_arg, with_arg_type);
-				query_table_.AddWithClause(with_clause);
-			}
-			else {
-				throw(QueryException("Invalid Query : Mismatch attributes, '" + with_left.second + "' and '" + with_right.second + "'"));
-			}
-		}
-		else if (with_right.first == STRING) {
-			string with_left_syn_type = syn_to_entity_map_[with_left.second];
-			with_arg.push_back(with_left.second);
-			with_arg.push_back(with_right.second);
-			if ((with_left_syn_type == "call") && (with_type_left == "name")) {
-				with_arg_type.push_back("call_name");
-				with_arg_type.push_back("string");
-				Clause with_clause("with", with_arg, with_arg_type);
-				query_table_.AddWithClause(with_clause);
-			}
-			else if (IsNameType(with_left_syn_type) == true) {
-				with_arg.push_back(with_left.second);
-				with_arg.push_back(with_right.second);
-				with_arg_type.push_back(syn_to_entity_map_[with_left.second]);
-				with_arg_type.push_back("string");
-				Clause with_clause("with", with_arg, with_arg_type);
-				query_table_.AddWithClause(with_clause);
-			}
-			else {
-				throw(QueryException("Invalid Query : Mismatch attributes, '" + with_left.second + "' and '" + with_right.second + "'"));
-			}
-		}
-		else if (with_right.first == INTEGER) {
-
-		}
-		else {
-			// ERROR
-		}
-	}
-	else if (with_left.first == STRING) {
-		if (with_right.first == IDENT) {
-
-		}
-		else if (with_right.first == STRING) {
-
-		}
-		else if (with_right.first == INTEGER) {
-
-		}
-		else {
-			// ERROR
-		}
-	}
-	else if (with_left.first == INTEGER) {
-		if (with_right.first == IDENT) {
-
-		}
-		else if (with_right.first == STRING) {
-
-		}
-		else if (with_right.first == INTEGER) {
-
-		}
-		else {
-			// ERROR
-		}
+	else {
+		throw(QueryException("Invalid Query : Mismatched Ref '" + left_ref.value + "' and '" + right_ref.value + "' in Pattern clause"));
 	}
 }
 
-void QueryValidator::matchWithClause() {
-	bool arg1Valid = false;
-	bool arg2Valid = false;
-	string withTypeLHS, withTypeRHS;
-	int type;
-	string synonym, synType, attrName, argName, argType;
-	vector<string> withArg, withArgType;
-
-	vector<pair<int, string>> arg1 = matchRef();
-	match("=");
-	vector<pair<int, string>> arg2 = matchRef();
-
-	// check number of pairs to determine ref type 
-	if (arg1.size() == 2) {
-		// attrRef 
-		for (vector<pair<int, string>>::const_iterator it = arg1.begin(); it != arg1.end(); it++) {
-			synonym = it->second;
-			synType = syn_to_entity_map_[synonym];
-			//firstTokenType = it->first;
-			it++;
-			attrName = it->second;
-			if (isAttrNameValid(attrName) &&
-				synTypeAndAttrNameMatches(synType, attrName)) {
-				arg1Valid = true;
-				withTypeLHS = getWithType(attrName, synType);
-			}
-		}
-		withArg.push_back(synonym);
-		withArgType.push_back(synType);
-	}
-	// all other ref options i.e.IDENT | INTEGER | PROG_LINE | SYNONYM
-	else {
-		for (vector<pair<int, string>>::const_iterator it = arg1.begin(); it != arg1.end(); it++) {
-			type = it->first;
-			argName = it->second;
-			withTypeLHS = getWithType(type);
-		}
-		// only synonym of prog_line type is allowed
-		if (type == IDENT) {
-			if (syn_to_entity_map_[argName] != "" && syn_to_entity_map_[argName] == "prog_line") {
-				_synToUseCountMap[argName] += 1;
-				arg1Valid = true;
-				argType = syn_to_entity_map_[argName];
-			}
-		}
-		else if (type == STRING) {
-			arg1Valid = rel_table_.isArg1Valid(withTypeLHS, "string");
-			argType = "string";
-		}
-		else if (type == INTEGER) {
-			arg1Valid = rel_table_.isArg1Valid(withTypeLHS, "constant");
-			argType = "constant";
-		}
-		withArg.push_back(argName);
-		withArgType.push_back(argType);
-	}
-
-	if (arg2.size() == 2) {
-		// attrRef 
-		for (vector<pair<int, string>>::const_iterator it = arg2.begin(); it != arg2.end(); it++) {
-			synonym = it->second;
-			synType = syn_to_entity_map_[synonym];
-			//int secondTokenType = it->first;
-			it++;
-			attrName = it->second;
-			if (isAttrNameValid(attrName) &&
-				synTypeAndAttrNameMatches(synType, attrName)) {
-				arg2Valid = true;
-				withTypeRHS = getWithType(attrName, synType);
-			}
-		}
-		withArg.push_back(synonym);
-		withArgType.push_back(synType);
-	}
-	// all other ref options i.e.IDENT | INTEGER | SYNONYM (prog_line)
-	else {
-		for (vector<pair<int, string>>::const_iterator it = arg2.begin(); it != arg2.end(); it++) {
-			type = it->first;
-			argName = it->second;
-			withTypeRHS = getWithType(type);
-		}
-		// only synonym of prog_line type is allowed
-		if (type == IDENT) {
-			if (syn_to_entity_map_[argName] != "" && syn_to_entity_map_[argName] == "prog_line") {
-				_synToUseCountMap[argName] += 1;
-				arg2Valid = true;
-				argType = syn_to_entity_map_[argName];
-			}
-		}
-		else if (type == STRING) {
-			arg2Valid = rel_table_.isArg1Valid(withTypeRHS, "string");
-			argType = "string";
-		}
-		else if (type == INTEGER) {
-			arg2Valid = rel_table_.isArg1Valid(withTypeRHS, "constant");
-			argType = "constant";
-		}
-		withArg.push_back(argName);
-		withArgType.push_back(argType);
-	}
-	if (arg1Valid && arg2Valid) {
-		if (withTypeLHS == withTypeRHS) {
-			Clause withClause(withTypeLHS, withArg, withArgType);
-			_withClauses.push_back(withClause);
-			query_table_.setWithClause(_withClauses);
-		}
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected arguments for with"));
-	}
-}
-
-vector<pair<int, string>> QueryValidator::matchRef() {
-	// ref : attrRef | synonyn | IDENT | INTEGER
-	// attrRef : synonym.attrName
-	string with_syn, with_syn_type, argument;
-	int tokenType;
-
-	if (next_token_.getTokenType() == IDENT) {
-		with_syn = next_token_.getTokenName();
-		with_syn_type = syn_to_entity_map_[with_syn];
-		if (syn_to_entity_map_.count(with_syn) == 0) {
-			throw(QueryException("Invalid Query : Unexpected synonym '" + with_syn + "' in with clause"));
-		}
-		match(with_syn);
-		tokenType = next_token_.getTokenType();
-		if (next_token_.getTokenType() != DOT) {
-			if (with_syn_type != "prog_line") {
-				throw(QueryException("Invalid Query : Unexpected synonym '" + with_syn + "' in with clause"));
-			}
-			return vector<pair<int, string>>{{ tokenType, with_syn }}; // TODO: This case means the synonym must be prog_line.
-		}
-		match(".");
-		if (next_token_.getTokenType() == IDENT) {
-			string attrName = next_token_.getTokenName();
-			int attrType = next_token_.getTokenType();
-			match(attrName);
-			return vector<pair<int, string>>{ {tokenType, with_syn}, {attrType, attrName} };
-		}
-		else {
-			throw(QueryException("Invalid Query : Unexpected attibute '" + next_token_.getTokenName() + "' in with clause"));
-		}
-	}
-	else if (next_token_.getTokenName() == "\"") {
-		// '"' IDENT '"'
-		match("\"");
-		argument = next_token_.getTokenName();
-		tokenType = STRING;
-		match(argument);
-		match("\"");
-		return vector<pair<int, string>>{ { tokenType, argument }};
-	}
-	else if (next_token_.getTokenType() == INTEGER) {
-		argument = next_token_.getTokenName();
-		tokenType = next_token_.getTokenType();
-		match(argument);
-		return vector<pair<int, string>>{ { tokenType, argument }};
-	}
-	else {
-		// Invalid Query
-		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.getTokenName() + "'; Expected Ref token"));
-	}
-}
-
-pair<int, string> QueryValidator::matchRefNew(bool is_left)
+QueryValidator::Ref QueryValidator::matchRef()
 {
 	// ref : attrRef | synonyn | IDENT | INTEGER
 	// attrRef : synonym.attrName
@@ -597,9 +344,11 @@ pair<int, string> QueryValidator::matchRefNew(bool is_left)
 				throw(QueryException("Invalid Query : Unexpected synonym '" + with_syn + "' in with clause"));
 			}
 			else {
-				if (is_left == true) with_type_left = "number";
-				if (is_left == false) with_type_right = "number";
-				return pair<int, string>(IDENT, with_syn);
+				Ref with_ref;
+				with_ref.value = with_syn;
+				with_ref.arg_type = "prog_line";
+				with_ref.with_type = "number";
+				return with_ref;
 			}
 		}
 		match(".");
@@ -610,15 +359,29 @@ pair<int, string> QueryValidator::matchRefNew(bool is_left)
 				throw(QueryException("Invalid Query : Unexpected attribute for '" + with_syn + "' in with clause"));
 			}
 			match(attrName);
-			if (attrName == "procName" || attrName == "varName") {
-				if (is_left == true) with_type_left = "name";
-				if (is_left == false) with_type_right = "name";
+			Ref with_ref;
+			with_ref.value = with_syn;
+			if (with_syn_type == "call") {
+				if (attrName == "procName") {
+					with_ref.arg_type = "call_name";
+					with_ref.with_type = "name";
+					return with_ref;
+				}
+				else if (attrName == "stmt#") {
+					with_ref.arg_type = "call_number";
+					with_ref.with_type = "number";
+					return with_ref;
+				}
+			}
+			
+			if (synTypeAndAttrNameMatches(with_syn_type, attrName) == true) {
+				with_ref.arg_type = syn_to_entity_map_[with_syn];
+				with_ref.with_type = getWithTypeByAttrName(attrName);
+				return with_ref;
 			}
 			else {
-				if (is_left == true) with_type_left = "number";
-				if (is_left == false) with_type_right = "number";
+				throw(QueryException("Invalid Query : Unexpected attibute '" + attrName + "' for synonym :'" + with_syn + "'"));
 			}
-			return pair<int, string>(IDENT, with_syn);
 		}
 		else {
 			throw(QueryException("Invalid Query : Unexpected attibute '" + next_token_.getTokenName() + "' in with clause"));
@@ -631,31 +394,25 @@ pair<int, string> QueryValidator::matchRefNew(bool is_left)
 		tokenType = STRING;
 		match(argument);
 		match("\"");
-		if (is_left == true) with_type_left = "name";
-		if (is_left == false) with_type_right = "name";
-		return pair<int, string>(STRING, argument);
+		Ref with_ref;
+		with_ref.value = argument;
+		with_ref.arg_type = "string";
+		with_ref.with_type = "name";
+		return with_ref;
 	}
 	else if (next_token_.getTokenType() == INTEGER) {
 		argument = next_token_.getTokenName();
 		tokenType = next_token_.getTokenType();
 		match(argument);
-		if (is_left == true) with_type_left = "number";
-		if (is_left == false) with_type_right = "number";
-		return pair<int, string>(INTEGER, argument);
+		Ref with_ref;
+		with_ref.value = argument;
+		with_ref.arg_type = "number";
+		with_ref.with_type = "number";
+		return with_ref;
+		return with_ref;
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.getTokenName() + "'; Expected Ref token"));
-	}
-}
-
-bool QueryValidator::isAttrNameValid(string attrName) {
-	vector<string>::const_iterator it;
-	it = find(ATTRIBUTE_TYPES.begin(), ATTRIBUTE_TYPES.end(), attrName);
-	if (it != ATTRIBUTE_TYPES.end()) {
-		return true;
-	}
-	else {
-		return false;
 	}
 }
 
@@ -679,62 +436,25 @@ bool QueryValidator::synTypeAndAttrNameMatches(string synType, string attrName) 
 	}
 }
 
-bool QueryValidator::isLegalWith(string syn_one, string syn_two)
+bool QueryValidator::IsRefCompatible(Ref left_ref, Ref right_ref)
 {
-	return false;
-}
-
-bool QueryValidator::IsNameType(string syn_type)
-{
-	if ((syn_type == "procedure") || (syn_type == "variable")) {
+	if (left_ref.with_type == "number" && right_ref.with_type == "number") {
+		return true;
+	}
+	else if (left_ref.with_type == "name" && right_ref.with_type == "name") {
 		return true;
 	}
 	return false;
 }
 
-bool QueryValidator::IsStatementType(string syn_type)
+string QueryValidator::getWithTypeByAttrName(string attrName)
 {
-	// Dunno should add constant or not
-	if ((syn_type == "statement") || (syn_type == "assign") || (syn_type == "while") || (syn_type == "if") || (syn_type == "prog_line")) {
-		return true;
+	if (attrName == "varName" || attrName == "procName") {
+		return "name";
 	}
-	return false;
-}
-
-string QueryValidator::getWithType(string attrName, string synType) {
-	string withType;
-	if (synType == "procedure" || synType == "call") {
-		withType = "name";
+	else if (attrName == "value" || attrName == "stmt#") {
+		return "number";
 	}
-	else if (synType == "while" || synType == "if" || synType == "assign " || synType == "stmt" ||
-		synType == "constant") {
-		withType = "integer";
-	}
-	else if (synType == "call") {
-		if (attrName == "procName") {
-			withType = "name";
-		}
-		else if (attrName == "stmt#") {
-			withType = "integer";
-		}
-	}
-	return withType;
-}
-
-string QueryValidator::getWithType(int argType) {
-	string withType; 
-	if (argType == IDENT) {
-		withType = "withName";
-	}
-	else if (argType == INTEGER) {
-		withType = "withInt";
-	}
-	return withType;
-}
-
-string QueryValidator::getWithType(string syn_type)
-{
-	return string();
 }
 
 void QueryValidator::matchPatternAssign() {
@@ -1604,18 +1324,4 @@ pair<int,string> QueryValidator::matchEntRef() {
 	}
 	
 	return pair<int,string>(tokenType, argument);
-}
-
-// TODO: Remove this cause it was for iteration 1
-void QueryValidator::restrainCommonSynonym() {
-	int commonSynCount = 0;
-	for (map<string, int>::iterator it = _synToUseCountMap.begin(); it != _synToUseCountMap.end(); it++) {
-		if (it->second >= 2) {
-			commonSynCount++;
-		}
-	}
-
-	if (commonSynCount > 1) {
-		throw(QueryException("Invalid Query : Too many common synonym"));
-	}
 }
