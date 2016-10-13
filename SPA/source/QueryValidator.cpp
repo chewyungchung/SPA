@@ -376,7 +376,12 @@ QueryValidator::Ref QueryValidator::matchRef()
 			
 			if (synTypeAndAttrNameMatches(with_syn_type, attrName) == true) {
 				with_ref.arg_type = syn_to_entity_map_[with_syn];
-				with_ref.with_type = getWithTypeByAttrName(attrName);
+				if (with_syn_type == "constant") {
+					with_ref.arg_type = "value";
+				}
+				else {
+					with_ref.with_type = getWithTypeByAttrName(attrName);
+				}
 				return with_ref;
 			}
 			else {
@@ -722,8 +727,8 @@ void QueryValidator::matchFollow() {
 		vector<string> followsArg({ arg1.second,arg2.second });
 		vector<string> followsArgType ({ arg1Type,arg2Type });
 		Clause followsRelation("follows", followsArg, followsArgType);
-		_suchThatClauses.push_back(followsRelation);
-		query_table_.setSuchThatClause(_suchThatClauses);
+		query_table_.AddSuchThatClause(followsRelation);
+
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for follows"));
@@ -776,8 +781,7 @@ void QueryValidator::matchFollowStar() {
 		vector<string> followsStarArg({ arg1.second,arg2.second });
 		vector<string> followsStarArgType({ arg1Type,arg2Type });
 		Clause followsStarRel("follows*", followsStarArg, followsStarArgType);
-		_suchThatClauses.push_back(followsStarRel);
-		query_table_.setSuchThatClause(_suchThatClauses);
+		query_table_.AddSuchThatClause(followsStarRel);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for follows*"));
@@ -830,8 +834,7 @@ void QueryValidator::matchParent() {
 		vector<string> parentArgType({ arg1Type,arg2Type });
 		Clause parentClause("parent", parentArg, parentArgType);
 		Clause parentRel("parent", parentArg, parentArgType);
-		_suchThatClauses.push_back(parentRel);
-		query_table_.setSuchThatClause(_suchThatClauses);
+		query_table_.AddSuchThatClause(parentRel);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for parent"));
@@ -883,8 +886,7 @@ void QueryValidator::matchParentStar() {
 		vector<string> parentStarArg({ arg1.second,arg2.second });
 		vector<string> parentStarArgType({ arg1Type,arg2Type });
 		Clause parentStarRel("parent*", parentStarArg, parentStarArgType);
-		_suchThatClauses.push_back(parentStarRel);
-		query_table_.setSuchThatClause(_suchThatClauses);
+		query_table_.AddSuchThatClause(parentStarRel);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for parent*"));
@@ -892,9 +894,8 @@ void QueryValidator::matchParentStar() {
 }
 
 void QueryValidator::matchModifies() {
-	// Check if arguments, num of arguments are valid
 	match("(");
-	pair<int,string> arg1 = matchStmtRef(); // TODO: Might need to change and cater for entRef also. Since now can be procedure/"string"
+	pair<int,string> arg1 = matchEntRef();
 	match(",");
 	pair<int, string> arg2 = matchEntRef();
 	match(")");
@@ -917,11 +918,11 @@ void QueryValidator::matchModifies() {
 		arg1Valid = rel_table_.isArg1Valid("modifies", "constant");
 		arg1Type = "constant";
 	}
-	// arg 1 is a procedure e.g. Modifies("First", "x")
 	else if (arg1.first == STRING) {
 		arg1Valid = rel_table_.isArg1Valid("modifies", "string");
 		arg1Type = "string";
 	}
+
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
 			arg2Valid = rel_table_.isArg2Valid("modifies", syn_to_entity_map_[arg2.second]);
@@ -950,9 +951,8 @@ void QueryValidator::matchModifies() {
 }
 
 void QueryValidator::matchUses() {
-	// Check if arguments, num of arguments are valid
 	match("(");
-	pair<int,string> arg1 = matchStmtRef(); // TODO: Same as modifies. Need cater for ModifiesP
+	pair<int,string> arg1 = matchEntRef();
 	match(",");
 	pair<int,string> arg2 = matchEntRef();
 	match(")");
@@ -976,6 +976,11 @@ void QueryValidator::matchUses() {
 		arg1Valid = rel_table_.isArg1Valid("uses", "constant");
 		arg1Type = "constant";
 	}
+	else if (arg1.first == STRING) {
+		arg1Valid = rel_table_.isArg1Valid("uses", "string");
+		arg1Type = "string";
+	}
+
 	if (arg2.first == IDENT) {
 		if (syn_to_entity_map_[arg2.second] != "") {
 			arg2Valid = rel_table_.isArg2Valid("uses", syn_to_entity_map_[arg2.second]);
@@ -1060,8 +1065,7 @@ void QueryValidator::matchCalls() {
 		vector<string> callsArg({ arg1.second,arg2.second });
 		vector<string> callsArgType({ arg1Type,arg2Type });
 		Clause callsRel("calls", callsArg, callsArgType);
-		_suchThatClauses.push_back(callsRel);
-		query_table_.setSuchThatClause(_suchThatClauses);
+		query_table_.AddSuchThatClause(callsRel);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for calls"));
@@ -1112,8 +1116,7 @@ void QueryValidator::matchCallsStar() {
 		vector<string> callsStarArg({ arg1.second,arg2.second });
 		vector<string> callsStarArgType({ arg1Type,arg2Type });
 		Clause callsStarRel("calls*", callsStarArg, callsStarArgType);
-		_suchThatClauses.push_back(callsStarRel);
-		query_table_.setSuchThatClause(_suchThatClauses);
+		query_table_.AddSuchThatClause(callsStarRel);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for calls*"));
@@ -1165,8 +1168,7 @@ void QueryValidator::matchNext() {
 		vector<string> nextArg({ arg1.second,arg2.second });
 		vector<string> nextArgType({ arg1Type,arg2Type });
 		Clause nextRel("next", nextArg, nextArgType);
-		_suchThatClauses.push_back(nextRel);
-		query_table_.setSuchThatClause(_suchThatClauses);
+		query_table_.AddSuchThatClause(nextRel);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for next"));
@@ -1218,8 +1220,7 @@ void QueryValidator::matchNextStar() {
 		vector<string> nextStarArg({ arg1.second,arg2.second });
 		vector<string> nextStarArgType({ arg1Type,arg2Type });
 		Clause nextStarRel("next*", nextStarArg, nextStarArgType);
-		_suchThatClauses.push_back(nextStarRel);
-		query_table_.setSuchThatClause(_suchThatClauses);
+		query_table_.AddSuchThatClause(nextStarRel);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for nextStar"));
