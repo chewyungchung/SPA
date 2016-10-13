@@ -93,6 +93,12 @@
     <ClCompile Include="source\CallsTable.cpp">
       <Filter>Source Files\PKB</Filter>
     </ClCompile>
+    <ClCompile Include="source\CallsGraph.cpp">
+      <Filter>Source Files\PKB</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcTable.cpp">
+      <Filter>Source Files\PKB</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Parser.h">
@@ -156,6 +162,12 @@
       <Filter>Header Files\PKB</Filter>
     </ClInclude>
     <ClInclude Include="source\CallsTable.h">
+      <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CallsGraph.h">
+      <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcTable.h">
       <Filter>Header Files\PKB</Filter>
     </ClInclude>
   </ItemGroup>
