@@ -4,10 +4,6 @@ QueryValidator::QueryValidator() {
 	query_table_ = QueryTable(false);
 }
 
-QueryValidator::~QueryValidator() {
-
-}
-
 QueryValidator::QueryValidator(string query) {
 	query_string_ = query;
 	tokenizer_ = QueryTokenizer(query);
@@ -24,11 +20,10 @@ QueryTable QueryValidator::parse() {
 		// Output error message onto console. Purely debug for now
 		cout << e.what() << endl;
 		// Return a null pointer to indicate that an invalid query has been sent in
-		// TODO: Check QueryTable implementation for marking as null query
 		return QueryTable(true);
 	}
 
-	query_table_.optimize();
+	//query_table_.optimize();
 	return query_table_;
 }
 
@@ -110,11 +105,11 @@ void QueryValidator::matchDeclarationVar(string entity) {
 void QueryValidator::matchSelect() {
 	string previousClause = "none";
 	match("Select");
-	// matchResultClauseElement();
+	matchResultClause();
 	// Match 'Such That' | 'Pattern' | 'And' | 'With' |
 
 	while (next_token_.getTokenName() == "such" || next_token_.getTokenName() == "pattern" || next_token_.getTokenName() == "with") {
-		matchClause(next_token_.getTokenName());
+		matchClause();
 	}
 	if (next_token_.getTokenName() != "") {
 		throw (QueryException("Invalid Query! : Not in PQL Grammar: " + next_token_.getTokenName()));
@@ -208,7 +203,7 @@ void QueryValidator::matchResultClauseElement(bool is_tuple)
 	vector<string> selectArg, selectArgType;
 	string result_syn, result_syn_type;
 
-	if (next_token_.getTokenType == IDENT) {
+	if (next_token_.getTokenType() == IDENT) {
 		result_syn = next_token_.getTokenName();
 		result_syn_type = syn_to_entity_map_[result_syn];
 		if (syn_to_entity_map_.count(result_syn) == 0) {
@@ -237,14 +232,14 @@ void QueryValidator::matchResultClauseElement(bool is_tuple)
 }
 
 
-void QueryValidator::matchClause(string previousClause) {
-	if (previousClause == "such") {
+void QueryValidator::matchClause() {
+	if (next_token_.getTokenName() == "such") {
 		matchSuchThat();
 	}
-	else if (previousClause == "pattern") {
-		matchPattern();
+	else if (next_token_.getTokenName() == "pattern") {
+		matchPatternClause();
 	}
-	else if (previousClause == "with") {
+	else if (next_token_.getTokenName() == "with") {
 		matchWith();
 	}
 	else {
@@ -278,7 +273,6 @@ void QueryValidator::matchPattern() { // TODO: Update match for pattern-if and p
 	string pattern_syn_type = syn_to_entity_map_[pattern_syn];
 	if (syn_to_entity_map_.count(pattern_syn) == 0) {
 		throw(QueryException("Invalid Query : Unexpected synonym '" + pattern_syn + "' in Pattern clause"));
-
 	}
 
 	if (pattern_syn_type == "assign") {
@@ -352,7 +346,7 @@ QueryValidator::Ref QueryValidator::matchRef()
 			}
 		}
 		match(".");
-		if (next_token_.getTokenType() == IDENT) {
+		if (next_token_.getTokenType() == IDENT || next_token_.getTokenType() == HASH_IDENT) {
 			string attrName = next_token_.getTokenName();
 			int attrType = next_token_.getTokenType();
 			if (synTypeAndAttrNameMatches(with_syn_type, attrName) == false) {
@@ -490,11 +484,13 @@ void QueryValidator::matchPatternAssign()
 				match("_");
 			}
 		}
-		else if (next_token_.getTokenType == DOUBLE_QUOTE) {
+		else if (next_token_.getTokenType() == DOUBLE_QUOTE) {
 			match("\"");
+			expression_string_ = "";
 			matchExpr();
 			match("\"");
 		}
+		match(")");
 
 		if (assign_var_ref.first == IDENT) {
 			if (syn_to_entity_map_[assign_var_ref.second] != "") {
@@ -568,7 +564,7 @@ void QueryValidator::matchPatternWhile() {
 		if (is_control_variable_valid == true) {
 			vector<string> while_arg = { while_syn, while_control_variable.second };
 			vector<string> while_arg_type = { "while", while_control_var_type };
-			Clause pattern_while_clause("while", while_arg, while_arg_type);
+			Clause pattern_while_clause("pattern", while_arg, while_arg_type);
 			query_table_.AddPatternClause(pattern_while_clause);
 		}
 		else {
@@ -615,7 +611,7 @@ void QueryValidator::matchPatternIf() {
 		if (is_control_variable_valid == true) {
 			vector<string> if_arg = { if_syn, if_control_variable.second };
 			vector<string> if_arg_type = { "if", if_control_var_type };
-			Clause pattern_if_clause("if", if_arg, if_arg_type);
+			Clause pattern_if_clause("pattern", if_arg, if_arg_type);
 			query_table_.AddPatternClause(pattern_if_clause);
 		}
 		else {
@@ -624,18 +620,6 @@ void QueryValidator::matchPatternIf() {
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.getTokenName() + "'; Expected valid if synonym"));
-	}
-}
-
-pair<int,string> QueryValidator::matchFactor() {
-	if (next_token_.getTokenType() == IDENT || next_token_.getTokenType() == INTEGER || next_token_.getTokenType() == UNDERSCORE) {
-		string factor = next_token_.getTokenName();
-		int tokenType = next_token_.getTokenType();
-		match(factor);
-		return pair<int,string>(tokenType,factor);
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.getTokenName() + "'; Expected a factor"));
 	}
 }
 
@@ -1225,15 +1209,49 @@ void QueryValidator::matchNextStar() {
 	}
 }
 
-pair<int,string> QueryValidator::matchExpr()
-{
-	return pair<int, string>();
+void QueryValidator::matchExpr() {
+	if (next_token_.getTokenType() == PLUS || next_token_.getTokenType() == MINUS) {
+		expression_string_ += next_token_.getTokenName();
+		match(next_token_.getTokenName());
+	}
+	matchTerm();
+	while (next_token_.getTokenType() == PLUS || next_token_.getTokenType() == MINUS) {
+		expression_string_ += next_token_.getTokenName();
+		match(next_token_.getTokenName());
+		matchTerm();
+	}
 }
 
-pair<int,string> QueryValidator::matchSubExpr()
-{
-	return pair<int, string>();
+void QueryValidator::matchTerm() {
+	matchFactor();
+	while (next_token_.getTokenType() == STAR) {
+		expression_string_ += next_token_.getTokenName();
+		match(next_token_.getTokenName());
+		matchFactor();
+	}
 }
+
+void QueryValidator::matchFactor() {
+	if (next_token_.getTokenType() == IDENT) {
+		expression_string_ += next_token_.getTokenName();
+		match(next_token_.getTokenName());
+	}
+	else if (next_token_.getTokenType() == INTEGER) {
+		expression_string_ += next_token_.getTokenName();
+		match(next_token_.getTokenName());
+	}
+	else if (next_token_.getTokenType() == OPEN_BRACKET) {
+		expression_string_ += next_token_.getTokenName();
+		match("(");
+		matchExpr();
+		expression_string_ += next_token_.getTokenName();
+		match(")");
+	}
+	else {
+		throw(QueryException("Invalid expression!"));
+	}
+}
+
 
 pair<int,string> QueryValidator::matchStmtRef() {
 	// stmtRef : synonym | ‘_’ | INTEGER

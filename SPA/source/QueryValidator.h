@@ -19,9 +19,9 @@ const vector<string> DESIGN_ENTITIES({
 	"variable",
 	"constant",
 	"prog_line",
-	"procedure", // added for iteration 2
-	"if", // added for iteration 2 
-	"call" // added for iteration 2
+	"procedure",
+	"if", 
+	"call"
 });
 
 const vector<string> ATTRIBUTE_TYPES({
@@ -37,12 +37,10 @@ public:
 		string value = "";
 		string arg_type = "";
 		string with_type = "";
-		int token_type = ERROR;
 	};
 
 	QueryValidator();
-	~QueryValidator(); // best remove
-	QueryValidator(string entity);
+	QueryValidator(string query_string);
 	QueryTable parse();
 	
 	QueryToken getToken();
@@ -54,7 +52,7 @@ public:
 	void matchResultClause();
 	void matchTupleResult();
 	void matchResultClauseElement(bool is_tuple);
-	void matchClause(string previousClause);
+	void matchClause();
 	void matchSuchThat();
 	void matchPatternClause();
 	void matchPattern();
@@ -63,8 +61,6 @@ public:
 	void matchPatternAssign();
 	void matchPatternWhile();
 	void matchPatternIf();
-	pair<int,string> matchFactor();
-	//pair<int,string> matchExpr();
 	void matchRelation();
 	void matchFollow();
 	void matchFollowStar();
@@ -77,8 +73,12 @@ public:
 	void matchNext();
 	void matchNextStar();
 
-	pair<int, string> matchExpr();
-	pair<int, string> matchSubExpr();
+	// Expression
+	void matchExpr();
+	void matchTerm();
+	void matchFactor();
+
+
 	pair<int,string> matchStmtRef();
 	pair<int,string> matchEntRef();
 	pair<int, string> matchVarRef();

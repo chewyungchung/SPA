@@ -15,6 +15,7 @@ QueryTokenizer::QueryTokenizer(string queryString) {
 QueryToken QueryTokenizer::tokenize() {
 	_token = "";
 	bool isUnderscore = false;
+	bool is_hash_present = false;
 	// Skip all the tab + space
 	while (_charType == WHITESPACE || _charType == TAB) {
 		getNextChar();
@@ -37,6 +38,9 @@ QueryToken QueryTokenizer::tokenize() {
 			if (_charType == UNDERSCORE) {
 				isUnderscore = true;
 			}
+			if (_charType == HASH) {
+				is_hash_present = true;
+			}
 			addNextChar();
 			getNextChar();
 		}
@@ -47,6 +51,9 @@ QueryToken QueryTokenizer::tokenize() {
 			else {
 				return QueryToken(ERROR, _token);
 			}
+		}
+		if (is_hash_present == true) {
+			return QueryToken(HASH_IDENT, _token);
 		}
 		return QueryToken(IDENT, _token);
 	}
@@ -104,6 +111,16 @@ QueryToken QueryTokenizer::tokenize() {
 		getNextChar();
 		return QueryToken(EQUAL, _token);
 	}
+	else if (_charType == PLUS) {
+		addNextChar();
+		getNextChar();
+		return QueryToken(PLUS, _token);
+	}
+	else if (_charType == MINUS) {
+		addNextChar();
+		getNextChar();
+		return QueryToken(MINUS, _token);
+	}
 	else {
 		return QueryToken(ERROR, _token);
 	}
@@ -141,6 +158,8 @@ void QueryTokenizer::getNextChar() {
 		case '.': _charType = DOT; break;
 		case '#': _charType = HASH; break;
 		case '=': _charType = EQUAL; break;
+		case '+': _charType = PLUS; break;
+		case '-': _charType = MINUS; break;
 		case '~': _charType = ENDL; break;
 		default: break;
 	}

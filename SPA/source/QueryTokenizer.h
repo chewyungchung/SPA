@@ -13,6 +13,7 @@ enum TOKEN_TYPE {
 	STAR,
 	WHITESPACE,
 	IDENT,
+	HASH_IDENT,
 	INTEGER,
 	LETTER,
 	DIGIT,
@@ -24,7 +25,9 @@ enum TOKEN_TYPE {
 	STRING,
 	DOT,
 	HASH,
-	EQUAL
+	EQUAL,
+	PLUS,
+	MINUS
 };
 
 class QueryTokenizer{
