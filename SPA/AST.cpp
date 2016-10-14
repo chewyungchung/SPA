@@ -61,13 +61,13 @@ string AST::makeExpr(string infix) {
 				stack.pop();
 			}
 			if (stack.empty()) {
-				throw std::runtime_error("missing left paren");
+				return NULL;
 			}
 			stack.pop();
 			postfix << ' ';
 		}
 		else {
-			throw std::runtime_error("invalid input character");
+			return NULL;
 		}
 	}
 
@@ -76,12 +76,12 @@ string AST::makeExpr(string infix) {
 		stack.pop();
 	}
 	if (stack.empty()) {
-		throw std::runtime_error("missing left paren");
+		return NULL;
 	}
 	stack.pop();
 
 	if (!stack.empty()) {
-		throw std::runtime_error("missing right paren");
+		return NULL;
 	}
 
 	return postfix.str();

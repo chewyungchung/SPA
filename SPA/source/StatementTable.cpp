@@ -7,6 +7,7 @@ StatementTable::StatementTable()
 	list<int> assignList;
 	list<int> whileList;
 	list<int> allStmtList;
+	list<int> ifList;
 }
 
 StatementTable::~StatementTable()
@@ -25,6 +26,11 @@ void StatementTable::addStatement(int stmtNum, string stmtType)
 		whileList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
 	}
+	else if (stmtType == "if")
+	{
+		ifList.push_back(stmtNum);
+		allStmtList.push_back(stmtNum);
+	}
 }
 
 list<int> StatementTable::getAssignList()
@@ -35,6 +41,11 @@ list<int> StatementTable::getAssignList()
 list<int> StatementTable::getWhileList()
 {
 	return whileList;
+}
+
+list<int> StatementTable::getIfList()
+{
+	return ifList;
 }
 
 list<int> StatementTable::getStmtList()
