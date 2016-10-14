@@ -99,10 +99,16 @@
     <ClCompile Include="source\ResultTable.cpp">
       <Filter>Source Files\QueryProcessor</Filter>
     </ClCompile>
-    <ClCompile Include="ProcTable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\AST.cpp">
+      <Filter>Source Files\PKB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ProcTable.cpp">
+      <Filter>Source Files\PKB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Node.cpp">
+      <Filter>Source Files\PKB</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CFG.cpp">
       <Filter>Source Files\PKB</Filter>
     </ClCompile>
   </ItemGroup>
@@ -173,13 +179,19 @@
     <ClInclude Include="source\CallsGraph.h">
       <Filter>Header Files\PKB</Filter>
     </ClInclude>
-    <ClInclude Include="ProcTable.h">
-      <Filter>Header Files\PKB</Filter>
-    </ClInclude>
     <ClInclude Include="source\ResultTable.h">
       <Filter>Header Files\QueryProcessor</Filter>
     </ClInclude>
     <ClInclude Include="source\AST.h">
+      <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ProcTable.h">
+      <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Node.h">
+      <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CFG.h">
       <Filter>Header Files\PKB</Filter>
     </ClInclude>
   </ItemGroup>
