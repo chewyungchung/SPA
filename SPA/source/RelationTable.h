@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -11,11 +12,11 @@ class RelationTable {
 
 public:
 	RelationTable();
-	bool isValidRelation(string relation);
-	bool isArg1Valid(string relation, string argType);
-	bool isArg2Valid(string relation, string argType);
-	bool isCorrectNumArg(string relation, int numOfArg);
+	bool IsValidRelation(string relation);
+	bool IsArg1Valid(string relation, string arg_type);
+	bool IsArg2Valid(string relation, string arg_type);
+	bool IsCorrectNumArg(string relation, int num_of_arg);
 private:
-	unordered_map<string, Relation> _relationTable;
+	unordered_map<string, Relation> relation_table_;
 	
 };

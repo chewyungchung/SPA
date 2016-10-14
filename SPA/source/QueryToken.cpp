@@ -4,15 +4,15 @@ QueryToken::QueryToken() {
 
 }
 
-QueryToken::QueryToken(int tokenType, string tokenName) {
-	_tokenType = tokenType;
-	_tokenName = tokenName;
+QueryToken::QueryToken(int token_type, string token_name) {
+	token_type_ = token_type;
+	token_name_ = token_name;
 }
 
-int QueryToken::getTokenType() {
-	return _tokenType;
+int QueryToken::GetTokenType() {
+	return token_type_;
 }
 
-string QueryToken::getTokenName() {
-	return _tokenName;
+string QueryToken::GetTokenName() {
+	return token_name_;
 }
