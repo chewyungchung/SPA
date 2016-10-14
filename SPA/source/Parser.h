@@ -38,22 +38,35 @@ private:
 	int followsMaxNestingLevel;
 	stack<int> followsStack;
 
+	// RHS data
+	stack<string> bracketStack;
+	string currRHS;
+
 	// SIMPLE language flags and stmtTypes
 	string PROCEDURE_FLAG = "procedure";
 	string WHILE_FLAG = "while";
 	string ASSIGN_FLAG = "assign";
 	string CALL_FLAG = "call";
+	string IF_FLAG = "if";
+	string THEN_FLAG = "then";
+	string ELSE_FLAG = "else";
 	string EQUAL_FLAG = "=";
 	string PLUS_FLAG = "+";
+	string MINUS_FLAG = "-";
+	string TIMES_FLAG = "*";
 	string SEMICOLON_FLAG = ";";
 	string LEFT_BRACES = "{";
 	string RIGHT_BRACES = "}";
+	string LEFT_PARENTHESIS = "(";
+	string RIGHT_PARENTHESIS = ")";
 
 	void match(string token);
 	void parseProgram();
 	void parseProcedure();
 	void parseStmtLst();
 	void parseWhileStmt();
+	void parseIfStmt();
+	void parseElseStmt();
 	void parseCallStmt();
 	void parseAssignStmt();
 	void parseAssignRHS();

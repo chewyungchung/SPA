@@ -267,6 +267,23 @@ list<string> PKB::getCallersStar(string callee)
 	return Calls_Table.getCallersStar(callee);
 }
 
+/***************** CallsGraph ******************/
+
+void PKB::buildCallsGraph(int vertexCount, PKB pkb)
+{
+	this->Calls_Graph = CallsGraph(vertexCount, pkb);
+}
+
+bool PKB::isCallsGraphCyclic()
+{
+	return Calls_Graph.isCallsGraphCyclic();
+}
+
+void PKB::updateAllProcModUses()
+{
+	Calls_Graph.updateAllProcModUses();
+}
+
 /***************** CallsTable ******************/
 void PKB::addProc(string procName)
 {

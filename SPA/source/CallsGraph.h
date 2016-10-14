@@ -9,7 +9,7 @@ class CallsGraph
 public:
 	CallsGraph(int vertexCount, PKB pkb);
 	~CallsGraph();
-	bool isCyclic();
+	bool isCallsGraphCyclic();
 	void updateAllProcModUses();
 
 private:
