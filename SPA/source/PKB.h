@@ -96,6 +96,7 @@ public:
 	list<int> getAssignList();
 	list<int> getWhileList();
 	list<int> getIfList();
+	list<int> getCallList();
 	list<int> getStmtList();
 	int getStatementCount();
 	bool isValidStmt(int stmtNum);
@@ -131,6 +132,8 @@ public:
 	list<string> getUsedByProc(string procName);
 	list<string> getProcedureModifying(string varName);
 	list<string> getProcedureUsing(string varName);
+	bool isProcedureExist(string procName);
+	list<int> getCallByProcName(string procName);
 	list<string> getCalledProcNamesList();
 	list<string> getProcedureList();
 

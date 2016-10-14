@@ -13,6 +13,7 @@ private:
 	list<int> whileList;
 	list<int> allStmtList;
 	list<int> ifList;
+	list<int> callList;
 	unordered_map<int, string> ctrlvarList;
 
 	public:
@@ -23,6 +24,7 @@ private:
 	list<int> getAssignList();
 	list<int> getWhileList();
 	list<int> getIfList();
+	list<int> getCallList();
 	list<int> getIfListWithControlVariable(string ctrlvar);
 	list<int> getWhileListWithControlVariable(string ctrlvar);
 	list<int> getStmtList();

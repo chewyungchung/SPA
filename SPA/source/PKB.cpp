@@ -192,6 +192,11 @@ list<int> PKB::getIfList()
 	return S_Table.getIfList();
 }
 
+list<int> PKB::getCallList()
+{
+	return S_Table.getCallList();
+}
+
 list<int> PKB::getIfListWithControlVariable(string control_var) {
 	return S_Table.getIfListWithControlVariable(control_var);
 }
@@ -348,6 +353,16 @@ list<string> PKB::getProcedureModifying(string varName)
 list<string> PKB::getProcedureUsing(string varName)
 {
 	return Proc_Table.getProcedureUsing(varName);
+}
+
+bool PKB::isProcedureExist(string procName)
+{
+	return Proc_Table.isProcedureExist(procName);
+}
+
+list<int> PKB::getCallByProcName(string procName)
+{
+	return Proc_Table.getCallByProcName(procName);
 }
 
 list<string> PKB::getCalledProcNamesList()

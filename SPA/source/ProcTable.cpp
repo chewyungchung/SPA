@@ -218,6 +218,33 @@ list<string> ProcTable::getProcedureUsing(string varName)
 	return results;
 }
 
+bool ProcTable::isProcedureExist(string procName)
+{
+	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	return it != procNameIndexTable.end();
+}
+
+list<int> ProcTable::getCallByProcName(string procName)
+{
+	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	list<int> results = list<int>();
+
+	if (it != procNameIndexTable.end())
+	{
+		list<string> s_results = procDataTable[it->second][CALLED_IN_STMT_COL];
+		list<string>::iterator it;
+		for (it = s_results.begin; it != s_results.end(); ++it)
+		{
+			results.push_back(stoi(*it));
+		}
+		return results;
+	}
+	else
+	{
+		return results;
+	}
+}
+
 list<string> ProcTable::getCalledProcNamesList()
 {
 	list<string> results = list<string>();

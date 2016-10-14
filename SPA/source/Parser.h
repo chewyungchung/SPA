@@ -46,7 +46,7 @@ private:
 	string PROCEDURE_FLAG = "procedure";
 	string WHILE_FLAG = "while";
 	string ASSIGN_FLAG = "assign";
-	string CALL_FLAG = "call";
+	string CALL_FLAG = "calls";
 	string IF_FLAG = "if";
 	string THEN_FLAG = "then";
 	string ELSE_FLAG = "else";
