@@ -372,6 +372,7 @@ QueryValidator::Ref QueryValidator::matchRef()
 				with_ref.arg_type = syn_to_entity_map_[with_syn];
 				if (with_syn_type == "constant") {
 					with_ref.arg_type = "value";
+					with_ref.with_type = "number";
 				}
 				else {
 					with_ref.with_type = getWithTypeByAttrName(attrName);
