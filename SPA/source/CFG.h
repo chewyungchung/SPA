@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include <stack>
+#include <list>
 #include "Node.h"
 
 using namespace std;
@@ -29,4 +30,5 @@ private:
 	unordered_map<int, Node> nodeTable;
 	stack<Node*> stack;
 	Node *ptr;
+	int** matrix;
 };

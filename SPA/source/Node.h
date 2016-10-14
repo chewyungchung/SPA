@@ -10,6 +10,7 @@ public:
 	Node(int);
 	void addNext(Node);
 	list<Node> getNextList();
+	int getStmtnum();
 private:
 	int stmtnum;
 	list<Node> nextList;

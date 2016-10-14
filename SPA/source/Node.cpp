@@ -15,3 +15,8 @@ void Node::addNext(Node n) {
 list<Node> Node::getNextList() {
 	return nextList;
 }
+
+int Node::getStmtnum()
+{
+	return stmtnum;
+}

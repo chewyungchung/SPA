@@ -70,6 +70,17 @@ void CFG::closeWhileCFG()
 
 void CFG::buildCFGMatrix()
 {
+	int size = nodeTable.size + 1;
+	matrix = new int*[size];
+	for (int i = 0; i < size; ++i) {
+		matrix[i] = new int[size];
+	}
+
+	for (auto map : nodeTable) {
+		for (Node n : map.second.getNextList()) {
+			matrix[map.first][n.getStmtnum] = 1;
+		}
+	}
 }
 
 bool CFG::isNext(int n1, int n2)
