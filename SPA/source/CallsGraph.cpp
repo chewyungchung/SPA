@@ -135,11 +135,25 @@ void CallsGraph::updateParentProc(int parent, int child)
 void CallsGraph::addAllModVar(int parent, int child)
 {
 	string parent = pkb.getProcName(parent);
-	string parent = pkb.getProcName(child);
+	string child = pkb.getProcName(child);
+
+	list<string> modVarChild = pkb.getModifiedByProc(child);
+	list<string>::iterator it;
+	for (it = modVarChild.begin(); it != modVarChild.end(); ++it)
+	{
+		pkb.addProcMod(parent, *it);
+	}
 }
 
 void CallsGraph::addAllUsedVar(int parent, int child)
 {
 	string parent = pkb.getProcName(parent);
-	string parent = pkb.getProcName(child);
+	string child = pkb.getProcName(child);
+
+	list<string> usesVarChild = pkb.getUsedByProc(child);
+	list<string>::iterator it;
+	for (it = usesVarChild.begin(); it != usesVarChild.end(); ++it)
+	{
+		pkb.addProcUses(parent, *it);
+	}
 }
