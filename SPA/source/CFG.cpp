@@ -71,3 +71,38 @@ void CFG::closeWhileCFG()
 void CFG::buildCFGMatrix()
 {
 }
+
+bool CFG::isNext(int n1, int n2)
+{
+	return false;
+}
+
+bool CFG::isNextStar(int n1, int n2)
+{
+	return false;
+}
+
+bool CFG::isNextEmpty()
+{
+	return false;
+}
+
+int CFG::getExecutedBefore(int n)
+{
+	return 0;
+}
+
+int CFG::getExecutedAfter(int n)
+{
+	return 0;
+}
+
+list<int> CFG::getExecutedBeforeStar(int n)
+{
+	return list<int>();
+}
+
+list<int> CFG::getExecutedAfterStar(int n)
+{
+	return list<int>();
+}

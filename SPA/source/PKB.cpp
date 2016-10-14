@@ -339,31 +339,66 @@ list<string> PKB::getProcedureList()
 }
 
 /***************** CFG ******************/
-void PKB::addProcCFG() 
+void PKB::addProcCFG()
 {
 	Cfg.addProcCFG;
 }
 
-void PKB::addStmtCFG(int stmtnum, string stmtType) 
+void PKB::addStmtCFG(int stmtnum, string stmtType)
 {
 	Cfg.addStmtCFG(stmtnum, stmtType);
 }
-void PKB::closeIfCFG() 
+void PKB::closeIfCFG()
 {
 	Cfg.closeIfCFG();
 }
 
-void PKB::closeElseCFG() 
+void PKB::closeElseCFG()
 {
 	Cfg.closeElseCFG();
 }
 
-void PKB::closeWhileCFG() 
+void PKB::closeWhileCFG()
 {
 	Cfg.closeWhileCFG();
 }
 
-void PKB::buildCFGMatrix() 
+void PKB::buildCFGMatrix()
 {
 	Cfg.buildCFGMatrix();
+}
+
+bool PKB::isNext(int n1, int n2)
+{
+	return Cfg.isNext(n1, n2);
+}
+
+bool PKB::isNextStar(int n1, int n2)
+{
+	return Cfg.isNextStar(n1, n2);
+}
+
+bool PKB::isNextEmpty()
+{
+	return Cfg.isNextEmpty();
+}
+
+int PKB::getExecutedBefore(int n)
+{
+	return Cfg.getExecutedBefore(n);
+}
+
+int PKB::getExecutedAfter(int n)
+{
+	return Cfg.getExecutedAfter(n);
+}
+
+list<int> PKB::getExecutedBeforeStar(int n)
+{
+	return getExecutedBeforeStar(n);
+}
+
+list<int> PKB::getExecutedAfterStar(int n)
+{
+	return Cfg.getExecutedAfterStar(n);
 }
