@@ -187,6 +187,14 @@ list<int> PKB::getIfList()
 	return S_Table.getIfList();
 }
 
+list<int> PKB::getIfListWithControlVariable(string control_var) {
+	return S_Table.getIfListWithControlVariable(control_var);
+}
+
+list<int> PKB::getWhileListWithControlVariable(string control_var) {
+	return S_Table.getWhileListWithControlVariable(control_var);
+}
+
 list<int> PKB::getStmtList()
 {
 	return S_Table.getStmtList();
@@ -216,15 +224,4 @@ list<int> PKB::getConstantList()
 list<int> PKB::getStmtlineByConstant(int c)
 {
 	return C_Table.getStmtlineByConstant(c);
-}
-
-/***************** TODO ******************/
-list<int> PKB::getIfListWithControlVariable(string control_var) {
-	list<int> output = S_Table.getIfList();
-	return output;
-}
-
-list<int> PKB::getWhileListWithControlVariable(string control_var) {
-	list<int> output = S_Table.getWhileList();
-	return output;
 }
