@@ -107,13 +107,13 @@ public:
 	list<int> getStmtlineByConstant(int c);
 
 	void addCalls(string caller, string callee);
-	list<string> getCallees(string caller);
-	list<string> getCallers(string callee);
-	bool isCallsEmpty();
-	bool isCalls(string caller, string callee);
-	bool isCallsStar(string caller, string callee);
-	list<string> getCalleesStar(string caller);
-	list<string> getCallersStar(string callee);
+	list<string> getCallee(string caller);
+	list<string> getCaller(string callee);
+	bool isCallExist();
+	bool isCall(string caller, string callee);
+	bool isCallStar(string caller, string callee);
+	list<string> getCalleeStar(string caller);
+	list<string> getCallerStar(string callee);
 
 	void buildCallsGraph(int vertexCount, PKB pkb);
 	bool isCallsGraphCyclic();

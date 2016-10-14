@@ -7,6 +7,7 @@ using namespace std;
 class CallsGraph
 {
 public:
+	CallsGraph();
 	CallsGraph(int vertexCount, PKB pkb);
 	~CallsGraph();
 	bool isCallsGraphCyclic();
