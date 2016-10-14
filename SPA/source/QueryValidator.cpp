@@ -99,7 +99,7 @@ void QueryValidator::MatchDeclarationVar(string entity) {
 		// End declaration for this entity type
 		Match(";");
 	}
-	query_table_.setSynEntityMap(syn_to_entity_map_);
+	query_table_.SetSynEntityMap(syn_to_entity_map_);
 }
 
 void QueryValidator::MatchSelect() {
@@ -123,7 +123,7 @@ void QueryValidator::MatchResultClause() {
 	if (next_token_.GetTokenName() == "BOOLEAN") {
 		vector<string> select_arg({ "BOOLEAN" });
 		Clause select_clause("SELECT", select_arg, select_arg);
-		query_table_.setSelectClause(select_clause);
+		query_table_.SetSelectClause(select_clause);
 		Match("BOOLEAN");
 	}
 	else {

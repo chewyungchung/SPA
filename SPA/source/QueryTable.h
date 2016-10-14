@@ -4,9 +4,8 @@
 #include <string>
 #include <vector>
 #include "map"
-#include "unordered_set"
+#include "unordered_map"
 
-#include "QueryResult.h"
 #include "Clause.h"
 //#include "WeightTable.h"
 

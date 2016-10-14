@@ -46,7 +46,7 @@ vector<vector<ResultTable>> QueryEvaluator::Evaluate() {
 	// Check if the QueryTable given by validator is NULL. Return NULL if 1
 	vector<vector<ResultTable>> empty_table;
 
-	if (input_query_.isNullQuery() == true) {
+	if (input_query_.IsNullQuery() == true) {
 		return empty_table;
 	}
 
