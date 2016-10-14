@@ -11,7 +11,7 @@
 #include "QueryException.h"
 
 using namespace std;
-
+ 
 const vector<string> DESIGN_ENTITIES({
 	"stmt",
 	"assign",
@@ -19,70 +19,76 @@ const vector<string> DESIGN_ENTITIES({
 	"variable",
 	"constant",
 	"prog_line",
-	"procedure", // added for iteration 2
-	"if", // added for iteration 2 
-	"call" // added for iteration 2
-});
-
-const vector<string> ATTRIBUTE_TYPES({
-	"stmt#",
-	"varName",
-	"constant",
-	"procName"
+	"procedure",
+	"if", 
+	"call"
 });
 
 class QueryValidator{
 public:
+	struct Ref {
+		string value = "";
+		string arg_type = "";
+		string with_type = "";
+	};
+
 	QueryValidator();
-	~QueryValidator();
-	QueryValidator(string entity);
-	QueryTable parse();
+	QueryValidator(string query_string);
+	QueryTable Parse();
 	
-	QueryToken getToken();
-	void match(string token);
-	void match(int tokenType);
-	void matchDeclaration();
-	void matchDeclarationVar(string token); 
-	void matchSelect();
-	void matchSelectResult();
-	void matchClause();
-	void matchSuchThat();
-	void matchPattern();
-	void matchAnd();
-	void matchWith();
-	void matchWithClause();
-	void matchPatternAssign();
-	pair<int,string> matchFactor();
-	void matchRelation();
-	void matchFollow();
-	void matchFollowStar();
-	void matchParent();
-	void matchParentStar();
-	void matchModifies();
-	void matchUses();
-	void matchCalls();
-	void matchCallsStar();
-	void matchNext();
-	void matchNextStar();
-	void restrainCommonSynonym();
+	QueryToken GetToken();
+	void Match(string token);
+	void Match(int token_type);
+	void MatchDeclaration();
+	void MatchDeclarationVar(string token); 
+	void MatchSelect();
+	void MatchResultClause();
+	void MatchTupleResult();
+	void MatchResultClauseElement(bool is_tuple);
+	void MatchClause();
+	void MatchSuchThat();
+	void MatchPatternClause();
+	void MatchPattern();
+	void MatchWith();
+	void MatchAttrCompare();
+	void MatchPatternAssign();
+	void MatchPatternWhile();
+	void MatchPatternIf();
+	void MatchRelation();
+	void MatchFollow();
+	void MatchFollowStar();
+	void MatchParent();
+	void MatchParentStar();
+	void MatchModifies();
+	void MatchUses();
+	void MatchCalls();
+	void MatchCallsStar();
+	void MatchNext();
+	void MatchNextStar();
 
-	pair<int,string> matchStmtRef();
-	pair<int,string> matchEntRef();
-	vector<pair<int, string>> matchRef();
+	// Expression
+	void MatchExpr();
+	void MatchTerm();
+	void MatchFactor();
 
-	bool isAttrTypeValid(string attrType);
-	bool synTypeAndAttrNameMatches(string synType, string attrName);
-
-	string getWithType(string attrName, string synType);
-	string getWithType(int argType);
+	pair<int,string> MatchStmtRef();
+	pair<int,string> MatchEntRef();
+	pair<int, string> MatchVarRef();
+	QueryValidator::Ref MatchRef();
+	bool IsAttributeMatchSynType(string synType, string attrName);
+	bool IsRefCompatible(Ref left_ref, Ref right_ref);
+	string GetWithTypeByAttrName(string attrName);
 	
 private:
-	QueryTable _qt;
-	QueryToken _nextToken;
-	QueryTokenizer _tokenizer;
-	RelationTable _relTable;
-	unordered_map<string, string> _synToEntityMap;
-	map<string, int> _synToUseCountMap;
-	string _queryString;
+	QueryTable query_table_;
+	QueryToken next_token_;
+	QueryTokenizer tokenizer_;
+	RelationTable rel_table_;
+	unordered_map<string, string> syn_to_entity_map_;
+	string query_string_;
+	string expression_string_ = "";
 
+	vector<Clause> such_that_clauses_;
+	vector<Clause> with_clauses_;
+	vector<Clause> pattern_clauses_;
 };

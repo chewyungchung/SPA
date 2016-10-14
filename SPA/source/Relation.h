@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 #include <string>
 
@@ -8,13 +9,13 @@ class Relation {
 
 public:
 	Relation();
-	Relation(int numOfArg, vector<string> arg1Type, vector<string> arg2Type);
-	int getNumOfArg();
-	vector<string> getArg1Type();
-	vector<string> getArg2Type();
+	Relation(int num_of_arg, vector<string> arg1_type, vector<string> arg2_type);
+	int GetNumOfArg();
+	vector<string> GetArg1Type();
+	vector<string> GetArg2Type();
 private:
-	int _numOfArg;
-	vector<string> _arg1Type;
-	vector<string> _arg2Type;
+	int num_of_arg_;
+	vector<string> arg1_type_;
+	vector<string> arg2_type_;
 
 };

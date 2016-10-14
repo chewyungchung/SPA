@@ -1,6 +1,5 @@
 #pragma once
 
-#include<stdio.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -9,6 +8,7 @@
 
 #include "QueryResult.h"
 #include "Clause.h"
+//#include "WeightTable.h"
 
 using namespace std;
 
@@ -16,48 +16,55 @@ class QueryTable {
 public:
 
 	QueryTable();
-	~QueryTable();
-	QueryTable(int isNull);
-	QueryTable(Clause selectClause, Clause withClause, Clause suchThatClause, Clause patternClause);
+	QueryTable(int is_null);
+	QueryTable(Clause select_clause, vector<Clause> with_clauses, vector<Clause> such_that_clauses, vector<Clause> pattern_clauses);
+
+	void Optimize();
+	void InitialiseWeightTable();
+	void ReplaceWithClauses();
+	void GroupClauses();
+	void SortClausesInGroup();
+	void SortGroups();
+	void PopulateNonSynClauses();
+	void PopulateSynClauses();
+	void GroupSynClauses();
+
+	int GetNumOfSynInClause(vector<string> arg1_type, vector<string> arg2_type);
 
 	// Get
-	Clause getSelectClause();
-	Clause getSuchThatClause();
-	Clause getWithClause();
-	Clause getPatternClause();
-	QueryResult getSelectResult();
-	QueryResult getSuchThatResult();
-	QueryResult getPatternResult();
+	Clause GetSelectClause();
+	vector<Clause> GetSuchThatClauses();
+	vector<Clause> GetWithClauses();
+	vector<Clause> GetPatternClauses();
+	vector<Clause> GetNoSynGroup();
+	vector<Clause> GetNonConnectedGroup();
+	vector<Clause> GetConnectedGroup();
 
-	int isSelectResultEmpty();
-	int isSuchThatResultEmpty();
-	int isPatternResultEmpty();
-	int isNullQuery();
-
-	string getSynType(string);
+	int IsNullQuery();
+	bool IsSynonym(string arg);
+	string GetSynType(string syn_type);
 
 	// Set
-	void setSelectClause(Clause selectClause);
-	void setSuchThatClause(Clause suchThatClause);
-	void setWithClause(Clause withClause);
-	void setPatternClause(Clause patternClause);
-	void setSelectResult(QueryResult qr);
-	void setSuchThatResult(QueryResult qr);
-	void setPatternResult(QueryResult qr);
-	void setIsSuchThatAvail(int val);
-	void setIsPatternAvail(int val);
+	void SetSelectClause(Clause select_clause);
+	void SetSynEntityMap(unordered_map<string, string> synToEntityMap);
+	void AddWithClause(Clause with_clause);
+	void AddSuchThatClause(Clause such_that_clause);
+	void AddPatternClause(Clause pattern_clause);
 
 private:
-	
-	map<string, string> _synEntityMap; // MAP<SYN, ENTITY> // Remove
-	
-	Clause _selectClause;
-	Clause _suchThatClause;
-	Clause _withClause;
-	Clause _patternClause;
-	QueryResult _selectResult;
-	QueryResult _suchThatResult;
-	QueryResult _patternResult;
+	unordered_map<string, string> syn_entity_map_; 
+	Clause select_clause_;
+	vector<Clause> such_that_clauses_;
+	vector<Clause> with_clauses_;
+	vector<Clause> pattern_clauses_;
 
-	int _isNull;
+	vector<Clause> no_syn_group_;
+	vector<Clause> with_syn_clauses_;
+
+	vector<vector<Clause>> connected_groups_;
+	vector<Clause> non_connected_group_;
+
+	//WeightTable _weightTable;
+
+	int is_null_;
 };
