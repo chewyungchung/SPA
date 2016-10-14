@@ -33,7 +33,7 @@ void CallsTable::addCalls(string caller, string callee)
 	}
 }
 
-list<string> CallsTable::getCallees(string caller)
+list<string> CallsTable::getCallee(string caller)
 {
 	unordered_map<string, list<string>>::iterator it = callsTable.find(caller);
 
@@ -47,7 +47,7 @@ list<string> CallsTable::getCallees(string caller)
 	}
 }
 
-list<string> CallsTable::getCallers(string callee)
+list<string> CallsTable::getCaller(string callee)
 {
 	list<string> callerList = list<string>();
 
@@ -65,12 +65,12 @@ list<string> CallsTable::getCallers(string callee)
 	return callerList;
 }
 
-bool CallsTable::isCallsEmpty()
+bool CallsTable::isCallExist()
 {
 	return callsTable.empty();
 }
 
-bool CallsTable::isCalls(string caller, string callee)
+bool CallsTable::isCall(string caller, string callee)
 {
 	unordered_map<string, list<string>>::iterator it = callsTable.find(caller);
 
@@ -86,7 +86,7 @@ bool CallsTable::isCalls(string caller, string callee)
 	}
 }
 
-bool CallsTable::isCallsStar(string caller, string callee)
+bool CallsTable::isCallStar(string caller, string callee)
 {
 	callsStarHelperChecked = list<string>();
 	return isCallsStarHelper(caller, callee);
@@ -127,7 +127,7 @@ bool CallsTable::isCallsStarHelper(string caller, string callee)
 	}
 }
 
-list<string> CallsTable::getCalleesStar(string caller)
+list<string> CallsTable::getCalleeStar(string caller)
 {
 	getCalleesStarHelperList = list<string>();
 	getCalleesStarHelper(caller);
@@ -160,7 +160,7 @@ void CallsTable::getCalleesStarHelper(string caller)
 	}
 }
 
-list<string> CallsTable::getCallersStar(string callee)
+list<string> CallsTable::getCallerStar(string callee)
 {
 	getCallersStarHelperList = list<string>();
 	getCallersStarHelper(callee);

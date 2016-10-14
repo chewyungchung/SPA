@@ -28,6 +28,8 @@ public:
 	list<string> getProcedureModifying(string varName);
 	list<string> getProcedureUsing(string varName);
 
+	bool isProcedureExist(string procName);
+	list<int> getCallByProcName(string procName);
 	list<string> getCalledProcNamesList();
 	list<string> getProcedureList();
 

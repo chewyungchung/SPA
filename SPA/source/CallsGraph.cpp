@@ -7,6 +7,10 @@ adjacency list for this is inefficient
 
 #include "CallsGraph.h"
 
+CallsGraph::CallsGraph()
+{
+}
+
 CallsGraph::CallsGraph(int vertexCount, PKB pkb)
 {
 	this->vertexCount = vertexCount;

@@ -9,6 +9,7 @@ StatementTable::StatementTable()
 	list<int> whileList;
 	list<int> allStmtList;
 	list<int> ifList;
+	list<int> callList;
 	unordered_map<int, string> ctrlvarList;
 }
 
@@ -23,7 +24,13 @@ void StatementTable::addStatement(int stmtNum, string stmtType)
 		assignList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
 	}
-	else {
+	else if (stmtType == "calls")
+	{
+		callList.push_back(stmtNum);
+		allStmtList.push_back(stmtNum);
+	}
+	else
+	{
 		assert(false);
 	}
 }
@@ -33,6 +40,11 @@ void StatementTable::addStatement(int stmtNum, string stmtType, string ctrlvar)
 	if (stmtType == "assign")
 	{
 		assignList.push_back(stmtNum);
+		allStmtList.push_back(stmtNum);
+	}
+	else if (stmtType == "calls")
+	{
+		callList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
 	}
 	else if (stmtType == "while")
@@ -47,7 +59,8 @@ void StatementTable::addStatement(int stmtNum, string stmtType, string ctrlvar)
 		allStmtList.push_back(stmtNum);
 		ctrlvarList.insert(pair<int, string>(stmtNum, ctrlvar));
 	}
-	else {
+	else
+	{
 		assert(false);
 	}
 }
@@ -67,20 +80,31 @@ list<int> StatementTable::getIfList()
 	return ifList;
 }
 
-list<int> StatementTable::getIfListWithControlVariable(string ctrlvar) {
+list<int> StatementTable::getCallList()
+{
+	return callList;
+}
+
+list<int> StatementTable::getIfListWithControlVariable(string ctrlvar)
+{
 	list<int> iflist;
-	for (const auto& i : ctrlvarList) {
-		if (i.second == ctrlvar && (find(ifList.begin(), ifList.end(), ctrlvar) != ifList.end())) {
+	for (const auto& i : ctrlvarList)
+	{
+		if (i.second == ctrlvar && (find(ifList.begin(), ifList.end(), ctrlvar) != ifList.end()))
+		{
 			iflist.push_back(i.first);
 		}
 	}
 	return iflist;
 }
 
-list<int> StatementTable::getWhileListWithControlVariable(string ctrlvar) {
+list<int> StatementTable::getWhileListWithControlVariable(string ctrlvar)
+{
 	list<int> whilelist;
-	for (const auto& i : ctrlvarList) {
-		if (i.second == ctrlvar && (find(whileList.begin(), whileList.end(), ctrlvar) != whileList.end())) {
+	for (const auto& i : ctrlvarList)
+	{
+		if (i.second == ctrlvar && (find(whileList.begin(), whileList.end(), ctrlvar) != whileList.end()))
+		{
 			whilelist.push_back(i.first);
 		}
 	}

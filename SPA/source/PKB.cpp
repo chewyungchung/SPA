@@ -192,6 +192,11 @@ list<int> PKB::getIfList()
 	return S_Table.getIfList();
 }
 
+list<int> PKB::getCallList()
+{
+	return S_Table.getCallList();
+}
+
 list<int> PKB::getIfListWithControlVariable(string control_var) {
 	return S_Table.getIfListWithControlVariable(control_var);
 }
@@ -237,39 +242,39 @@ void PKB::addCalls(string caller, string callee)
 	Calls_Table.addCalls(caller, callee);
 }
 
-list<string> PKB::getCallees(string caller)
+list<string> PKB::getCallee(string caller)
 {
-	return Calls_Table.getCallees(caller);
+	return Calls_Table.getCallee(caller);
 }
 
-list<string> PKB::getCallers(string callee)
+list<string> PKB::getCaller(string callee)
 {
-	return Calls_Table.getCallers(callee);
+	return Calls_Table.getCaller(callee);
 }
 
-bool PKB::isCallsEmpty()
+bool PKB::isCallExist()
 {
-	return Calls_Table.isCallsEmpty();
+	return Calls_Table.isCallExist();
 }
 
-bool PKB::isCalls(string caller, string callee)
+bool PKB::isCall(string caller, string callee)
 {
-	return Calls_Table.isCalls(caller, callee);
+	return Calls_Table.isCall(caller, callee);
 }
 
-bool PKB::isCallsStar(string caller, string callee)
+bool PKB::isCallStar(string caller, string callee)
 {
-	return Calls_Table.isCallsStar(caller, callee);
+	return Calls_Table.isCallStar(caller, callee);
 }
 
-list<string> PKB::getCalleesStar(string caller)
+list<string> PKB::getCalleeStar(string caller)
 {
-	return Calls_Table.getCalleesStar(caller);
+	return Calls_Table.getCalleeStar(caller);
 }
 
-list<string> PKB::getCallersStar(string callee)
+list<string> PKB::getCallerStar(string callee)
 {
-	return Calls_Table.getCallersStar(callee);
+	return Calls_Table.getCallerStar(callee);
 }
 
 /***************** CallsGraph ******************/
@@ -348,6 +353,16 @@ list<string> PKB::getProcedureModifying(string varName)
 list<string> PKB::getProcedureUsing(string varName)
 {
 	return Proc_Table.getProcedureUsing(varName);
+}
+
+bool PKB::isProcedureExist(string procName)
+{
+	return Proc_Table.isProcedureExist(procName);
+}
+
+list<int> PKB::getCallByProcName(string procName)
+{
+	return Proc_Table.getCallByProcName(procName);
 }
 
 list<string> PKB::getCalledProcNamesList()
