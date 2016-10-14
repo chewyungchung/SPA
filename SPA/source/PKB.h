@@ -86,6 +86,7 @@ public:
 	void addStatement(int stmtNum, string stmtType);
 	list<int> getAssignList();
 	list<int> getWhileList();
+	list<int> getIfList();
 	list<int> getStmtList();
 	int getStatementCount();
 	bool isValidStmt(int stmtNum);
@@ -94,6 +95,8 @@ public:
 	list<int> getConstantList();
 	list<int> getStmtlineByConstant(int c);
 
+	list<int> getIfListWithControlVariable(string control_var);
+	list<int> getWhileListWithControlVariable(string control_var);
 private:
 
 };
