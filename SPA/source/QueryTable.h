@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <queue>
 #include "map"
 #include "unordered_map"
 
@@ -41,6 +42,7 @@ public:
 
 	int IsNullQuery();
 	bool IsSynonym(string arg);
+	bool IsSynFound(Clause clause, string syn, string relation);
 	string GetSynType(string syn_type);
 
 	// Set
@@ -60,7 +62,8 @@ private:
 	vector<Clause> no_syn_group_;
 	vector<Clause> with_syn_clauses_;
 
-	vector<vector<Clause>> connected_groups_;
+	vector<Clause> connected_group_;
+	//vector<vector<Clause>> connected_groups_;
 	vector<Clause> non_connected_group_;
 
 	//WeightTable _weightTable;
