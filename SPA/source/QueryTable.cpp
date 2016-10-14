@@ -32,11 +32,10 @@ void QueryTable::InitialiseWeightTable() {
 
 void QueryTable::ReplaceWithClauses() {
 	// three possible scenarios
-	// 1. withClause: one arg is a synonym while the other is a string or int (constant)
-	// 2. withClause: both arg are synonyms e.g. with s.stmtNum = c.value (also an exception)
-	// 3. what about weird with clauses that QV accepts? e.g. 2 = 2; meaningless, will evaluate to T/F
+	// 1. what about weird with clauses that QV accepts? e.g. 2 = 2; meaningless, will evaluate to T/F
+	// 2. withClause: one arg is a synonym while the other is a string or int (constant)
+	// 3. withClause: both arg are synonyms e.g. with s.stmtNum = c.value (also an exception)
 	// (exceptions include: call.procName =  v.varName)
-	// we will process case 1 & 3 first, case 2 will have exceptions to be taken care of.
 	string syn, toBeReplaced;
 	bool isReplaced = false; 
 	bool terminateFlag = true;
@@ -77,14 +76,14 @@ void QueryTable::ReplaceWithClauses() {
 			vector<string> stmtTypes = { "assign", "call", "while", "if" };
 			if (i.getArgType().at(0) == "stmt" &&
 				find(stmtTypes.begin(), stmtTypes.end(), i.getArgType().at(1)) != stmtTypes.end()) {
-				if (i.getRelation() == "withStmt") {
+				if (i.getRelation() == "withInt") {
 					toBeReplaced = i.getArgType().at(1);
 					terminateFlag = false;
 				}
 			}
 			else if (i.getArgType().at(1) == "stmt" &&
 				find(stmtTypes.begin(), stmtTypes.end(), i.getArgType().at(0)) != stmtTypes.end()) {
-				if (i.getRelation() == "withStmt") {
+				if (i.getRelation() == "withInt") {
 					toBeReplaced = i.getArgType().at(0);
 					terminateFlag = false;
 				}
@@ -139,10 +138,8 @@ void QueryTable::SortClausesInGroup() {
 		// but this might affect the order in the connectedGroup such that the subsequent clauses might not have common synonyms
 	}
 	// vector<vector<Clause>>
-	for (auto i : connected_groups_) {
-		for (auto i1 : i) {
-
-		}
+	for (auto i : connected_group_) {
+	
 	}
 }
 
@@ -171,63 +168,78 @@ void QueryTable::PopulateSynClauses() {
 			}
 		}
 	}
-	// is it possible for a pattern clause to have no synonym?
 	for (auto i : pattern_clauses_) {
 		with_syn_clauses_.push_back(i);
 	}
+	/* remaining clauses left - should be under case 3 - not replaced
+	for (auto i : with_clauses_) {
+		with_syn_clauses.push_back(i);
+	}
+	*/
 }
 
 void QueryTable::GroupSynClauses() {
 	//group clauses into groups with : 
-	//(1) connected clauses 
-	//(2) non-connected clauses (no common synonym with other clauses)
-	//clauses with connected synonyms should be in the same group 
-	//clauses with common synonyms are placed in the same group
-	bool found = false;
-	vector<string> synList;
-	vector<Clause> currentGroup;
+	//(1) connected clauses (clauses with synonyms directly/indirectly linked to selected syn)
+	//(2) non-connected clauses 
 
-	for (auto i1 : with_syn_clauses_) {
-		if (IsSynonym(i1.getArg().at(0))) {
-			synList.push_back(i1.getArg().at(0));
-		}
-		if (IsSynonym(i1.getArg().at(1))) {
-			synList.push_back(i1.getArg().at(1));
-		}
-		currentGroup.push_back(i1);
-		with_syn_clauses_.erase(with_syn_clauses_.begin());
-		for (auto i2 : with_syn_clauses_) {
-			for (int i3 = 0; i3 < i2.getArg().size(); i3++) {
-				if (IsSynonym(i2.getArg().at(i3))) {
-					found = find(synList.begin(), synList.end(), i2.getArg().at(i3)) != synList.end();
-					if (found) {
-						synList.push_back(i2.getArg().at(i3));
-						currentGroup.push_back(i2);
-						with_syn_clauses_.erase(with_syn_clauses_.begin());
-					}
+	string synSelected, currentSyn;
+	queue<string> commonSynonyms;
+
+	// to be updated in iteration 3 to cater to select tuple.
+	if (select_clause_.getArg().at(0) != "BOOLEAN") {
+		synSelected = select_clause_.getArg().at(0);
+	}
+	commonSynonyms.push(synSelected);
+
+	while (!commonSynonyms.empty()) {
+		currentSyn = commonSynonyms.front();
+		for (auto i : with_syn_clauses_) {
+			if (IsSynFound(i, currentSyn, i.getRelation())) {
+				connected_group_.push_back(i);
+				// there should be no new synonym to be added in the case of pattern clauses
+				if (i.getRelation() == "pattern") {
+					with_syn_clauses_.erase(with_syn_clauses_.begin);
+					continue;
+				}
+				if (i.getArg().at(0) == currentSyn && IsSynonym(i.getArg().at(1))) {
+					commonSynonyms.push(i.getArg().at(1));
+					with_syn_clauses_.erase(with_syn_clauses_.begin);
+				}
+				else if (i.getArg().at(1) == currentSyn && IsSynonym(i.getArg().at(0))) {
+					commonSynonyms.push(i.getArg().at(0));
+					with_syn_clauses_.erase(with_syn_clauses_.begin);
 				}
 			}
 		}
-		if (found) {
-			connected_groups_.push_back(currentGroup);
-		}
-		else {
-			for (auto i3 : currentGroup) {
-				non_connected_group_.push_back(i3);
-			}
-		}
-		currentGroup.clear();
-		synList.clear();
+		commonSynonyms.pop();
+	}
+	for (auto i : with_syn_clauses_) {
+		non_connected_group_.push_back(i);
 	}
 }
 
 bool QueryTable::IsSynonym(string key) {
 	if (syn_entity_map_.count(key) == 0) {
-		return true;
-	}
-	else {
 		return false;
 	}
+	else {
+		return true;
+	}
+}
+
+bool QueryTable::IsSynFound(Clause clause, string syn, string relation) {
+	if (relation == "pattern") {
+		if (clause.getArg().at(0) == syn) {
+			return true;
+		}
+	}
+	else {
+		if (clause.getArg().at(0) == syn || clause.getArg().at(1) == syn) {
+			return true;
+		}
+	}
+	return false;
 }
 
 Clause QueryTable::GetSelectClause() {
