@@ -96,8 +96,9 @@
     <ClCompile Include="source\CallsGraph.cpp">
       <Filter>Source Files\PKB</Filter>
     </ClCompile>
-    <ClCompile Include="ProcTable.cpp">
+    <ClCompile Include="source\ProcTable.cpp">
       <Filter>Source Files\PKB</Filter>
+	</ClCompile>
     <ClCompile Include="source\ResultTable.cpp">
       <Filter>Source Files\QueryProcessor</Filter>
     </ClCompile>
@@ -160,7 +161,6 @@
     <ClInclude Include="source\QueryResultProjector.h">
       <Filter>Header Files\QueryProcessor</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="source\StatementTable.h">
       <Filter>Header Files\PKB</Filter>
     </ClInclude>
@@ -172,10 +172,9 @@
     </ClInclude>
     <ClInclude Include="ProcTable.h">
       <Filter>Header Files\PKB</Filter>
-=======
+	</ClInclude>
     <ClInclude Include="source\ResultTable.h">
       <Filter>Header Files\QueryProcessor</Filter>
->>>>>>> master
     </ClInclude>
   </ItemGroup>
 </Project>

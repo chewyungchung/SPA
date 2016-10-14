@@ -17,6 +17,7 @@ PKB itself is a facade class
 #include "ParentTable.h"
 #include "ConstantTable.h"
 #include "CallsTable.h"
+#include "CallsGraph.h"
 #include "ProcTable.h"
 #include "CFG.h"
 
@@ -33,6 +34,7 @@ class FollowsTable;
 class ParentTable;
 class ConstantTable;
 class CallsTable;
+class CallsGraph;
 class ProcTable;
 
 class PKB 
@@ -46,6 +48,7 @@ public:
 	ParentTable P_Table;
 	ConstantTable C_Table;
 	CallsTable Calls_Table;
+	CallsGraph Calls_Graph;
 	ProcTable Proc_Table;
 	CFG Cfg;
 	PKB();
@@ -104,6 +107,10 @@ public:
 	bool isCallsStar(string caller, string callee);
 	list<string> getCalleesStar(string caller);
 	list<string> getCallersStar(string callee);
+
+	void buildCallsGraph(int vertexCount, PKB pkb);
+	bool isCallsGraphCyclic();
+	void updateAllProcModUses();
 
 	void addProc(string procName);
 	void addProcMod(string procName, string var);

@@ -3,11 +3,9 @@ Observe here we elect to use adjacency matrix
 because we need to do reverse travel when updating mod/uses for procedures,
 adjacency list for this is inefficient
 */
-
 #pragma once
 
 #include "CallsGraph.h"
-
 
 CallsGraph::CallsGraph(int vertexCount, PKB pkb)
 {
@@ -39,7 +37,7 @@ CallsGraph::~CallsGraph()
 	delete[] adjM;
 }
 
-bool CallsGraph::isCyclic()
+bool CallsGraph::isCallsGraphCyclic()
 {
 	bool *visited = new bool[vertexCount];
 	bool *recStack = new bool[vertexCount];
@@ -134,26 +132,26 @@ void CallsGraph::updateParentProc(int parent, int child)
 
 void CallsGraph::addAllModVar(int parent, int child)
 {
-	string parent = pkb.getProcName(parent);
-	string child = pkb.getProcName(child);
+	string s_parent = pkb.getProcName(parent);
+	string s_child = pkb.getProcName(child);
 
-	list<string> modVarChild = pkb.getModifiedByProc(child);
+	list<string> modVarChild = pkb.getModifiedByProc(s_child);
 	list<string>::iterator it;
 	for (it = modVarChild.begin(); it != modVarChild.end(); ++it)
 	{
-		pkb.addProcMod(parent, *it);
+		pkb.addProcMod(s_parent, *it);
 	}
 }
 
 void CallsGraph::addAllUsedVar(int parent, int child)
 {
-	string parent = pkb.getProcName(parent);
-	string child = pkb.getProcName(child);
+	string s_parent = pkb.getProcName(parent);
+	string s_child = pkb.getProcName(child);
 
-	list<string> usesVarChild = pkb.getUsedByProc(child);
+	list<string> usesVarChild = pkb.getUsedByProc(s_child);
 	list<string>::iterator it;
 	for (it = usesVarChild.begin(); it != usesVarChild.end(); ++it)
 	{
-		pkb.addProcUses(parent, *it);
+		pkb.addProcUses(s_parent, *it);
 	}
 }
