@@ -11,35 +11,46 @@
 #include "PKB.h"
 #include "QueryValidator.h"
 #include "QueryResultProjector.h"
+#include "ResultTable.h"
 
 using namespace std;
 
+// TODO: Refactor all names to Google cpp coding standard
 class QueryEvaluator {
 
 public:
 	QueryEvaluator();
-	~QueryEvaluator();
-	QueryEvaluator(QueryValidator, PKB, list<string>*);
 	QueryEvaluator(QueryTable, PKB);
-	QueryTable evaluate();
+	vector<vector<ResultTable>> Evaluate();
 
 private:
+	vector<vector<ResultTable>> intermediate_result_;
 	vector<string> _result;
-	QueryTable _qt;
-	PKB _pkb;
+	QueryTable input_query_;
+	PKB pkb_;
 
-	QueryResult processSuchThat(Clause suchThatClause);
-	QueryResult processSelect(Clause selectClause);
-	QueryResult processPattern(Clause patternClause);
-	QueryResult processFollows(Clause followClause);
-	QueryResult processFollowsT(Clause followTClause);
-	QueryResult processParent(Clause parentClause);
-	QueryResult processParentT(Clause parentTClause);
-	QueryResult processUses(Clause usesClause);
-	QueryResult processModifies(Clause modifiesClause);
+	ResultTable ProcessClause(Clause input_clause);
+	ResultTable ProcessSuchThat(Clause such_that_clause);
+	ResultTable ProcessFollows(Clause follow_clause);
+	ResultTable ProcessFollowsT(Clause follow_star_clause);
+	ResultTable ProcessParent(Clause parent_clause);
+	ResultTable ProcessParentT(Clause parent_star_clause);
+	ResultTable ProcessUses(Clause uses_clause);
+	ResultTable ProcessModifies(Clause modifies_clause);
+	ResultTable ProcessNext(Clause next_clause);
+	ResultTable ProcessNextT(Clause next_star_clause);
+	ResultTable ProcessCalls(Clause calls_clause);
+	ResultTable ProcessCallsStar(Clause calls_star_clause);
+	ResultTable ProcessPattern(Clause pattern_clause);
+	ResultTable ProcessPatternAssign(Clause pattern_assign_clause);
+	ResultTable ProcessPatternWhile(Clause pattern_while_clause);
+	ResultTable ProcessPatternIf(Clause pattern_if_clause);
+	ResultTable ProcessWith(Clause with_clause);
+	ResultTable ProcessWithName(Clause with_name_clause);
+	ResultTable ProcessWithNumber(Clause with_number_clause);
 
-	int isInList(list<int> inList, int item);
-	int isListEmpty(list<int> intList);
+	bool ProcessNonRelatedGroup();
+	bool ProcessConnectedGroup();
 
-	list<int> getList(string argType);
+	list<int> GetList(string arg_type);
 };

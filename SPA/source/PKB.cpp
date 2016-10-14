@@ -182,6 +182,19 @@ list<int> PKB::getWhileList()
 	return S_Table.getWhileList();
 }
 
+list<int> PKB::getIfList()
+{
+	return S_Table.getIfList();
+}
+
+list<int> PKB::getIfListWithControlVariable(string control_var) {
+	return S_Table.getIfListWithControlVariable(control_var);
+}
+
+list<int> PKB::getWhileListWithControlVariable(string control_var) {
+	return S_Table.getWhileListWithControlVariable(control_var);
+}
+
 list<int> PKB::getStmtList()
 {
 	return S_Table.getStmtList();

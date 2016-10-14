@@ -6,1420 +6,2454 @@ const string REL_PARENT = "parent";
 const string REL_PARENT_STAR = "parent*";
 const string REL_MODIFIES = "modifies";
 const string REL_USES = "uses";
+const string REL_NEXT = "next";
+const string REL_NEXT_STAR = "next*";
+const string REL_CALLS = "calls";
+const string REL_CALLS_STAR = "calls*";
+const string REL_PATTERN = "pattern";
+const string REL_WITH = "with";
 
 const string ARGTYPE_CONSTANT = "constant";
+const string ARGTYPE_CONSTANT_VALUE = "value";
 const string ARGTYPE_ANY = "any";
-const string ARGTYPE_intEAN = "intean";
 const string ARGTYPE_VARIABLE = "variable";
 const string ARGTYPE_ASSIGN = "assign";
 const string ARGTYPE_WHILE = "while";
+const string ARGTYPE_IF = "if";
 const string ARGTYPE_STRING = "string";
+const string ARGTYPE_PROCEDURE = "procedure";
 const string ARGTYPE_STMT = "stmt";
 const string ARGTYPE_PROG_LINE = "prog_line";
+const string ARGTYPE_CALLS = "call";
+const string ARGTYPE_CALLS_NAME = "call_name";
+const string ARGTYPE_CALLS_NUMBER = "call_number";
+const string ARGTYPE_EXPR = "expr";
+const string ARGTYPE_SUB_EXPR = "sub_expr";
 
 const string PARAM_ARG1 = "ARG1";
 const string PARAM_ARG2 = "ARG2";
 const string PARAM_PATTERN = "PATTERN";
-const string PARAM_intEAN = "intEAN";
 
 QueryEvaluator::QueryEvaluator() {
 }
 
-QueryEvaluator::~QueryEvaluator() {
+QueryEvaluator::QueryEvaluator(QueryTable input_query, PKB pkb) {
+	input_query_ = input_query;
+	pkb_ = pkb;
 }
 
-QueryEvaluator::QueryEvaluator(QueryValidator qv, PKB pkb, list<string>* results) {
-	_pkb = pkb;
-	_qt = qv.parse();
-	QueryResultProjector qrp = evaluate();
-	results = &qrp.getResults();
-}
-
-QueryEvaluator::QueryEvaluator(QueryTable qt, PKB pkb) {
-	_qt = qt;
-	_pkb = pkb;
-}
-
-QueryTable QueryEvaluator::evaluate() {
+vector<vector<ResultTable>> QueryEvaluator::Evaluate() {
 	// Check if the QueryTable given by validator is NULL. Return NULL if 1
-	if (_qt.isNullQuery() == 1) {
-		return _qt;
+	vector<vector<ResultTable>> empty_table;
+
+	if (input_query_.IsNullQuery() == true) {
+		return empty_table;
 	}
 
-	// Process all such that and pattern clause, and finally select clause
-	if (_qt.getSuchThatClause().isClauseNull() == -1) {
-		_qt.setSuchThatResult(processSuchThat(_qt.getSuchThatClause()));
+	if (ProcessNonRelatedGroup() == false) {
+		return empty_table;
+	} 
+
+	if (ProcessConnectedGroup() == false) {
+		return empty_table;
 	}
-	if (_qt.getPatternClause().isClauseNull() == -1) {
-		_qt.setPatternResult(processPattern(_qt.getPatternClause()));
-	}
-	if (_qt.getSelectClause().isClauseNull() == -1) {
-		_qt.setSelectResult(processSelect(_qt.getSelectClause()));
-	}
-	return _qt;
+
+	return intermediate_result_;
 }
 
-QueryResult QueryEvaluator::processSelect(Clause selectClause) {
-	// Results that output stmt#: 
-	// -> stmt | assign | while | prog_line
-	// Other results:
-	// -> variable | intean | constant
-
-	string expectedResultSynonym = selectClause.getArg().at(0);
-	string expectedResultType = selectClause.getArgType().at(0);
-	QueryResult qr;
-
-	qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
-
-	if (expectedResultType == ARGTYPE_VARIABLE) {
-		list<string> varList = _pkb.getVarList();
-		if (varList.empty() == true) {
-			return qr;
-		}
-		qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
-		qr.setIsExist(1);
-		for (list<string>::iterator it = varList.begin(); it != varList.end(); it++) {
-			qr.insertArg1Result(*it);
-		}
+ResultTable QueryEvaluator::ProcessClause(Clause input_clause)
+{
+	string relation = input_clause.getRelation();
+	if (relation == REL_PATTERN) {
+		return ProcessPattern(input_clause);
 	}
-	else if (expectedResultType == ARGTYPE_intEAN) {
-		qr.setArgToSynonymMapping(PARAM_ARG1, PARAM_intEAN);
-		qr.setIsExist(1);
-		return qr;
-	}
-	else if (expectedResultType == ARGTYPE_CONSTANT) {
-		list<int> constantList = _pkb.getConstantList();
-		if (constantList.empty() == true) {
-			return qr;
-		}
-		qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
-		qr.setIsExist(1);
-		for (list<int>::iterator it = constantList.begin(); it != constantList.end(); it++) {
-			qr.insertArg1Result(to_string(*it));
-		}
-		return qr;
+	else if (relation == REL_WITH) {
+		return ProcessWith(input_clause);
 	}
 	else {
-		// Results should be returning stmt#
-		if (expectedResultType == ARGTYPE_ASSIGN || expectedResultType == ARGTYPE_WHILE) {
-			list<int> expectedResultStatements = getList(expectedResultType);
-			if (expectedResultStatements.empty() == true) {
-				return qr;
-			}
-			qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
-			qr.setIsExist(1);
-			for (list<int>::iterator it = expectedResultStatements.begin(); it != expectedResultStatements.end(); it++) {
-				qr.insertArg1Result(to_string(*it));
-			}
-			return qr;
-		} 
-		else {
-			// expectedResultType should be either stmt OR progline
-			int statementCount = _pkb.getStatementCount(); // Should always be >= 1
-			qr.setArgToSynonymMapping(PARAM_ARG1, expectedResultSynonym);
-			qr.setIsExist(1);
-			for (int i = 1; i <= statementCount; i++) {
-				qr.insertArg1Result(to_string(i));
-			}
-			return qr;
-		}
+		return ProcessSuchThat(input_clause);
 	}
-	return qr;
 }
 
-QueryResult QueryEvaluator::processSuchThat(Clause suchThatClause) {
-	string relation = suchThatClause.getRelation();
-	QueryResult suchThatResult;
+ResultTable QueryEvaluator::ProcessSuchThat(Clause such_that_clause) {
+	string relation = such_that_clause.getRelation();
+	ResultTable temp_result;
 
 	if (relation == REL_FOLLOWS) {
-		suchThatResult = processFollows(suchThatClause);
+		temp_result = ProcessFollows(such_that_clause);
 	}
 	else if (relation == REL_FOLLOWS_STAR) {
-		suchThatResult = processFollowsT(suchThatClause);
+		temp_result = ProcessFollowsT(such_that_clause);
 	}
 	else if (relation == REL_PARENT) {
-		suchThatResult = processParent(suchThatClause);
+		temp_result = ProcessParent(such_that_clause);
 	}
 	else if (relation == REL_PARENT_STAR) {
-		suchThatResult = processParentT(suchThatClause);
+		temp_result = ProcessParentT(such_that_clause);
 	}
 	else if (relation == REL_MODIFIES) {
-		suchThatResult = processModifies(suchThatClause);
+		temp_result = ProcessModifies(such_that_clause);
 	}
 	else if (relation == REL_USES) {
-		suchThatResult = processUses(suchThatClause);
+		temp_result = ProcessUses(such_that_clause);
 	}
-	return suchThatResult;
+	else if (relation == REL_PATTERN) {
+		temp_result = ProcessPattern(such_that_clause);
+	}
+	return temp_result;
 }
 
-QueryResult QueryEvaluator::processPattern(Clause patternClause) {
-	string arg1 = patternClause.getArg().at(0);
-	string arg2 = patternClause.getArg().at(1);
-	string arg1Type = patternClause.getArgType().at(0);
-	string arg2Type = patternClause.getArgType().at(1);
-	string synAssign = patternClause.getArg().at(2);
-	string synAssignType = ARGTYPE_ASSIGN;
-	list<int> synAssignStatements = getList(synAssignType);
-
-	QueryResult qr;
-
-	// Check if there are any assign. If none, can return empty
-	if (synAssignStatements.empty() == true) {
-		return qr;
+ResultTable QueryEvaluator::ProcessPattern(Clause pattern_clause) {
+	ResultTable temp_result;
+	string pattern_syn_type = pattern_clause.getArgType().at(0);
+	if (pattern_syn_type == ARGTYPE_ASSIGN) {
+		temp_result = ProcessPatternAssign(pattern_clause);
 	}
+	else if (pattern_syn_type == ARGTYPE_WHILE) {
+		temp_result = ProcessPatternWhile(pattern_clause);
+	}
+	else if (pattern_syn_type == ARGTYPE_IF) {
+		temp_result = ProcessPatternIf(pattern_clause);
+	}
+	else {
+		return temp_result;
+	}
+}
 
-	// synAssign is the synonym
-	qr.setArgToSynonymMapping(PARAM_PATTERN, synAssign);
-	if (arg1Type == ARGTYPE_STRING) {
-		// arg1 must be valid varName
-		if (_pkb.isValidVar(arg1) == false) {
-			return qr;
-		}
-		if (arg2Type == ARGTYPE_ANY) {
-			// arg2 is any '_'
-			// Check if arg1 is modified by anything
-			list<int> arg1ModifiedBy = _pkb.getModifiedBy(arg1);
-			if (arg1ModifiedBy.empty() == true) {
-				return qr;
-			}
-			// If arg1ModifiedBy (made up of assign stmts in iteration1) is non empty, add them all to pattern results
-			qr.setIsExist(1);
-			for (list<int>::iterator it = arg1ModifiedBy.begin(); it != arg1ModifiedBy.end(); it++) {
-				qr.insertPatternResult(to_string(*it));
-			}
-			return qr;
-		}
-		else if (arg2Type == ARGTYPE_CONSTANT) {
-			list<int> arg1ModifiedBy = _pkb.getModifiedBy(arg1);
-			list<int> statementsWithArg2 = _pkb.getStmtlineByConstant(stoi(arg2));
+ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
+	string arg1 = follows_clause.getArg().at(0);
+	string arg2 = follows_clause.getArg().at(1);
+	string arg1_type = follows_clause.getArgType().at(0);
+	string arg2_type = follows_clause.getArgType().at(1);
+	
+	ResultTable temp_result;
 
-			for (list<int>::iterator it1 = arg1ModifiedBy.begin(); it1 != arg1ModifiedBy.end(); ++it1) {
-				bool insideAlreadyTrue = false;
-				for (list<int>::iterator it2 = statementsWithArg2.begin(); it2 != statementsWithArg2.end(); ++it2) {
-					if (*it1 == *it2) {
-						qr.setIsExist(1);
-						qr.insertPatternResult(to_string(*it1));
-						insideAlreadyTrue = true;
-						break;
-					}
-				}
-				if (insideAlreadyTrue == true) {
+	if (arg1_type == ARGTYPE_CONSTANT) {
+		int arg1_stmt_num = stoi(arg1);
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
+		}
+
+		if (pkb_.getFollower(arg1_stmt_num) == -1) {
+			return temp_result;
+		}
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+
+			if (arg2_stmt_num <= arg1_stmt_num) {
+				return temp_result;
+			}
+
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+
+			if (pkb_.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+			
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			// At this point, arg1 determined to have follower from the first getFollower() check for. Hence, return QueryResult set to 1
+			temp_result.SetIsQueryTrue(true);
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (pkb_.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 					break;
 				}
 			}
-			return qr;
-		}
-		else {
-			// arg2Type is a string --> For now it can only be a variable
-			// Check if arg2 is a valid var
-			if (_pkb.isValidVar(arg2) == false) {
-				return qr;
-			}
-			// Get the list of statements that modifies arg1
-			list<int> arg1ModifiedBy = _pkb.getModifiedBy(arg1);
-			if (arg1ModifiedBy.empty() == true) {
-				return qr;
-			}
 
-			// For each statement that modifies arg1, check if any of them uses arg2
-			for (list<int>::iterator it = arg1ModifiedBy.begin(); it != arg1ModifiedBy.end(); it++) {
-				if (_pkb.isUsed(*it, arg2) == true) {
-					qr.setIsExist(1);
-					qr.insertPatternResult(to_string(*it));
-				}
-			}
-			return qr;
+			return temp_result;
 		}
 	}
-	else if (arg1Type == ARGTYPE_ANY) {
-		// arg1 is any '_'
-		if (arg2Type == ARGTYPE_ANY) {
-			// arg2 is any '_'
-			list<int> assignList = _pkb.getAssignList();
-			if (assignList.empty() == true) {
-				return qr;
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// If assignList not empty, add everything to pattern 
-			qr.setIsExist(1);
-			for (list<int>::iterator it = assignList.begin(); it != assignList.end(); it++) {
-				qr.insertPatternResult(to_string(*it));
+
+			if (pkb_.getFollowedFrom(arg2_stmt_num) != -1) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_CONSTANT) {
-			// Need to get all the statements with constant
-			list<int> stmtWithConstants = _pkb.getStmtlineByConstant(stoi(arg2));
-			stmtWithConstants.unique();
-			if (stmtWithConstants.empty() == false) {
-				qr.setIsExist(1);
-				for (list<int>::iterator it = stmtWithConstants.begin(); it != stmtWithConstants.end(); it++) {
-					qr.insertPatternResult(to_string(*it));
-				}
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (pkb_.isFollowEmpty() == false) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// arg2Type is a string --> For now it can only be a variable
-			// Check if arg2 is a valid var
-			if (_pkb.isValidVar(arg2) == false) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
-			// Get the list of statements that uses arg2
-			list<int> arg2UsedBy = _pkb.getUsedBy(arg2);
-			if (arg2UsedBy.empty() == true) {
-				return qr;
-			}
-			else {
-				for (list<int>::iterator it = arg2UsedBy.begin(); it != arg2UsedBy.end(); it++) {
-					qr.setIsExist(1);
-					qr.insertPatternResult(to_string(*it));
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (pkb_.getFollowedFrom(arg2_stmt_num) != -1) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+					break;
 				}
-				return qr;
 			}
+
+			return temp_result;
 		}
 	}
 	else {
-		// arg1 is a variable synonym
-		list<string> varList = _pkb.getVarList();
-		if (varList.empty() == true) {
-			return qr;
+		// Argument 1 is a synonym
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
 		}
-		qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-		if (arg2Type == ARGTYPE_ANY) {
-			// Assume that query is 1 since synAssignStatements not empty as something is modified for sure
-			qr.setIsExist(1);
-			// For each stmt in synAssignStatements, check each modifies what var
-			for (list<int>::iterator it1 = synAssignStatements.begin(); it1 != synAssignStatements.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				list<string> synAssignModifiesVar = _pkb.getModifiedBy(*it1);
-				if (!synAssignModifiesVar.empty()) {
-					for (list<string>::iterator it2 = synAssignModifiesVar.begin(); it2 != synAssignModifiesVar.end(); it2++) {
-						if (_pkb.isModified(*it1, *it2) == true) {
-							outerIteratorIsValidResult = 1; 
-							qr.insertArg1Result(*it2);
-						}
-					}
-					if (outerIteratorIsValidResult == 1) {
-						qr.insertPatternResult(to_string(*it1));
-					}
-				}
-			}
-			return qr;
-		}
-		else if (arg2Type == ARGTYPE_CONSTANT) {
-			list<int> stmtlineByConstantList = _pkb.getStmtlineByConstant(stoi(arg2));
-			stmtlineByConstantList.unique();
-			if (stmtlineByConstantList.empty() == true) {
-				return qr;
+
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// For each variable, get the list of statements that modifies them. Then check
-			for (list<string>::iterator it1 = varList.begin(); it1 != varList.end(); it1++) {
-				int firstNestValid = -1;
-				list<int> arg1ModifiedBy = _pkb.getModifiedBy(*it1);
-				if (!arg1ModifiedBy.empty() == true) {
-					// For each statement that modified each variable, check if they are equal to any of the statement that contain the constant arg2
-					for (list<int>::iterator it2 = arg1ModifiedBy.begin(); it2 != arg1ModifiedBy.end(); it2++) {
-						int secondNestValid = -1;
-						for (list<int>::iterator it3 = stmtlineByConstantList.begin(); it3 != stmtlineByConstantList.end(); it3++) {
-							if (*it2 == *it3) {
-								qr.setIsExist(1);
-								firstNestValid = 1;
-								secondNestValid = 1;
-								break;
-							}
-						}
-						if (secondNestValid == 1) {
-							qr.insertPatternResult(to_string(*it2));
-							break;
-						}
-					}
-					if (firstNestValid == 1) {
-						qr.insertArg1Result(*it1);
-					}
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (pkb_.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+					break;
 				}
 			}
-			return qr;
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (pkb_.getFollower(arg1_stmt_num) != -1) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
 		}
 		else {
-			// arg2Type is a string --> For now it can only be a variable
-			// Check if arg2 is a valid var
-			if (_pkb.isValidVar(arg2) == false) {
-				return qr;
-			}
-			
-			// For each variable, get the list of statements that modifies them, then check for each of those statement, if they uses arg2
-			for (list<string>::iterator it1 = varList.begin(); it1 != varList.end(); it1++) {
-				list<int> arg1ModifiedBy = _pkb.getModifiedBy(*it1);
-				int outerIteratorIsValidResult = -1;
-				if (arg1ModifiedBy.empty() == true) {
-					continue;
-					//return qr;
-				}
-				else {
-					for (list<int>::iterator it2 = arg1ModifiedBy.begin(); it2 != arg1ModifiedBy.end(); it2++) {
-						if (_pkb.isUsed(*it2, arg2) == true) {
-							outerIteratorIsValidResult = 1;
-							qr.setIsExist(1);
-							qr.insertPatternResult(to_string(*it2));
-							break;
-						}
-					}
-					if (outerIteratorIsValidResult == 1) {
-						qr.insertArg1Result(*it1);
-					}
-				}
-			}
-			return qr;
-		}
-	}
-	return qr;
-}
-
-QueryResult QueryEvaluator::processFollows(Clause followClause) {
-	string arg1 = followClause.getArg().at(0);
-	string arg2 = followClause.getArg().at(1);
-	string arg1Type = followClause.getArgType().at(0);
-	string arg2Type = followClause.getArgType().at(1);
-
-	QueryResult qr;
-
-	if (arg1Type == ARGTYPE_CONSTANT) {
-		//If arg1 not valid stmt, return empty QueryResult
-		if (_pkb.isValidStmt(stoi(arg1)) == false) {
-			return qr;
-		}
-		// If arg1 no follower, return empty QueryResult
-		int arg1Follower = _pkb.getFollower(stoi(arg1));
-		if (arg1Follower == -1) {
-			return qr;
-		}
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// If arg2 <= arg1, impossibru
-			if (arg2 <= arg1) {
-				return qr;
-			}
-
-			// If arg2 not valid stmt, return empty QueryResult
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
-			}
-			if (_pkb.isValidFollows(stoi(arg1), stoi(arg2)) == true) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// At this point, arg1 determined to have follower from the first getFollower() check for. Hence, return QueryResult set to 1
-			qr.setIsExist(1); 
-			return qr;
-		}
-		else {
-			// arg2 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-
-			// If program does not have any statements of arg2Type, then this relationship evaluates to -1
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
-			}
-
-			// Check if any of the statement in synonymStatementsArg2 list is a follower of arg1
-			// If found, add to arg2ResultList and set query to 1
-			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); ++it) {
-				if (_pkb.isValidFollows(stoi(arg1), *it) == true) {
-					qr.insertArg2Result(to_string(*it)); 
-					qr.setIsExist(1);
-				}
-			}
-			return qr;
-		}
-	}
-	else if (arg1Type == ARGTYPE_ANY) {
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// If arg2 not valid stmt, return empty QueryResult
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
-			}
-			// If have followed from, set QueryResult to 1 & return
-			int arg2FollowedFrom = _pkb.getFollowedFrom(stoi(arg2));
-			if (arg2FollowedFrom == -1) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// If follow table not empty, result exists
-			if (_pkb.isFollowEmpty() == false) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else {
-			// arg2 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-
-			// If program does not have any statements of arg2Type, then this relationship evaluates to -1
-			if (synonymStatementsArg2.empty() == true) return qr;
-			
-			// Check all statements of arg2Type for followedFrom. Add all followedFrom to result list
-			for (list<int>::iterator it = synonymStatementsArg2.begin(), end = synonymStatementsArg2.end(); it != end; ++it) {
-				int followedFrom = _pkb.getFollowedFrom(*it);
-				if (followedFrom != -1) {
-					qr.insertArg2Result(to_string(*it));
-					qr.setIsExist(1);
-				}
-			}
-			return qr;
-		}
-	}
-	else {
-		// arg1 is a synonym
-		qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-		list<int> synonymStatementsArg1 = getList(arg1Type);
-
-		// If no statements of arg1type exist, query is -1
-		if (synonymStatementsArg1.empty() == true) {
-			return qr;
-		}
-
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// If arg2 not valid stmt, query is -1
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
-			}
-
-			// Check if any of the statements in synonymStatementsArg1 is followed by arg2. If any of them are 1, add it to the query results
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				if (_pkb.isValidFollows(*it, stoi(arg2)) == true) {
-					qr.insertArg1Result(to_string(*it)); 
-					qr.setIsExist(1);
-				}
-			}
-			return qr;
-		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// Look for followers of all statements of arg1Type. For all found, add to qr
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				int arg1Follower = _pkb.getFollower(*it);
-				if (arg1Follower != -1) { 
-					qr.insertArg1Result(to_string(*it)); 
-					qr.setIsExist(1); 
-				}
-			}
-			return qr;
-		}
-		else {
-			// arg2 is a synonym
-
-			// Corner case. F(s,s)
+			// Argument 2 is a synonym
+			// Corner case: Follows(s,s)
 			if (arg2 == arg1) {
-				return qr;
+				return temp_result;
 			}
 			
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-
-			// If program does not have any statements of arg2Type, then this relationship evaluates to -1
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each statement of arg1Type, check if each statement of arg2Type is its follower
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					if (_pkb.isValidFollows(*it1, *it2) == true) { 
-						outerIteratorIsValidResult = 1; 
-						qr.insertArg2Result(to_string(*it2)); 
-						qr.setIsExist(1); 
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+					if (pkb_.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(to_string(arg2_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+						break;
 					}
 				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.insertArg1Result(to_string(*it1));
-				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	return qr; 
+	return temp_result;
 }
 
-QueryResult QueryEvaluator::processFollowsT(Clause followTClause) {
-	string arg1 = followTClause.getArg().at(0);
-	string arg2 = followTClause.getArg().at(1);
-	string arg1Type = followTClause.getArgType().at(0);
-	string arg2Type = followTClause.getArgType().at(1);
+ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
+	string arg1 = follow_star_clause.getArg().at(0);
+	string arg2 = follow_star_clause.getArg().at(1);
+	string arg1_type = follow_star_clause.getArgType().at(0);
+	string arg2_type = follow_star_clause.getArgType().at(1);
 
-	QueryResult qr;
+	ResultTable temp_result;
 
-	if (arg1Type == ARGTYPE_CONSTANT) {
-		// arg1 must be valid stmt
-		if (_pkb.isValidStmt(stoi(arg1)) == false) {
-			return qr;
+	if (arg1_type == ARGTYPE_CONSTANT) {
+		int arg1_stmt_num = stoi(arg1);
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
 		}
-		// If arg1 has no followerStar, -1 and return qr
-		list<int> arg1FollowerStar = _pkb.getFollowerStar(stoi(arg1));
-		if (arg1FollowerStar.empty() == true) {
-			return qr;
+
+		list<int> arg1_follower_star = pkb_.getFollowerStar(arg1_stmt_num);
+		if (arg1_follower_star.empty() == true) {
+			return temp_result;
 		}
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// If arg2 in arg1FollowerStar list, 1 and return
-			if (find(arg1FollowerStar.begin(), arg1FollowerStar.end(), stoi(arg2)) != arg1FollowerStar.end()) {
-				qr.setIsExist(1);
+
+			if (find(arg1_follower_star.begin(), arg1_follower_star.end(), arg2_stmt_num) != arg1_follower_star.end()) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// Query is 1 since arg1FollowerStar is non empty
-			qr.setIsExist(1);
-			return qr;
+		else if (arg2_type == ARGTYPE_ANY) {
+			temp_result.SetIsQueryTrue(true);
+			return temp_result;
 		}
 		else {
-			// arg2 is synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each follower in synonymStatementsArg2, check if they belong in arg1FollowerStar, if 1, add to result and query is 1
-			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-				if (find(arg1FollowerStar.begin(), arg1FollowerStar.end(), *it) != arg1FollowerStar.end()) {
-					qr.insertArg2Result(to_string(*it));
-					qr.setIsExist(1);
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (pkb_.isFollowsStar(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	else if (arg1Type == ARGTYPE_ANY) {
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// Check if arg2's followedFromStar list got any elements. if no have, query is -1
-			list<int> arg2FollowedFromStar = _pkb.getFollowedFromStar(stoi(arg2));
-			if (!arg2FollowedFromStar.empty() == true) {
-				qr.setIsExist(1);
+
+			list<int> arg2_followed_from_star = pkb_.getFollowedFromStar(arg2_stmt_num);
+			if (arg2_followed_from_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// If follow table not empty then is all good
-			if (_pkb.isFollowEmpty() == false) {
-				qr.setIsExist(1);
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (pkb_.isFollowEmpty() == false) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// arg2 is synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			// Argument 2 is synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
-			// For each follower in synonymStatementsArg2, check followedFromStar list. Add all the elements in that list to arg2Results if 1
-			for (list<int>::iterator it1 = synonymStatementsArg2.begin(); it1 != synonymStatementsArg2.end(); it1++) {
-				list<int> arg2FollowedFromStar = _pkb.getFollowedFromStar(*it1);
-				if (!arg2FollowedFromStar.empty() == true) {
-					qr.setIsExist(1);
-					for (list<int>::iterator it2 = arg2FollowedFromStar.begin(); it2 != arg2FollowedFromStar.end(); it2++) {
-						qr.insertArg2Result(to_string(*it2));
-					}
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				list<int> arg2_followed_from_star = pkb_.getFollowedFromStar(arg2_stmt_num);
+				if (arg2_followed_from_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
 	else {
-		// arg1 is synonym
-		qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-		list<int> synonymStatementsArg1 = getList(arg1Type);
-		if (synonymStatementsArg1.empty() == true) {
-			return qr;
+		// Argument 1 is a synonym
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
 		}
 
-		if(arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if(arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// For each element in synonymStatementsArg1, check if arg1,arg2 is valid follow* rel
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				if (_pkb.isFollowsStar(*it, stoi(arg2))) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it));
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (pkb_.isFollowsStar(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// For all element in synonymStatementsArg1, check if they each have followerStar. If have, add to results
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				list<int> arg1FollowerStar = _pkb.getFollowerStar(*it1);
-				if (!arg1FollowerStar.empty() == true) {
-					qr.setIsExist(1);
-					for (list<int>::iterator it2 = arg1FollowerStar.begin(); it2 != arg1FollowerStar.end(); it2++) {
-						qr.insertArg1Result(to_string(*it2));
-					}
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<int> arg1_follower_star = pkb_.getFollowerStar(arg1_stmt_num);
+				if (arg1_follower_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// arg2 is synonym
-			// Corner case F*(s,s)
+			// Argument 2 is a synonym
+			// Corner case FollowStar*(s,s)
 			if (arg1 == arg2) {
-				return qr;
+				return temp_result;
 			}
 
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each element in synonymStatementsArg1, check if each element in synonymStatementsArg2 fulfil isFollowStar(arg1, arg2)
-			vector<string> arg1ResultList;
-			vector<string> arg2ResultList;
-			set<string> arg2Result;
+			temp_result = ResultTable(arg1, arg2);
 
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					if (_pkb.isFollowsStar(*it1, *it2)) {
-						outerIteratorIsValidResult = 1; 
-						//qr.insertArg2Result(to_string(*it2)); Legacy
-						arg2ResultList.push_back(to_string(*it2));
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+					if (pkb_.isFollowsStar(arg1_stmt_num, arg2_stmt_num)) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(to_string(arg2_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
 					}
 				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.setIsExist(1);
-					//qr.insertArg1Result(to_string(*it1));
-					arg1ResultList.push_back(to_string(*it1));
-				}
-			}
-			
-			for (vector<string>::iterator it = arg2ResultList.begin(); it != arg2ResultList.end(); ++it) {
-				arg2Result.insert(*it);
 			}
 
-			vector<string> formattedArg2Result;
-			for (set<string>::iterator it = arg2Result.begin(); it != arg2Result.end(); ++it) {
-				formattedArg2Result.push_back(*it);
-			}
-
-			qr.setArg1ResultList(arg1ResultList);
-			qr.setArg2ResultList(formattedArg2Result);
-
-			return qr;
+			return temp_result;
 		}
 	}
-	return qr;
+
+	return temp_result;
 }
 
-QueryResult QueryEvaluator::processParent(Clause parentClause) {
-	string arg1 = parentClause.getArg().at(0);
-	string arg2 = parentClause.getArg().at(1);
-	string arg1Type = parentClause.getArgType().at(0);
-	string arg2Type = parentClause.getArgType().at(1);
+ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
+	string arg1 = parent_clause.getArg().at(0);
+	string arg2 = parent_clause.getArg().at(1);
+	string arg1_type = parent_clause.getArgType().at(0);
+	string arg2_type = parent_clause.getArgType().at(1);
 
-	QueryResult qr;
+	ResultTable temp_result;
 
-	if (arg1Type == ARGTYPE_CONSTANT)
+	if (arg1_type == ARGTYPE_CONSTANT)
 	{
-		// arg1 must be valid stmt
-		if (_pkb.isValidStmt(stoi(arg1)) == false) {
-			return qr;
+		int arg1_stmt_num = stoi(arg1);
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
 		}
 
-		// arg1 must have child
-		list<int> arg1Children = _pkb.getChildrenOf(stoi(arg1));
-		if (arg1Children.empty() == true) {
-			return qr;
+		list<int> arg1_children = pkb_.getChildrenOf(arg1_stmt_num);
+		if (arg1_children.empty() == true) {
+			return temp_result;
 		}
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// Check if valid parent
-			if (_pkb.isParentOf(stoi(arg1), stoi(arg2))) {
-				qr.setIsExist(1);
+
+			if (pkb_.isParentOf(arg1_stmt_num, arg2_stmt_num)) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// Query is 1 since arg1 has children
-			qr.setIsExist(1);
-			return qr;
+		else if (arg2_type == ARGTYPE_ANY) {
+			// Query is true since arg1 has children
+			temp_result.SetIsQueryTrue(true);
+			return temp_result;
 		}
 		else {
-			// Arg2 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
-			// Check if any statement in synonymStatementsArg2 is a child of arg1
-			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-				if (_pkb.isParentOf(stoi(arg1), *it)) {
-					qr.insertArg2Result(to_string(*it)); qr.setIsExist(1);
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (pkb_.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	else if (arg1Type == ARGTYPE_ANY) {
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// arg2 must have parent
-			if (_pkb.getParentOf(stoi(arg2))) {
-				qr.setIsExist(1);
+			if (pkb_.getParentOf(arg2_stmt_num) != -1) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
+		else if (arg2_type == ARGTYPE_ANY) {
 			// If ParentTable is non empty (with relationships), existential query
-			if (!_pkb.isParentEmpty() == true) {
-				qr.setIsExist(1);
+			if (pkb_.isParentEmpty() == false) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// Arg2 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// Check if any statement in synonymStatementsArg2 got parent. If have, add to result
-			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-				int parentOfArg2  = _pkb.getParentOf(*it);
-				if (parentOfArg2 != -1) {
-					qr.insertArg2Result(to_string(*it)); 
-					qr.setIsExist(1);
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (pkb_.getParentOf(arg2_stmt_num) != -1) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
 	else 
 	{
-		// arg1 is a synonym
-		// assume validator already check arg1Type == CONTAINER
-		qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-		list<int> synonymStatementsArg1 = getList(arg1Type);
-		if (synonymStatementsArg1.empty() == true) {
-			return qr;
+		// Argument 1 is a synonym
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
 		}
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// arg2 must have parent in synonymStatementsArg1
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				if (_pkb.isParentOf(*it, stoi(arg2))) {
-					qr.insertArg1Result(to_string(*it)); 
-					qr.setIsExist(1); 
-					return qr;
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (pkb_.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+					break;
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// if there exists at least 1 parent in synonymStatementsArg1 that has a child, query evaluates to 1
-			// for each synonymStatement that has a kid, add to resultList in qr
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++)
-			{
-				list<int> arg1Children = _pkb.getChildrenOf(*it);
-				if (!arg1Children.empty() == true) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it));
-					/*for (list<int>::iterator it1 = arg1Children.begin(); it1 != arg1Children.end(); it1++) {
-						qr.insertArg1Result(to_string(*it1));
-					}*/
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<int> arg1_children = pkb_.getChildrenOf(arg1_stmt_num);
+				if (arg1_children.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else
 		{
-			// Arg2 is a synonym
-			// Probably wrong implementation now... Gotta redesign QueryResult to handle 2 synonym cases
-			
-			// Corner case. P(x,x)
+			// Argument 2 is a synonym			
+			// Corner case. Parent(s,s)
 			if (arg1 == arg2) {
-				return qr;
-			}
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+				return temp_result;
 			}
 
-			// Check for all combination of arg1 and arg2 if exist parental relationship
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					if (_pkb.isParentOf(*it1, *it2) == true) {
-						outerIteratorIsValidResult = 1; 
-						qr.insertArg2Result(to_string(*it2)); 
-						qr.setIsExist(1);
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+					if (pkb_.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(to_string(arg2_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
 					}
 				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.insertArg1Result(to_string(*it1));
-				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	return qr;
+
+	return temp_result;
 }
 
-QueryResult QueryEvaluator::processParentT(Clause parentTClause) {
-	string arg1 = parentTClause.getArg().at(0);
-	string arg2 = parentTClause.getArg().at(1);
-	string arg1Type = parentTClause.getArgType().at(0);
-	string arg2Type = parentTClause.getArgType().at(1);
+ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
+	string arg1 = parent_star_clause.getArg().at(0);
+	string arg2 = parent_star_clause.getArg().at(1);
+	string arg1_type = parent_star_clause.getArgType().at(0);
+	string arg2_type = parent_star_clause.getArgType().at(1);
 
-	QueryResult qr;
+	ResultTable temp_result;
 
-	if (arg1Type == ARGTYPE_CONSTANT) {
-		// arg1 must be valid stmt
-		if (_pkb.isValidStmt(stoi(arg1)) == false) {
-			return qr;
-		}
-		list<int> arg1Children = _pkb.getChildrenOf(stoi(arg1));
-		if (arg1Children.empty() == true) {
-			return qr;
+	if (arg1_type == ARGTYPE_CONSTANT) {
+		int arg1_stmt_num = stoi(arg1);
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
 		}
 
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 nmust be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+		list<int> arg1_children_star = pkb_.getChildStarOf(arg1_stmt_num);
+		if (arg1_children_star.empty() == true) {
+			return temp_result;
+		}
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
-			// Check if arg2 is in arg1Children. If yes, query is 1
-			if (find(arg1Children.begin(), arg1Children.end(), stoi(arg2)) != arg1Children.end()) {
-				qr.setIsExist(1);
+
+			if (find(arg1_children_star.begin(), arg1_children_star.end(), arg2_stmt_num) != arg1_children_star.end()) {
+				temp_result.SetIsQueryTrue(true);
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// Query is 1 as arg1 has children
-			qr.setIsExist(1);
-			return qr;
+		else if (arg2_type == ARGTYPE_ANY) {
+			temp_result.SetIsQueryTrue(true);
+			return temp_result;
 		}
 		else {
-			// arg2 is 
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each element in synonymStatementsArg2, check if arg2 is in arg1Children. If yes, add to results
-			for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-				if (_pkb.isParentStar(stoi(arg1), *it) != false) {
-					qr.setIsExist(1);
-					qr.insertArg2Result(to_string(*it));
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (pkb_.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			//// For each element in synonymStatementsArg2, check if arg2 is in arg1Children. If yes, add to results
-			//for (list<int>::iterator it = synonymStatementsArg2.begin(); it != synonymStatementsArg2.end(); it++) {
-			//	if (find(arg1Children.begin(), arg1Children.end(), *it) != arg1Children.end()) {
-			//		qr.insertArg2Result(to_string(*it));
-			//		qr.setIsExist(1);
-			//	}
-			//}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	else if (arg1Type == ARGTYPE_ANY) {
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			// arg2 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
-			}
-			// Check if arg2 has non empty parentStar
-			list<int> arg2ParentStar = _pkb.getParentStar(stoi(arg2));
-			if (!arg2ParentStar.empty() == true) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// check if parent table non empty
-			if (_pkb.isParentEmpty() == false) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else {
-			// arg2 is 
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// For each child in synonymStatementsArg2, check the parentStar and add them in results accordingly
-			for (list<int>::iterator it1 = synonymStatementsArg2.begin(); it1 != synonymStatementsArg2.end(); it1++) {
-				list<int> arg2ParentStar = _pkb.getParentStar(*it1);
-				if (arg2ParentStar.empty() == false ) {
-					qr.setIsExist(1);
-					qr.insertArg2Result(to_string(*it1));
-					/*for (list<int>::iterator it2 = arg2ParentStar.begin(); it2 != arg2ParentStar.end(); it2++) {
-						qr.insertArg2Result(to_string(*it2));
-					}*/
+			list<int> arg2_parent_star = pkb_.getParentStar(arg2_stmt_num);
+			if (arg2_parent_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (pkb_.isParentEmpty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				list<int> arg2_parent_star = pkb_.getParentStar(arg2_stmt_num);
+				if (arg2_parent_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
 	else {
-		// arg1 is synonym
-		qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-		list<int> synonymStatementsArg1 = getList(arg1Type);
-		if (synonymStatementsArg1.empty() == true) {
-			return qr;
+		// Argument 1 is a synonym
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg2Type == ARGTYPE_CONSTANT) {
-			//arg must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg2)) == false) {
-				return qr;
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// For each element in synonymStatementsArg1, check if they are the Parent* of arg2
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				if (_pkb.isParentStar(*it1, stoi(arg2))) {
-					qr.insertArg1Result(to_string(*it1)); 
-					qr.setIsExist(1);
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (pkb_.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg2Type == ARGTYPE_ANY) {
-			// For each element in synonymStatementsArg1, check if arg1 has children. if have, add results accordingly
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				list<int> arg1Children = _pkb.getChildrenOf(stoi(arg1));
-				if (arg1Children.empty() == false) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it));
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<int> arg1_children_star = pkb_.getChildStarOf(arg1_stmt_num);
+				if (arg1_children_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 		else {
-			// arg2 is synonym
-
+			// Argument 2 is a synonym
 			// Corner case Parent*(s,s)
 			if (arg1 == arg2) {
-				return qr;
+				return temp_result;
 			}
 
-			qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-			list<int> synonymStatementsArg2 = getList(arg2Type);
-			if (synonymStatementsArg2.empty() == true) {
-				return qr;
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each element in synonymStatementsArg1, check if each element in synonymStatementsArg2 fulfil isFollowStar(arg1, arg2)
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<int>::iterator it2 = synonymStatementsArg2.begin(); it2 != synonymStatementsArg2.end(); it2++) {
-					if (_pkb.isParentStar(*it1, *it2)) {
-						outerIteratorIsValidResult = 1; 
-						qr.insertArg2Result(to_string(*it2));
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+					if (pkb_.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(to_string(arg2_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
 					}
 				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it1));
-				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
-	return qr;
+	return temp_result;
 }
 
-QueryResult QueryEvaluator::processModifies(Clause modifiesClause) {
-	string arg1 = modifiesClause.getArg().at(0);
-	string arg2 = modifiesClause.getArg().at(1);
-	string arg1Type = modifiesClause.getArgType().at(0);
-	string arg2Type = modifiesClause.getArgType().at(1);
+ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
+	string arg1 = modifies_clause.getArg().at(0);
+	string arg2 = modifies_clause.getArg().at(1);
+	string arg1_type = modifies_clause.getArgType().at(0);
+	string arg2_type = modifies_clause.getArgType().at(1);
 	
-	QueryResult qr;
+	ResultTable temp_result;
 
-	if (arg2Type == ARGTYPE_STRING) {
-		// arg2 must be valid var
-		if (_pkb.isValidVar(arg2) == false) {
-			return qr;
+	if (arg2_type == ARGTYPE_STRING) {
+		if (pkb_.isValidVar(arg2) == false) {
+			return temp_result;
 		}
-		list<int> arg2ModifiedBy = _pkb.getModifiedBy(arg2);
-		if (arg2ModifiedBy.empty() == true) {
-			return qr;
+		list<int> arg2_modified_by = pkb_.getModifiedBy(arg2);
+		if (arg2_modified_by.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// Check if arg1 in arg2ModifiedBy list
-			if (find(arg2ModifiedBy.begin(), arg2ModifiedBy.end(), stoi(arg1)) != arg2ModifiedBy.end()) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else if (arg1Type == ARGTYPE_ANY) {
-			// Actually, an illegal argument for final iteration because it will be ambiguous. Legal in iteration1
-			// Query is 1 if arg2ModifiedBy is not emptyQ
-			qr.setIsExist(1);
-			return qr;
-		}
-		else {
-			// arg1 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-			list<int> synonymStatementsArg1 = getList(arg1Type); //For now, this should only be assign|while
-			if (synonymStatementsArg1.empty() == true) {
-				return qr;
+
+			if (find(arg2_modified_by.begin(), arg2_modified_by.end(), arg1_stmt_num) != arg2_modified_by.end()) {
+				temp_result.SetIsQueryTrue(true);
 			}
 
-			// For each stmt in synonymStatementsArg1, check if they modify arg2 and add results accordingly
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				if (_pkb.isModified(*it, arg2)) {
-					qr.setIsExist(1); 
-					qr.insertArg1Result(to_string(*it));
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (pkb_.isProcedureExist(arg1) == false) {
+				return temp_result;
+			}
+
+			if (pkb_.isModifiedBy(arg1, arg2) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure type
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+			list<string> procedure_list = pkb_.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				if (pkb_.isModifiedBy(arg1_procedure, arg2) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+			
+			return temp_result;
+		}
+		else {
+			// Argument 1 is a synonym of statement type
+			list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+			if (synonym_stmt_list_arg1.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (pkb_.isModified(arg1_stmt_num, arg2) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
 		}
 	}
-	else if (arg2Type == ARGTYPE_VARIABLE) {
-		// arg2 is a variable synonym
-		qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-		list<string> allVarList = _pkb.getVarList();
-		if (allVarList.empty() == true) {
-			return qr;
+	else if (arg2_type == ARGTYPE_VARIABLE) {
+		// Argument 2 is a variable synonym
+		list<string> all_variable_list = pkb_.getVarList();
+		all_variable_list.unique();
+		if (all_variable_list.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+		temp_result = ResultTable(arg2);
+		vector<string> temp_row_data;
+
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
 			}
 			
 			// Check if arg1 modifies anything
-			list<string> arg1ModifiedVar = _pkb.getModifiedBy(stoi(arg1));
-			if (arg1ModifiedVar.empty() == true) {
-				return qr;
+			list<string> arg1_modified_variables = pkb_.getModifiedBy(arg1_stmt_num);
+			if (arg1_modified_variables.empty() == true) {
+				return ;
 			}
 
-			// Query is 1 since arg1ModifiedVar is non empty
-			qr.setIsExist(1);
+			// Query is 1 since arg1_modified_variables is non empty
+			temp_result.SetIsQueryTrue(true);
 
-			// Add everything in arg1ModifiedVar to results in arg2
-			for (list<string>::iterator it = arg1ModifiedVar.begin(); it != arg1ModifiedVar.end(); it++) {
-				qr.insertArg2Result(*it);
+			for (auto &arg2_variable : arg1_modified_variables) {
+				temp_row_data.push_back(arg2_variable);
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
 			}
-			return qr;
+
+			return temp_result;
 		}
-		else if (arg1Type == ARGTYPE_ANY) {
-			// Since allVarList is non-empty, add everything into the reuslts for arg2
-			for (list<string>::iterator it = allVarList.begin(); it != allVarList.end(); it++) {
-				qr.insertArg2Result(*it);
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else {
-			// arg1 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-			list<int> synonymStatementsArg1 = getList(arg1Type);
-			if (synonymStatementsArg1.empty()) {
-				return qr;
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (pkb_.isProcedureExist(arg1) == false) {
+				return temp_result;
 			}
 
-			// For each statement in synonymStatementsArg1, check if they modify any of the var
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<string>::iterator it2 = allVarList.begin(); it2 != allVarList.end(); it2++) {
-					if (_pkb.isModified(*it1, *it2)) {
-						outerIteratorIsValidResult = 1; 
-						qr.insertArg2Result(*it2);
+			list<string> arg1_procedure_modifies_variable = pkb_.getModifiedByProc(arg1);
+			if (arg1_procedure_modifies_variable.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &arg2_variable : arg1_procedure_modifies_variable) {
+					temp_row_data.push_back(arg2_variable);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure type
+			temp_result = ResultTable(arg1, arg2);
+			list<string> procedure_list = pkb_.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_procedure_modifies_variable = pkb_.getModifiedByProc(arg1_procedure);
+				if (arg1_procedure_modifies_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg2_variable : arg1_procedure_modifies_variable) {
+						temp_row_data.push_back(arg1_procedure);
+						temp_row_data.push_back(arg2_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
 					}
 				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it1));
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 1 is a synonym of statement type
+			list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+			if (synonym_stmt_list_arg1.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<string> arg1_modifies_variable = pkb_.getModifiedBy(arg1_stmt_num);
+				if (arg1_modifies_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg2_variable : arg1_modifies_variable) {
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(arg2_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
 	else {
-		// arg2Type is any '_', explicitly is a variable
-		list<string> allVarList = _pkb.getVarList();
-		allVarList.unique();
-		if (allVarList.empty() == true) {
-			return qr;
+		// arg2_type is any ('_'), explicitly is a variable
+		list<string> all_variable_list = pkb_.getVarList();
+		all_variable_list.unique();
+		if (all_variable_list.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
 			}
 
-			// Check if arg1 modifies anything
-			list<string> arg1Modifies = _pkb.getModifiedBy(stoi(arg1));
-			if (arg1Modifies.empty() == false) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else if (arg1Type == ARGTYPE_ANY) {
-			// Since varList is non empty, something is modified
-			qr.setIsExist(1);
-			return qr;
-		}
-		else {
-			// arg1 is a synonym. as of now, this should only be assign type statements
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);;
-			list<int> synonymStatementsArg1 = getList(arg1Type);
-			if (synonymStatementsArg1.empty()) {
-				return qr;
+			list<string> arg1_modifies = pkb_.getModifiedBy(stoi(arg1));
+			if (arg1_modifies.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
 			}
 
-			// For each statement in synonymStatementsArg1, check if it modifies anything
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				list<string> arg1ModifiesVar = _pkb.getModifiedBy(*it);
-				if (arg1ModifiesVar.empty() == false) {
-					qr.insertArg1Result(to_string(*it));
-					qr.setIsExist(1);
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (pkb_.isProcedureExist(arg1) == false) {
+				return temp_result;
+			}
+
+			list<string> arg1_procedure_uses_variable = pkb_.getModifiedByProc(arg1);
+			if (arg1_procedure_uses_variable.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure type
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+			list<string> procedure_list = pkb_.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_procedure_modifies_variable = pkb_.getModifiedByProc(arg1_procedure);
+				if (arg1_procedure_modifies_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
+		}
+		else {
+			// Argument 1 is a synonym of statement type
+			list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+			if (synonym_stmt_list_arg1.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<string> arg1_modifies = pkb_.getModifiedBy(arg1_stmt_num);
+				if (arg1_modifies.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
 		}
 	}
-	return qr;
+	return temp_result;
 }
 
-QueryResult QueryEvaluator::processUses(Clause usesClause) {
-	string arg1 = usesClause.getArg().at(0);
-	string arg2 = usesClause.getArg().at(1);
-	string arg1Type = usesClause.getArgType().at(0);
-	string arg2Type = usesClause.getArgType().at(1);
+ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
+{
+	string arg1 = next_clause.getArg().at(0);
+	string arg2 = next_clause.getArg().at(1);
+	string arg1_type = next_clause.getArgType().at(0);
+	string arg2_type = next_clause.getArgType().at(1);
 
-	QueryResult qr;
+	ResultTable temp_result;
 
-	if (arg2Type == ARGTYPE_STRING) {
-		// arg2 must be valid var
-		if (_pkb.isValidVar(arg2) == false) {
-			return qr;
+	if (arg1_type == ARGTYPE_CONSTANT) {
+		int arg1_stmt_num = stoi(arg1);
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
 		}
-
-		// Check if arg2 is being used by anything
-		list<int> arg2UsedBy = _pkb.getUsedBy(arg2);
-		if (arg2UsedBy.empty() == true) {
-			return qr;
-		}
-
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (!pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+			if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) == true) {
+				temp_result.SetIsQueryTrue(true);
 			}
 
-			// Check if arg1 is in arg2UsedBy
-			if (find(arg2UsedBy.begin(), arg2UsedBy.end(), stoi(arg1)) != arg2UsedBy.end()) {
-				qr.setIsExist(1);
-			}
-			return qr;
+			return temp_result;
 		}
-		else if (arg1Type == ARGTYPE_ANY) {
-			// Since arg2UsedBy is non empty, this query is 1
-			qr.setIsExist(1);
-			return qr;
+		else if (arg2_type == ARGTYPE_ANY) {
+			// Check if there is a statement that can be executed after arg1_stmt_num
+			if (pkb_.getExecutedAfter(arg1_stmt_num) != -1) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
 		}
 		else {
-			// arg1 is a synonym. at this point in time, should just be assign type statements
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-			list<int> synonymStatementsArg1 = getList(arg1Type);
-			if (synonymStatementsArg1.empty() == true) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each statement in synonymStatementsArg1, if any statement is using arg2
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				if (_pkb.isUsed(*it, arg2)) {
-					qr.setIsExist(1); 
-					qr.insertArg1Result(to_string(*it));
+			// Init the table with arg2 synonym
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			// For each statemet of arg2_type, check if arg1_stmt_num is executed before it
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) != -1) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
-		}
-	}
-	else if (arg2Type == ARGTYPE_VARIABLE) {
-		// arg2 is a variable synonym
-		qr.setArgToSynonymMapping(PARAM_ARG2, arg2);
-		list<string> allVarList = _pkb.getVarList();
-		allVarList.unique();
-		if (allVarList.empty() == true) {
-			return qr;
-		}
 
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+			return temp_result;
+		}
+	} 
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+			
+			if (pkb_.getExecutedBefore(arg2_stmt_num) != -1) {
+				temp_result.SetIsQueryTrue(true);
 			}
 
-			// Check if arg1 uses anything
-			list<string> arg1UsesVar = _pkb.getUsedBy(stoi(arg1));
-			if (arg1UsesVar.empty() == true) {
-				return qr;
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (pkb_.isNextEmpty() == false) {
+				temp_result.SetIsQueryTrue(true);
 			}
 
-			// if arg1UsesVar non empty, add everything in arg1UsesVar to results
-			qr.setIsExist(1);
-			for (list<string>::iterator it = arg1UsesVar.begin(); it != arg1UsesVar.end(); it++) {
-				qr.insertArg2Result(*it);
-			}
-			return qr;
-		}
-		else if (arg1Type == ARGTYPE_ANY) {
-			list<string> allUsedVar = _pkb.getAllUsedVar();
-			if (allUsedVar.empty() == true) {
-				return qr;
-			}
-			// Add all used var into results
-			qr.setIsExist(1);
-			for (list<string>::iterator it = allUsedVar.begin(); it != allUsedVar.end(); it++) {
-				qr.insertArg2Result(*it);
-			}
-			return qr;
+			return temp_result;
 		}
 		else {
-			// arg1 is a synonym (can be assign or while)
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-			list<int> synonymStatementsArg1 = getList(arg1Type);
-			if (synonymStatementsArg1.empty() == true) {
-				return qr;
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
 			}
 
-			// For each statement in synonymStatementsArg1, check if they use anything. if yes, add to result
-			for (list<int>::iterator it1 = synonymStatementsArg1.begin(); it1 != synonymStatementsArg1.end(); it1++) {
-				int outerIteratorIsValidResult = -1;
-				for (list<string>::iterator it2 = allVarList.begin(); it2 != allVarList.end(); it2++) {
-					if (_pkb.isUsed(*it1, *it2)) {
-						outerIteratorIsValidResult = 1; 
-						qr.insertArg2Result(*it2);
-					}
-				}
-				if (outerIteratorIsValidResult == 1) {
-					qr.setIsExist(1);
-					qr.insertArg1Result(to_string(*it1));
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (pkb_.getExecutedBefore(arg2_stmt_num) != -1) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
 		}
 	}
 	else {
-		// arg2 is any, '_'
-		list<string> allVarList = _pkb.getVarList();
-		allVarList.unique();
-		if (allVarList.empty() == true) {
-			return qr;
+		// Argument 1 is a synonym
+		list<int>synonym_stmt_list_arg1 = GetList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
 		}
 
-		if (arg1Type == ARGTYPE_CONSTANT) {
-			// arg1 must be valid stmt
-			if (_pkb.isValidStmt(stoi(arg1)) == false) {
-				return qr;
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (pkb_.getExecutedAfter(arg1_stmt_num) != -1) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym
+			// Corner case: Next(n,n)
+			if (arg1 == arg2) {
+				return temp_result;
+			}
+
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+					if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) != -1) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(to_string(arg2_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+		}
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
+{
+	string arg1 = next_star_clause.getArg().at(0);
+	string arg2 = next_star_clause.getArg().at(1);
+	string arg1_type = next_star_clause.getArgType().at(0);
+	string arg2_type = next_star_clause.getArgType().at(1);
+
+	ResultTable temp_result;
+
+	if (arg1_type == ARGTYPE_CONSTANT) {
+		int arg1_stmt_num = stoi(arg1);
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
+		}
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+
+			if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			list<int> executed_after_arg1_list = pkb_.getExecutedAfterStar(arg1_stmt_num);
+			if (executed_after_arg1_list.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+
+			list<int> executed_before_arg2_list = pkb_.getExecutedBeforeStar(arg2_stmt_num);
+			if (executed_before_arg2_list.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (pkb_.isNextEmpty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+			
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				list<int> executed_before_star_arg2 = pkb_.getExecutedBeforeStar(arg2_stmt_num);
+				if (executed_before_star_arg2.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else {
+		// Argument 1 is a synonym
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
+		}
+
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<int> executed_after_star_arg1 = pkb_.getExecutedAfterStar(arg1_stmt_num);
+				if (executed_after_star_arg1.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1, arg2);
+			
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+					if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num)) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(to_string(arg2_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+
+			return temp_result;
+		}
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
+{
+	string arg1 = calls_clause.getArg().at(0);
+	string arg2 = calls_clause.getArg().at(1);
+	string arg1_type = calls_clause.getArgType().at(0);
+	string arg2_type = calls_clause.getArgType().at(1);
+
+	ResultTable temp_result;
+
+	if (arg1_type == ARGTYPE_STRING) {
+		if (pkb_.isProcedureExist(arg1) == false) {
+			return temp_result;
+		}
+
+		if (arg2_type == ARGTYPE_STRING) {
+			if (pkb_.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			if (pkb_.isCall(arg1, arg2) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			list<string> arg1_callee = pkb_.getCallee(arg1);
+			if (arg1_callee.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type. Should be non-empty
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+			
+			list<string> arg1_callee_list = pkb_.getCallee(arg1);
+			if (arg1_callee_list.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &arg1_callee : arg1_callee_list) {
+					temp_row_data.push_back(arg1_callee);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_STRING) {
+			if (pkb_.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			list<string> arg2_caller = pkb_.getCaller(arg2);
+			if (arg2_caller.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (pkb_.isCallExist() == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type. Should not be empt
+			list<string> procedure_list = pkb_.getProcedureList();
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_procedure : procedure_list) {
+				list<string> arg2_caller = pkb_.getCaller(arg2);
+				if (arg2_caller.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg2_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else {
+		// Argument 1 is a synonym of procedure type. Should not be empty
+		list<string> procedure_list = pkb_.getProcedureList();
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_STRING) {
+			if (pkb_.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			list<string> arg2_caller_list = pkb_.getCaller(arg2);
+			if (arg2_caller_list.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &arg2_caller : arg2_caller_list) {
+					temp_row_data.push_back(arg2_caller);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_callee = pkb_.getCallee(arg1_procedure);
+				if (arg1_callee.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type. Should not be empty
+			if (procedure_list.size() < 2) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_callee_list = pkb_.getCallee(arg1);
+				if (arg1_callee_list.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg1_callee : arg1_callee_list) {
+						temp_row_data.push_back(arg1_procedure);
+						temp_row_data.push_back(arg1_callee);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+			
+			return temp_result;
+		}
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
+{
+	string arg1 = calls_star_clause.getArg().at(0);
+	string arg2 = calls_star_clause.getArg().at(1);
+	string arg1_type = calls_star_clause.getArgType().at(0);
+	string arg2_type = calls_star_clause.getArgType().at(1);
+
+	ResultTable temp_result;
+
+	if (arg1_type == ARGTYPE_STRING) {
+		if (pkb_.isProcedureExist(arg1) == false) {
+			return temp_result;
+		}
+
+		if (arg2_type == ARGTYPE_STRING) {
+			if (pkb_.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			if (pkb_.isCallStar(arg1, arg2) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			list<string> arg1_callee_star = pkb_.getCalleeStar(arg1);
+			if (arg1_callee_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			list<string> arg1_callee_star_list = pkb_.getCalleeStar(arg1);
+			if (arg1_callee_star_list.empty() == false) {
+				for (auto &arg1_callee_star : arg1_callee_star_list) {
+					temp_row_data.push_back(arg1_callee_star);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_STRING) {
+			if (pkb_.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			list<string> arg2_caller_star = pkb_.getCallerStar(arg2);
+			if (arg2_caller_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (pkb_.isCallExist() == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type
+			list<string> procedure_list = pkb_.getProcedureList();
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_procedure : procedure_list) {
+				list<string> arg2_caller_star = pkb_.getCallerStar(arg2);
+				if (arg2_caller_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg2_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else {
+		// Argument 1 is a synonym of procedure type. Should not be empty
+		list<string> procedure_list = pkb_.getProcedureList();
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_STRING) {
+			if (pkb_.isProcedureExist(arg2) == false) {
+				return temp_result;
+			}
+
+			list<string> arg2_caller_star_list = pkb_.getCallerStar(arg2);
+			if (arg2_caller_star_list.empty() == false) {
+				for (auto &arg2_caller_star : arg2_caller_star_list) {
+					temp_row_data.push_back(arg2_caller_star);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_callee_star = pkb_.getCalleeStar(arg1);
+				if (arg1_callee_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym of procedure type
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_caller_star_list = pkb_.getCallerStar(arg1);
+				if (arg1_caller_star_list.empty() == false) {
+					for (auto &arg1_caller_star : arg1_caller_star_list) {
+						temp_row_data.push_back(arg1_procedure);
+						temp_row_data.push_back(arg1_caller_star);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+
+			return temp_result;
+		}
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
+{
+	string pattern_assign_syn = pattern_assign_clause.getArg().at(0);
+	string arg1 = pattern_assign_clause.getArg().at(1);
+	string arg2 = pattern_assign_clause.getArg().at(2);
+	string arg1_type = pattern_assign_clause.getArgType().at(1);
+	string arg2_type = pattern_assign_clause.getArgType().at(2);
+
+	list<int> all_assign_statements = GetList(ARGTYPE_ASSIGN);
+
+	ResultTable temp_result;
+
+	if (all_assign_statements.empty() == true) {
+		return temp_result;
+	}
+
+	temp_result = ResultTable(pattern_assign_syn);
+	vector<string> temp_row_data;
+
+	if (arg1_type == ARGTYPE_STRING) {
+		if (pkb_.isValidVar(arg1) == false) {
+			return temp_result;
+		}
+		if (arg2_type == ARGTYPE_ANY) {
+			list<int> arg1_modified_by = pkb_.getModifiedBy(arg1);
+			if (arg1_modified_by.empty() == true) {
+				return temp_result;
+			}
+			// If arg1ModifiedBy (made up of assign stmts in iteration1) is non empty, add them all to pattern results
+			temp_result.SetIsQueryTrue(true);
+
+			for (auto &pattern_assign_syn_stmt_num : arg1_modified_by) {
+				temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_EXPR) {
+			list<int> assign_with_expression = pkb_.getAssignWithExpression(arg2);
+			if (assign_with_expression.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &pattern_assign_syn_stmt_num : assign_with_expression) {
+					temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_SUB_EXPR) {
+			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpr(arg2);
+			if (assign_with_sub_expression.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
+					temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else {
+			// Should never be here. Consider removing this else.
+			return temp_result;
+		}
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_ANY) {
+			list<int> all_assign_list = pkb_.getAssignList();
+			if (all_assign_list.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result.SetIsQueryTrue(true);
+
+			for (auto &pattern_assign_syn_stmt_num : all_assign_list) {
+				temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_EXPR) {
+			list<int> assign_with_expression = pkb_.getAssignWithExpression(arg2);
+			if (assign_with_expression.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &pattern_assign_syn_stmt_num : assign_with_expression) {
+					temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_SUB_EXPR) {
+			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpr(arg2);
+			if (assign_with_sub_expression.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
+					temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else {
+		// Argument 1 is a variable synonym
+		list<string> all_variable_list = pkb_.getVarList();
+		if (all_variable_list.empty() == true) {
+			return temp_result;
+		}
+
+		temp_result = ResultTable(pattern_assign_syn, arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_ANY) {
+			for (auto &pattern_assign_syn_stmt_num : all_assign_statements) {
+				list<string> pattern_assign_syn_modifies_variables = pkb_.getModifiedBy(pattern_assign_syn_stmt_num);
+				if (pattern_assign_syn_modifies_variables.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg1_variable : pattern_assign_syn_modifies_variables) {
+						temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
+						temp_row_data.push_back(arg1_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+
+				return temp_result;
+			}
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_EXPR) {
+			list<int> assign_with_expression = pkb_.getAssignWithExpression(arg2);
+			if (assign_with_expression.empty() == true) {
+				return temp_result;
+			}
+
+			for (auto &pattern_assign_syn_stmt_num : assign_with_expression) {
+				list<string> pattern_assign_syn_modifies_variables = pkb_.getModifiedBy(pattern_assign_syn_stmt_num);
+				if (pattern_assign_syn_modifies_variables.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg1_variable : pattern_assign_syn_modifies_variables) {
+						temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
+						temp_row_data.push_back(arg1_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_SUB_EXPR) {
+			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpr(arg2);
+			if (assign_with_sub_expression.empty() == true) {
+				return temp_result;
+			}
+
+			for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
+				list<string> pattern_assign_syn_modifies_variables = pkb_.getModifiedBy(pattern_assign_syn_stmt_num);
+				if (pattern_assign_syn_modifies_variables.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg1_variable : pattern_assign_syn_modifies_variables) {
+						temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
+						temp_row_data.push_back(arg1_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+
+			return temp_result;
+		}
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
+{
+	string pattern_while_syn = pattern_while_clause.getArg().at(0);
+	string arg1 = pattern_while_clause.getArg().at(1);
+	string arg1_type = pattern_while_clause.getArgType().at(1);
+
+	ResultTable temp_result = ResultTable(pattern_while_syn);
+	vector<string> temp_row_data;
+
+	if (arg1_type == ARGTYPE_STRING) {
+		if (pkb_.isValidVar(arg1) == false) {
+			return temp_result;
+		}
+
+		list<int> while_stmt_with_arg1_control_variable = pkb_.getWhileListWithControlVariable(arg1);
+		if (while_stmt_with_arg1_control_variable.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &while_stmt_num : while_stmt_with_arg1_control_variable) {
+				temp_row_data.push_back(to_string(while_stmt_num));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		list<int> all_while_list = pkb_.getWhileList();
+		if (all_while_list.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &while_stmt_num : all_while_list) {
+				temp_row_data.push_back(to_string(while_stmt_num));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
+	else {
+		// Argument 1 is a synonym
+		list<string> all_variable_list = pkb_.getVarList();
+		if (all_variable_list.empty() == false) {
+			temp_result = ResultTable(pattern_while_syn, arg1);
+			for (auto &arg1_variable : all_variable_list) {
+				list<int> while_with_arg1_control_variable = pkb_.getWhileListWithControlVariable(arg1_variable);
+				if (while_with_arg1_control_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &while_stmt_num : while_with_arg1_control_variable) {
+						temp_row_data.push_back(to_string(while_stmt_num));
+						temp_row_data.push_back(arg1_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+		}
+
+		return temp_result;
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
+{
+	string pattern_if_syn = pattern_if_clause.getArg().at(0);
+	string arg1 = pattern_if_clause.getArg().at(1);
+	string arg1_type = pattern_if_clause.getArgType().at(1);
+
+	ResultTable temp_result = ResultTable(pattern_if_syn);
+	vector<string> temp_row_data;
+
+	if (arg1_type == ARGTYPE_STRING) {
+		if (pkb_.isValidVar(arg1) == false) {
+			return temp_result;
+		}
+
+		list<int> if_with_arg1_control_variable = pkb_.getifListWithControlVariable(arg1);
+		if (if_with_arg1_control_variable.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &if_stmt_num : if_with_arg1_control_variable) {
+				temp_row_data.push_back(to_string(if_stmt_num));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		list<int> all_if_list = pkb_.getIfList();
+		if (all_if_list.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &if_stmt_num : all_if_list) {
+				temp_row_data.push_back(to_string(if_stmt_num));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
+	else {
+		// Argument 1 is a synonym
+		list<string> all_variable_list = pkb_.getVarList();
+		if (all_variable_list.empty() == false) {
+			temp_result = ResultTable(pattern_if_syn, arg1);
+			for (auto &arg1_variable : all_variable_list) {
+				list<int> if_with_arg1_control_variable = pkb_.getWhileListWithControlVariable(arg1_variable);
+				if (if_with_arg1_control_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &if_stmt_num : if_with_arg1_control_variable) {
+						temp_row_data.push_back(to_string(if_stmt_num));
+						temp_row_data.push_back(arg1_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+		}
+
+		return temp_result;
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessWith(Clause with_clause)
+{
+	string arg1_type = with_clause.getArgType().at(0);
+	string arg2_type = with_clause.getArgType().at(1);
+
+	ResultTable temp_result;
+
+	if ((arg1_type != ARGTYPE_PROCEDURE) && (arg1_type != ARGTYPE_CALLS_NAME) && (arg1_type != ARGTYPE_VARIABLE)) {
+		temp_result = ProcessWithName(with_clause);
+	}
+	else {
+		temp_result = ProcessWithNumber(with_clause);
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
+{
+	string arg1 = with_name_clause.getArg().at(0);
+	string arg2 = with_name_clause.getArg().at(1);
+	string arg1_type = with_name_clause.getArgType().at(0);
+	string arg2_type = with_name_clause.getArgType().at(1);
+
+	ResultTable temp_result = ResultTable(arg1, arg2);
+	vector<string> temp_row_data;
+
+	list<string> arg1_data_list;
+	list<string> arg2_data_list;
+
+	if (arg1_type == ARGTYPE_PROCEDURE) {
+		arg1_data_list = pkb_.getProcedureList();
+	}
+	else if (arg1_type == ARGTYPE_VARIABLE) {
+		arg1_data_list = pkb_.getVarList();
+	}
+	else if (arg1_type == ARGTYPE_CALLS_NAME) {
+		arg1_data_list = pkb_.getCalledProcNamesList();
+	}
+
+	if (arg2_type == ARGTYPE_PROCEDURE) {
+		arg2_data_list = pkb_.getProcedureList();
+	}
+	else if (arg2_type == ARGTYPE_VARIABLE) {
+		arg2_data_list = pkb_.getVarList();
+	}
+	else if (arg2_type == ARGTYPE_CALLS_NAME) {
+		arg2_data_list = pkb_.getCalledProcNamesList();
+	}
+
+	if ((arg1_data_list.empty() == false) && (arg2_data_list.empty() == false)) {
+		for (auto &arg1_data : arg1_data_list) {
+			for (auto &arg2_data : arg2_data_list) {
+				if (arg1_data == arg2_data) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_data);
+					temp_row_data.push_back(arg2_data);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+		}
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
+{
+	string arg1 = with_number_clause.getArg().at(0);
+	string arg2 = with_number_clause.getArg().at(1);
+	string arg1_type = with_number_clause.getArgType().at(0);
+	string arg2_type = with_number_clause.getArgType().at(1);
+
+	ResultTable temp_result = ResultTable(arg1, arg2);
+	vector<string> temp_row_data;
+
+	list<int> arg1_data_list = GetList(arg1_type);
+	list<int> arg2_data_list = GetList(arg2_type);
+
+	if ((arg1_data_list.empty() == false) && (arg2_data_list.empty() == false)) {
+		for (auto &arg1_stmt_num : arg1_data_list) {
+			for (auto &arg2_stmt_num : arg2_data_list) {
+				if (arg1_stmt_num == arg2_stmt_num) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_row_data.clear();
+				}
+			}
+		}
+	}
+
+	return temp_result;
+}
+
+bool QueryEvaluator::ProcessNonRelatedGroup()
+{
+	vector<Clause> non_related_group = input_query_.getNoSynGroup();
+	ResultTable temp_result;
+
+	for (auto &no_syn_clause : non_related_group) {
+		temp_result = ProcessClause(no_syn_clause);
+		if (temp_result.IsQueryTrue() == false) {
+			return false;
+		}
+	}
+
+	non_related_group = input_query_.getNonConnectedGroup();
+	for (auto &non_connected_clause : non_related_group) {
+		temp_result = ProcessClause(non_connected_clause);
+		if (temp_result.IsQueryTrue() == false) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool QueryEvaluator::ProcessConnectedGroup()
+{
+	vector<vector<Clause>> connected_group = input_query_.getConnectedGroup();
+	vector<ResultTable> group_intermediate_result;
+	ResultTable temp_result;
+
+	for (auto &group : connected_group) {
+		for (auto &connected_clause : group) {
+			temp_result = ProcessClause(connected_clause);
+			if (temp_result.IsQueryTrue() == false) {
+				return false;
+			}
+			group_intermediate_result.push_back(temp_result);
+		}
+		intermediate_result_.push_back(group_intermediate_result);
+		group_intermediate_result.clear();
+	}
+
+	return true;
+}
+
+ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
+	string arg1 = uses_clause.getArg().at(0);
+	string arg2 = uses_clause.getArg().at(1);
+	string arg1_type = uses_clause.getArgType().at(0);
+	string arg2_type = uses_clause.getArgType().at(1);
+
+	ResultTable temp_result;
+
+	if (arg2_type == ARGTYPE_STRING) {
+		if (pkb_.isValidVar(arg2) == false) {
+			return temp_result;
+		}
+
+		list<int> arg2_used_by = pkb_.getUsedBy(arg2);
+		if (arg2_used_by.empty() == true) {
+			return temp_result;
+		}
+
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
+			}
+
+			if (find(arg2_used_by.begin(), arg2_used_by.end(), arg1_stmt_num) != arg2_used_by.end()) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (pkb_.isProcedureExist(arg1) == false) {
+				return temp_result;
+			}
+
+			if (pkb_.isUsedBy(arg1, arg2) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure. Guaranteed to have at least 1 procedure
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+			list<string> procedure_list = pkb_.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				if (pkb_.isUsedBy(arg1_procedure, arg2) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 1 is a synonym of statement type
+			list<int> synomym_stmt_list_arg1 = GetList(arg1_type);
+			if (synomym_stmt_list_arg1.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+
+			for (auto &arg1_stmt_num : synomym_stmt_list_arg1) {
+				if (pkb_.isUsed(arg1_stmt_num, arg2) == true) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else if (arg2_type == ARGTYPE_VARIABLE) {
+		// Argument 2 is a variable synonym
+		list<string> all_variable_list = pkb_.getVarList();
+		all_variable_list.unique();
+		if (all_variable_list.empty() == true) {
+			return temp_result;
+		}
+
+		temp_result = ResultTable(arg2);
+		vector<string> temp_row_data;
+
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
+			}
+
+			list<string> arg1_uses_variable = pkb_.getUsedBy(arg1_stmt_num);
+			if (arg1_uses_variable.empty() == true) {
+				return temp_result;
+			}
+
+			// If arg1_uses_variable non empty, add everything in arg1UsesVar to results
+			temp_result.SetIsQueryTrue(true);
+			for (auto &arg2_variable : arg1_uses_variable) {
+				temp_row_data.push_back(arg2_variable);
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (pkb_.isProcedureExist(arg1) == false) {
+				return temp_result;
+			}
+
+			list<string> arg1_procedure_uses_variable = pkb_.getUsedByProc(arg1);
+			if (arg1_procedure_uses_variable.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result.SetIsQueryTrue(true);
+			for (auto &arg2_variable : arg1_procedure_uses_variable) {
+				temp_row_data.push_back(arg2_variable);
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure type. Guaranteed to have at least 1 procedure
+			temp_result = ResultTable(arg1, arg2);
+			list<string> procedure_list = pkb_.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_procedure_uses_variable = pkb_.getUsedByProc(arg1_procedure);
+				if (arg1_procedure_uses_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg2_variable : arg1_procedure_uses_variable) {
+						temp_row_data.push_back(arg1_procedure);
+						temp_row_data.push_back(arg2_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 1 is a synonym of statement type
+			list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+			if (synonym_stmt_list_arg1.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1, arg2);
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<string> arg1_uses_variable = pkb_.getUsedBy(arg1_stmt_num);
+				if (arg1_uses_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					for (auto &arg2_variable : arg1_uses_variable) {
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_row_data.push_back(arg2_variable);
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else {
+		// Argument 2 is any ('_')
+		list<string> all_variable_list = pkb_.getVarList();
+;		all_variable_list.unique();
+		if (all_variable_list.empty() == true) {
+			return temp_result;
+		}
+
+		if (arg1_type == ARGTYPE_CONSTANT) {
+			int arg1_stmt_num = stoi(arg1);
+			if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+				return temp_result;
 			}
 
 			// Check if arg1 use anything
-			list<string> arg1UsesVar = _pkb.getUsedBy(stoi(arg1));
-			if (arg1UsesVar.empty() == false) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else if (arg1Type == ARGTYPE_ANY) {
-			list<string> allUsedVar = _pkb.getAllUsedVar();
-			if (allUsedVar.empty() == false) {
-				qr.setIsExist(1);
-			}
-			return qr;
-		}
-		else {
-			// arg1 is a synonym
-			qr.setArgToSynonymMapping(PARAM_ARG1, arg1);
-			list<int> synonymStatementsArg1 = getList(arg1Type);
-			if (synonymStatementsArg1.empty()==true) {
-				return qr;
+			list<string> arg1_uses_var = pkb_.getUsedBy(arg1_stmt_num);
+			if (arg1_uses_var.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
 			}
 
-			// For each statement in synonymStatementsArg1, check if each of them uses something
-			for (list<int>::iterator it = synonymStatementsArg1.begin(); it != synonymStatementsArg1.end(); it++) {
-				list<string> arg1UsesVar = _pkb.getUsedBy(*it);
-				if (arg1UsesVar.empty() == false) {
-					qr.insertArg1Result(to_string(*it));
-					qr.setIsExist(1);
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_STRING) {
+			// Argument 1 is a procedure name
+			if (pkb_.isProcedureExist(arg1) == false) {
+				return temp_result;
+			}
+
+			list<string> arg1_procedure_uses_variable = pkb_.getUsedByProc(arg1);
+			if (arg1_procedure_uses_variable.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg1_type == ARGTYPE_PROCEDURE) {
+			// Argument 1 is a synonym of procedure type
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+			list<string> procedure_list = pkb_.getProcedureList();
+
+			for (auto &arg1_procedure : procedure_list) {
+				list<string> arg1_procedure_uses_variable = pkb_.getUsedByProc(arg1_procedure);
+				if (arg1_procedure_uses_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(arg1_procedure);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
-			return qr;
+
+			return temp_result;
+		}
+		else {
+			// Argument 1 is a synonym of statement type
+			list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+			if (synonym_stmt_list_arg1.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg1);
+			vector<string> temp_row_data;
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<string> arg1_uses_variable = pkb_.getUsedBy(arg1_stmt_num);
+				if (arg1_uses_variable.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
 		}
 	}
-	return qr;
+
+	return temp_result;
 }
 
+list<int> QueryEvaluator::GetList(string arg_type) {
+	list<int> wanted_list;
 
-int QueryEvaluator::isInList(list<int> inList, int item) {
-	if (find(inList.begin(), inList.end(), item) != inList.end()) {
-		return 1;
+	if (arg_type == ARGTYPE_ASSIGN) {
+		wanted_list = pkb_.getAssignList();
 	}
-	return -1;
-}
+	else if (arg_type == ARGTYPE_WHILE) {
+		wanted_list = pkb_.getWhileList();
+	}
+	else if (arg_type == ARGTYPE_IF) {
+		wanted_list = pkb_.getIfList();
+	} 
+	else if (arg_type == ARGTYPE_CALLS) {
+		wanted_list = pkb_.getCallList();
+	}
+	else if (arg_type == ARGTYPE_STMT || arg_type == ARGTYPE_PROG_LINE) {
+		wanted_list = pkb_.getStmtList();
+	}
+	else if (arg_type == ARGTYPE_CONSTANT_VALUE) {
+		wanted_list = pkb_.getConstantList();
+	}
 
-int QueryEvaluator::isListEmpty(list<int> inList) {
-	if (inList.empty() == true) {
-		return -1;
-	}
-
-	return 1;
-}
-
-list<int> QueryEvaluator::getList(string argType) {
-	list<int> wantedList;
-	if (argType == ARGTYPE_ASSIGN) {
-		wantedList = _pkb.getAssignList();
-	}
-	else if (argType == ARGTYPE_WHILE) {
-		wantedList = _pkb.getWhileList();
-	}
-	else if (argType == ARGTYPE_STMT || argType == ARGTYPE_PROG_LINE) {
-		wantedList = _pkb.getStmtList();
-	}
-	return wantedList;
+	return wanted_list;
 }

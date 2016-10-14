@@ -8,20 +8,20 @@ Relation::Relation() {
 
 }
 
-Relation::Relation(int numOfArg, vector<string> arg1Type, vector<string> arg2Type) {
-	_numOfArg = numOfArg;
-	_arg1Type = arg1Type;
-	_arg2Type = arg2Type;
+Relation::Relation(int num_of_arg, vector<string> arg1_type, vector<string> arg2_type) {
+	num_of_arg_ = num_of_arg;
+	arg1_type_ = arg1_type;
+	arg2_type_ = arg2_type;
 }
 
-int Relation::getNumOfArg() {
-	return _numOfArg;
+int Relation::GetNumOfArg() {
+	return num_of_arg_;
 }
 
-vector<string> Relation::getArg1Type() {
-	return _arg1Type;
+vector<string> Relation::GetArg1Type() {
+	return arg1_type_;
 }
 
-vector<string> Relation::getArg2Type() {
-	return _arg2Type;
+vector<string> Relation::GetArg2Type() {
+	return arg2_type_;
 }

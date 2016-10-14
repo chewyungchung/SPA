@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 
 using namespace std;
@@ -6,10 +7,10 @@ using namespace std;
 class QueryToken {
 public:
 	QueryToken();
-	QueryToken(int tokenType, string tokenName);
-	int getTokenType();
-	string getTokenName();
+	QueryToken(int token_type, string token_name);
+	int GetTokenType();
+	string GetTokenName();
 private:
-	int _tokenType;
-	string _tokenName;
+	int token_type_;
+	string token_name_;
 };
