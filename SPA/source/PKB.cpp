@@ -253,3 +253,74 @@ list<string> PKB::getCallersStar(string callee)
 {
 	return Calls_Table.getCallersStar(callee);
 }
+
+/***************** CallsTable ******************/
+void PKB::addProc(string procName)
+{
+	Proc_Table.addProc(procName);
+}
+
+void PKB::addProcMod(string procName, string var)
+{
+	Proc_Table.addProcMod(procName, var);
+}
+
+void PKB::addProcUses(string procName, string var)
+{
+	Proc_Table.addProcUses(procName, var);
+}
+
+void PKB::addProcCalledInStmt(string procName, int stmtLine)
+{
+	Proc_Table.addProcCalledInStmt(procName, stmtLine);
+}
+
+string PKB::getProcName(int procIndex)
+{
+	return Proc_Table.getProcName(procIndex);
+}
+
+int PKB::getProcIndex(string procName)
+{
+	return Proc_Table.getProcIndex(procName);
+}
+
+bool PKB::isModifiedByProc(string procName, string varName)
+{
+	return Proc_Table.isModifiedByProc(procName, varName);
+}
+
+bool PKB::isUsedByProc(string procName, string varName)
+{
+	return Proc_Table.isUsedByProc(procName, varName);
+}
+
+list<string> PKB::getModifiedByProc(string procName)
+{
+	return Proc_Table.getModifiedByProc(procName);
+}
+
+list<string> PKB::getUsedByProc(string procName)
+{
+	return Proc_Table.getUsedByProc(procName);
+}
+
+list<string> PKB::getProcedureModifying(string varName)
+{
+	return Proc_Table.getProcedureModifying(varName);
+}
+
+list<string> PKB::getProcedureUsing(string varName)
+{
+	return Proc_Table.getProcedureUsing(varName);
+}
+
+list<string> PKB::getCalledProcNamesList()
+{
+	return Proc_Table.getCalledProcNamesList();
+}
+
+list<string> PKB::getProcedureList()
+{
+	return Proc_Table.getProcedureList();
+}

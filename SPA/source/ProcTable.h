@@ -24,7 +24,7 @@ public:
 	bool isModifiedByProc(string procName, string varName);
 	bool isUsedByProc(string procName, string varName);
 	list<string> getModifiedByProc(string procName);
-	list<string> getusedByProc(string procName);
+	list<string> getUsedByProc(string procName);
 	list<string> getProcedureModifying(string varName);
 	list<string> getProcedureUsing(string varName);
 

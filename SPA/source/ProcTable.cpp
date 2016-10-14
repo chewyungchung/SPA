@@ -172,7 +172,7 @@ list<string> ProcTable::getModifiedByProc(string procName)
 	}
 }
 
-list<string> ProcTable::getusedByProc(string procName)
+list<string> ProcTable::getUsedByProc(string procName)
 {
 	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
 
