@@ -15,7 +15,7 @@ private:
 	list<int> ifList;
 	unordered_map<int, string> ctrlvarList;
 
-public:
+	public:
 	StatementTable();
 	~StatementTable();
 	void addStatement(int stmtNum, string stmtType);
@@ -28,5 +28,9 @@ public:
 	list<int> getStmtList();
 	int getStatementCount();
 	bool isValidStmt(int stmtNum);
-};
 
+private:
+	list<int> assignList;
+	list<int> whileList;
+	list<int> allStmtList;
+};

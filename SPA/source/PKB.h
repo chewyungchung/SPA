@@ -16,6 +16,8 @@ PKB itself is a facade class
 #include "FollowsTable.h"
 #include "ParentTable.h"
 #include "ConstantTable.h"
+#include "CallsTable.h"
+#include "ProcTable.h"
 
 using namespace std;
 typedef short PROC;
@@ -29,6 +31,8 @@ class StatementTable;
 class FollowsTable;
 class ParentTable;
 class ConstantTable;
+class CallsTable;
+class ProcTable;
 
 class PKB 
 {
@@ -40,16 +44,11 @@ public:
 	FollowsTable F_Table;
 	ParentTable P_Table;
 	ConstantTable C_Table;
+	CallsTable Calls_Table;
+	ProcTable Proc_Table;
 	PKB();
 	~PKB();
 
-//	static VarTable* varTable; 
-//	static int setProcToAST(PROC p, TNode* r);
-//	static TNode* getRootAST (PROC p);
-//	static PKB* getPKB();
-//	static void destroyInstance();
-//	static void resetPKB();
-	
 	void addParent(int lineOfParent, int lineNum);
 	int getParentOf(int stmt);
 	list<int> getParentStar(int stmt);
@@ -95,8 +94,33 @@ public:
 	list<int> getConstantList();
 	list<int> getStmtlineByConstant(int c);
 
+	void addCalls(string caller, string callee);
+	list<string> getCallees(string caller);
+	list<string> getCallers(string callee);
+	bool isCallsEmpty();
+	bool isCalls(string caller, string callee);
+	bool isCallsStar(string caller, string callee);
+	list<string> getCalleesStar(string caller);
+	list<string> getCallersStar(string callee);
+
+	void addProc(string procName);
+	void addProcMod(string procName, string var);
+	void addProcUses(string procName, string var);
+	void addProcCalledInStmt(string procName, int stmtLine);
+	string getProcName(int procIndex);
+	int getProcIndex(string procName);
+	bool isModifiedByProc(string procName, string varName);
+	bool isUsedByProc(string procName, string varName);
+	list<string> getModifiedByProc(string procName);
+	list<string> getUsedByProc(string procName);
+	list<string> getProcedureModifying(string varName);
+	list<string> getProcedureUsing(string varName);
+	list<string> getCalledProcNamesList();
+	list<string> getProcedureList();
+
 	list<int> getIfListWithControlVariable(string control_var);
 	list<int> getWhileListWithControlVariable(string control_var);
+
 private:
 
 };
