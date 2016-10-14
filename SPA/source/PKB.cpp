@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-	
+
 using namespace std;
 
 #include "PKB.h"
@@ -29,7 +29,7 @@ int PKB::getParentOf(int stmt)
 }
 
 list<int> PKB::getParentStar(int stmt)
-{	
+{
 	return P_Table.getParentStar(stmt);
 }
 
@@ -336,4 +336,34 @@ list<string> PKB::getCalledProcNamesList()
 list<string> PKB::getProcedureList()
 {
 	return Proc_Table.getProcedureList();
+}
+
+/***************** CFG ******************/
+void PKB::addProcCFG() 
+{
+	Cfg.addProcCFG;
+}
+
+void PKB::addStmtCFG(int stmtnum, string stmtType) 
+{
+	Cfg.addStmtCFG(stmtnum, stmtType);
+}
+void PKB::closeIfCFG() 
+{
+	Cfg.closeIfCFG();
+}
+
+void PKB::closeElseCFG() 
+{
+	Cfg.closeElseCFG();
+}
+
+void PKB::closeWhileCFG() 
+{
+	Cfg.closeWhileCFG();
+}
+
+void PKB::buildCFGMatrix() 
+{
+	Cfg.buildCFGMatrix();
 }

@@ -18,6 +18,7 @@ PKB itself is a facade class
 #include "ConstantTable.h"
 #include "CallsTable.h"
 #include "ProcTable.h"
+#include "CFG.h"
 
 using namespace std;
 typedef short PROC;
@@ -46,6 +47,7 @@ public:
 	ConstantTable C_Table;
 	CallsTable Calls_Table;
 	ProcTable Proc_Table;
+	CFG Cfg;
 	PKB();
 	~PKB();
 
@@ -121,6 +123,12 @@ public:
 	list<int> getIfListWithControlVariable(string control_var);
 	list<int> getWhileListWithControlVariable(string control_var);
 
+	void addProcCFG();
+	void addStmtCFG(int stmtnum, string stmtType);
+	void closeIfCFG();
+	void closeElseCFG();
+	void closeWhileCFG();
+	void buildCFGMatrix();
 private:
 
 };

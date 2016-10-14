@@ -30,7 +30,4 @@ private:
 	bool isValidStmt(int stmtNum);
 
 private:
-	list<int> assignList;
-	list<int> whileList;
-	list<int> allStmtList;
 };
