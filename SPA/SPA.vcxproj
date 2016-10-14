@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ProcTable.cpp" />
+    <ClCompile Include="source\AST.cpp" />
     <ClCompile Include="source\CallsGraph.cpp" />
     <ClCompile Include="source\CallsTable.cpp" />
     <ClCompile Include="source\Clause.cpp" />
@@ -45,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ProcTable.h" />
+    <ClInclude Include="source\AST.h" />
     <ClInclude Include="source\CallsGraph.h" />
     <ClInclude Include="source\CallsTable.h" />
     <ClInclude Include="source\Clause.h" />

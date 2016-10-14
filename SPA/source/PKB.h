@@ -19,6 +19,7 @@ PKB itself is a facade class
 #include "CallsTable.h"
 #include "CallsGraph.h"
 #include "ProcTable.h"
+#include "AST.h"
 #include "CFG.h"
 
 using namespace std;
@@ -36,6 +37,8 @@ class ConstantTable;
 class CallsTable;
 class CallsGraph;
 class ProcTable;
+class AST;
+class CFG;
 
 class PKB 
 {
@@ -50,6 +53,7 @@ public:
 	CallsTable Calls_Table;
 	CallsGraph Calls_Graph;
 	ProcTable Proc_Table;
+	AST Ast;
 	CFG Cfg;
 	PKB();
 	~PKB();
@@ -88,12 +92,15 @@ public:
 	list<string> getVarList();
 
 	void addStatement(int stmtNum, string stmtType);
+	void addStatement(int stmtNum, string stmtType, string ctrlvar);
 	list<int> getAssignList();
 	list<int> getWhileList();
 	list<int> getIfList();
 	list<int> getStmtList();
 	int getStatementCount();
 	bool isValidStmt(int stmtNum);
+	list<int> getIfListWithControlVariable(string control_var);
+	list<int> getWhileListWithControlVariable(string control_var);
 
 	void addConstant(int constant, int stmt);
 	list<int> getConstantList();
@@ -127,8 +134,10 @@ public:
 	list<string> getCalledProcNamesList();
 	list<string> getProcedureList();
 
-	list<int> getIfListWithControlVariable(string control_var);
-	list<int> getWhileListWithControlVariable(string control_var);
+	string makeExpr(string input);
+	void addExpr(int stmt, string expr);
+	bool isExprExist(string expr);
+	bool isSubExprExist(string subExpr);
 
 	void addProcCFG();
 	void addStmtCFG(int stmtnum, string stmtType);

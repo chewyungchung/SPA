@@ -172,6 +172,11 @@ void PKB::addStatement(int stmtNum, string stmtType)
 	S_Table.addStatement(stmtNum, stmtType);
 }
 
+void PKB::addStatement(int stmtNum, string stmtType, string ctrlvar)
+{
+	S_Table.addStatement(stmtNum, stmtType, ctrlvar);
+}
+
 list<int> PKB::getAssignList()
 {
 	return S_Table.getAssignList();
@@ -284,7 +289,7 @@ void PKB::updateAllProcModUses()
 	Calls_Graph.updateAllProcModUses();
 }
 
-/***************** CallsTable ******************/
+/***************** ProcTable ******************/
 void PKB::addProc(string procName)
 {
 	Proc_Table.addProc(procName);
@@ -353,6 +358,27 @@ list<string> PKB::getCalledProcNamesList()
 list<string> PKB::getProcedureList()
 {
 	return Proc_Table.getProcedureList();
+}
+
+/***************** AST ******************/
+string PKB::makeExpr(string input)
+{
+	Ast.makeExpr(input);
+}
+
+void PKB::addExpr(int stmt, string expr)
+{
+	Ast.addExpr(stmt, expr);
+}
+
+bool PKB::isExprExist(string expr)
+{
+	Ast.isExprExist(expr);
+}
+
+bool PKB::isSubExprExist(string subExpr)
+{
+	Ast.isSubExprExist(subExpr);
 }
 
 /***************** CFG ******************/

@@ -96,11 +96,14 @@
     <ClCompile Include="source\CallsGraph.cpp">
       <Filter>Source Files\PKB</Filter>
     </ClCompile>
-    <ClCompile Include="source\ProcTable.cpp">
-      <Filter>Source Files\PKB</Filter>
-	</ClCompile>
     <ClCompile Include="source\ResultTable.cpp">
       <Filter>Source Files\QueryProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\AST.cpp">
+      <Filter>Source Files\PKB</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -172,9 +175,12 @@
     </ClInclude>
     <ClInclude Include="ProcTable.h">
       <Filter>Header Files\PKB</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="source\ResultTable.h">
       <Filter>Header Files\QueryProcessor</Filter>
+    </ClInclude>
+    <ClInclude Include="source\AST.h">
+      <Filter>Header Files\PKB</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
