@@ -36,6 +36,7 @@
     <ClCompile Include="source\QueryValidator.cpp" />
     <ClCompile Include="source\Relation.cpp" />
     <ClCompile Include="source\RelationTable.cpp" />
+    <ClCompile Include="source\ResultTable.cpp" />
     <ClCompile Include="source\StatementTable.cpp" />
     <ClCompile Include="source\Tokenizer.cpp" />
   </ItemGroup>
@@ -58,6 +59,7 @@
     <ClInclude Include="source\QueryValidator.h" />
     <ClInclude Include="source\Relation.h" />
     <ClInclude Include="source\RelationTable.h" />
+    <ClInclude Include="source\ResultTable.h" />
     <ClInclude Include="source\Tokenizer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
