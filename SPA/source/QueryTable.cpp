@@ -68,7 +68,7 @@ void QueryTable::replaceWithClauses() {
 				}
 			}
 			if (isReplaced) {
-				_withClauses.erase(_withClauses.begin);
+				_withClauses.erase(_withClauses.begin());
 			}
 		}
 		// for clauses with two synonyms, we will process cases & replace when the stmtType of 
@@ -77,14 +77,14 @@ void QueryTable::replaceWithClauses() {
 			vector<string> stmtTypes = { "assign", "call", "while", "if" };
 			if (i.getArgType().at(0) == "stmt" &&
 				find(stmtTypes.begin(), stmtTypes.end(), i.getArgType().at(1)) != stmtTypes.end()) {
-				if (i.getRelation == "withStmt") {
+				if (i.getRelation() == "withStmt") {
 					toBeReplaced = i.getArgType().at(1);
 					terminateFlag = false;
 				}
 			}
 			else if (i.getArgType().at(1) == "stmt" &&
 				find(stmtTypes.begin(), stmtTypes.end(), i.getArgType().at(0)) != stmtTypes.end()) {
-				if (i.getRelation == "withStmt") {
+				if (i.getRelation() == "withStmt") {
 					toBeReplaced = i.getArgType().at(0);
 					terminateFlag = false;
 				}
@@ -102,7 +102,7 @@ void QueryTable::replaceWithClauses() {
 					}
 				}
 				if (isReplaced) {
-					_withClauses.erase(_withClauses.begin);
+					_withClauses.erase(_withClauses.begin());
 				}
 			}
 		}
@@ -166,7 +166,7 @@ void QueryTable::populateSynClauses() {
 	// remove such that clauses that does not contain any synonym
 	for (auto i : _suchThatClauses) {
 		for (auto j : _nonSynGroup) {
-			if (i.getRelation() != j.getRelation && i.getArgType() != j.getArgType() && i.getArg() != j.getArg()) {
+			if (i.getRelation() != j.getRelation() && i.getArgType() != j.getArgType() && i.getArg() != j.getArg()) {
 				_withSynClauses.push_back(i);
 			}
 		}
@@ -195,15 +195,15 @@ void QueryTable::groupSynClauses() {
 			synList.push_back(i1.getArg().at(1));
 		}
 		currentGroup.push_back(i1);
-		_withSynClauses.erase(_withSynClauses.begin);
+		_withSynClauses.erase(_withSynClauses.begin());
 		for (auto i2 : _withSynClauses) {
-			for (int i3 = 0; i3 < i2.getArg().size; i3++) {
+			for (int i3 = 0; i3 < i2.getArg().size(); i3++) {
 				if (isSynonym(i2.getArg().at(i3))) {
 					found = find(synList.begin(), synList.end(), i2.getArg().at(i3)) != synList.end();
 					if (found) {
 						synList.push_back(i2.getArg().at(i3));
 						currentGroup.push_back(i2);
-						_withSynClauses.erase(_withSynClauses.begin);
+						_withSynClauses.erase(_withSynClauses.begin());
 					}
 				}
 			}
