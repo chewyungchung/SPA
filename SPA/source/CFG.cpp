@@ -128,24 +128,26 @@ bool CFG::isNextEmpty() {
 	return true;
 }
 
-int CFG::getExecutedBefore(int n) {
+list<int> CFG::getExecutedBefore(int n) {
 	int size = nodeTable.size + 1;
+	list<int> output;
 	for (int i = 0; i < size; ++i) {
 		if (matrix[i][n] == 1) {
-			return i;
+			output.push_back(i);
 		}
 	}
-	return -1;
+	return output;
 }
 
-int CFG::getExecutedAfter(int n) {
+list<int> CFG::getExecutedAfter(int n) {
 	int size = nodeTable.size + 1;
+	list<int> output;
 	for (int i = 0; i < size; ++i) {
 		if (matrix[n][i] == 1) {
-			return i;
+			output.push_back(i);
 		}
 	}
-	return -1;
+	return output;
 }
 
 list<int> CFG::getExecutedBeforeStar(int n) {
