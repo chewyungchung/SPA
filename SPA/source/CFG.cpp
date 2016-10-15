@@ -108,37 +108,64 @@ void CFG::buildCFGMatrix()
 	}
 }
 
-bool CFG::isNext(int n1, int n2)
-{
-	return false;
+bool CFG::isNext(int n1, int n2) {
+	return matrix[n1][n2] == 1;
 }
 
-bool CFG::isNextStar(int n1, int n2)
-{
-	return false;
+bool CFG::isNextStar(int n1, int n2) {
+	return matrix[n1][n2] != 0;
 }
 
-bool CFG::isNextEmpty()
-{
-	return false;
+bool CFG::isNextEmpty() {
+	int size = nodeTable.size + 1;
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			if (matrix[i][j] != 0) {
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
-int CFG::getExecutedBefore(int n)
-{
-	return 0;
+int CFG::getExecutedBefore(int n) {
+	int size = nodeTable.size + 1;
+	for (int i = 0; i < size; ++i) {
+		if (matrix[i][n] == 1) {
+			return i;
+		}
+	}
+	return -1;
 }
 
-int CFG::getExecutedAfter(int n)
-{
-	return 0;
+int CFG::getExecutedAfter(int n) {
+	int size = nodeTable.size + 1;
+	for (int i = 0; i < size; ++i) {
+		if (matrix[n][i] == 1) {
+			return i;
+		}
+	}
+	return -1;
 }
 
-list<int> CFG::getExecutedBeforeStar(int n)
-{
-	return list<int>();
+list<int> CFG::getExecutedBeforeStar(int n) {
+	int size = nodeTable.size + 1;
+	list<int> output;
+	for (int i = 0; i < size; ++i) {
+		if (matrix[i][n] != 0) {
+			output.push_back(i);
+		}
+	}
+	return output;
 }
 
-list<int> CFG::getExecutedAfterStar(int n)
-{
-	return list<int>();
+list<int> CFG::getExecutedAfterStar(int n) {
+	int size = nodeTable.size + 1;
+	list<int> output;
+	for (int i = 0; i < size; ++i) {
+		if (matrix[n][i] != 0) {
+			output.push_back(i);
+		}
+	}
+	return output;
 }
