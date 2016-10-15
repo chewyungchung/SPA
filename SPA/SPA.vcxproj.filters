@@ -111,6 +111,9 @@
     <ClCompile Include="source\CFG.cpp">
       <Filter>Source Files\PKB</Filter>
     </ClCompile>
+    <ClCompile Include="source\DesignExtractor.cpp">
+      <Filter>Source Files\Front End</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Parser.h">
@@ -193,6 +196,9 @@
     </ClInclude>
     <ClInclude Include="source\CFG.h">
       <Filter>Header Files\PKB</Filter>
+    </ClInclude>
+    <ClInclude Include="source\DesignExtractor.h">
+      <Filter>Header Files\Front End</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

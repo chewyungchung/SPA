@@ -1,26 +1,19 @@
 #pragma once
 
-#include "PKB.h"
-
 using namespace std;
 
 class CallsGraph
 {
 public:
 	CallsGraph();
-	CallsGraph(int vertexCount, PKB pkb);
 	~CallsGraph();
+	void initializeCallsGraph(int vertexCount);
+	void addCallsGraphEdge(int i, int j);
+	bool hasArcCallsGraph(int i, int j);
 	bool isCallsGraphCyclic();
-	void updateAllProcModUses();
 
 private:
-	PKB pkb;
 	int** adjM;
-	bool* revDFSVisited;
 	int vertexCount;
 	bool isCyclicHelper(int v, bool visited[], bool* recStack);
-	void revDFSAndUpdate(int v);
-	void updateParentProc(int parent, int child);
-	void addAllModVar(int parent, int child);
-	void addAllUsedVar(int parent, int child);
 };

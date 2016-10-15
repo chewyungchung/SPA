@@ -11,10 +11,18 @@ CallsGraph::CallsGraph()
 {
 }
 
-CallsGraph::CallsGraph(int vertexCount, PKB pkb)
+CallsGraph::~CallsGraph()
+{
+	for (int i = 0; i < vertexCount; i++)
+	{
+		delete[] adjM[i];
+	}
+	delete[] adjM;
+}
+
+void CallsGraph::initializeCallsGraph(int vertexCount)
 {
 	this->vertexCount = vertexCount;
-	this->pkb = pkb;
 	adjM = new int*[vertexCount];
 	for (int i = 0; i < vertexCount; i++)
 	{
@@ -23,22 +31,17 @@ CallsGraph::CallsGraph(int vertexCount, PKB pkb)
 		{
 			adjM[i][j] = 0;
 		}
-		list<string> callees = pkb.getCallees(pkb.getProcName(i));
-		list<string>::iterator it = callees.begin();
-		for (; it != callees.end(); ++it)
-		{
-			adjM[i][pkb.getProcIndex(*it)] = 1;
-		}
 	}
 }
 
-CallsGraph::~CallsGraph()
+void CallsGraph::addCallsGraphEdge(int i, int j)
 {
-	for (int i = 0; i < vertexCount; i++)
-	{
-		delete[] adjM[i];
-	}
-	delete[] adjM;
+	adjM[i][j] == 1;
+}
+
+bool CallsGraph::hasArcCallsGraph(int i, int j)
+{
+	return adjM[i][j] == 1;
 }
 
 bool CallsGraph::isCallsGraphCyclic()
@@ -86,76 +89,4 @@ bool CallsGraph::isCyclicHelper(int v, bool visited[], bool* recStack)
 	}
 	recStack[v] = false;
 	return false;
-}
-
-// Pre-cond: Graph must be acyclic, otherwise the update traversal will be infinite
-// Essentially a reverse DFS from all 'leaf' nodes
-// Observe that anytime we move up the chain, the previous node data must be carried up
-void CallsGraph::updateAllProcModUses()
-{	
-	//revDFSVisited = new bool[vertexCount];
-	for (int i = 0; i < vertexCount; i++)
-	{
-		bool isLeaf = true;
-		for (int j = 0; j < vertexCount; j++)
-		{
-			if (adjM[i][j] == 1)
-			{
-				isLeaf = false;
-			}
-		}
-		if (isLeaf)
-		{
-			//for (int j = 0; j < vertexCount; j++)
-			//{
-			//	revDFSVisited[j] = false;
-			//}
-			revDFSAndUpdate(i);
-		}
-	}
-}
-
-void CallsGraph::revDFSAndUpdate(int v)
-{
-	//revDFSVisited[v] = true;
-	for (int i = 0; i < vertexCount; i++)
-	{
-		if (adjM[i][v] == 1)
-		{
-			updateParentProc(i, v);
-			revDFSAndUpdate(i);
-		}
-	}
-}
-
-void CallsGraph::updateParentProc(int parent, int child)
-{
-	addAllModVar(parent, child);
-	addAllUsedVar(parent, child);
-}
-
-void CallsGraph::addAllModVar(int parent, int child)
-{
-	string s_parent = pkb.getProcName(parent);
-	string s_child = pkb.getProcName(child);
-
-	list<string> modVarChild = pkb.getModifiedByProc(s_child);
-	list<string>::iterator it;
-	for (it = modVarChild.begin(); it != modVarChild.end(); ++it)
-	{
-		pkb.addProcMod(s_parent, *it);
-	}
-}
-
-void CallsGraph::addAllUsedVar(int parent, int child)
-{
-	string s_parent = pkb.getProcName(parent);
-	string s_child = pkb.getProcName(child);
-
-	list<string> usesVarChild = pkb.getUsedByProc(s_child);
-	list<string>::iterator it;
-	for (it = usesVarChild.begin(); it != usesVarChild.end(); ++it)
-	{
-		pkb.addProcUses(s_parent, *it);
-	}
 }

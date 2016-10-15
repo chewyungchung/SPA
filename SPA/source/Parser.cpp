@@ -50,12 +50,17 @@ void Parser::parseProgram()
 	next_token = _tk.getNextToken();
 	parseProcedure();
 
-	// postfixing -> check cyclic call 
-	// update moduses for proc if acyclic
-	_pkb.buildCallsGraph(_pkb.getStatementCount(), _pkb);
+	/******** Program parsed ********/
+	// postfixing -> setup design extractor
+	list<string> procList = _pkb.getProcedureList();
+	int procCount = procList.size();
+	_de = DesignExtractor(_pkb, procCount);
+	// check cyclic call
+	_de.buildCallsGraph(procCount);
+	// update mod/uses for all procedures if acyclic
 	if (!_pkb.isCallsGraphCyclic())
 	{
-		_pkb.updateAllProcModUses();
+		_de.updateAllProcModUses();
 	}
 	else
 	{
@@ -78,7 +83,7 @@ void Parser::parseProcedure()
 	match(LEFT_BRACES);
 	parseStmtLst();
 	match(RIGHT_BRACES);
-	_pkb.closeProcCFG();
+	//////////////////////////////// _pkb.closeProcCFG();
 	if (next_token == PROCEDURE_FLAG)
 	{
 		// Entering into new procedure,

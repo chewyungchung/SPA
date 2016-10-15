@@ -14,6 +14,7 @@ This PKB is the single instance shared throughout the program for this particula
 using namespace std;
 
 #include "Tokenizer.h"
+#include "DesignExtractor.h"
 #include "PKB.h"
 
 class Parser
@@ -26,6 +27,7 @@ public:
 private:
 	PKB _pkb;
 	Tokenizer _tk;
+	DesignExtractor _de;
 	string next_token;
 	string procName;
 	int stmtLine;
