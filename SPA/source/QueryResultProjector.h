@@ -17,8 +17,13 @@ public:
 
 	list<string> GetResults();
 	void ProcessIntermediateResults();
-	void InnerJoin(ResultTable instance_one, ResultTable instance_two);
-	void CartesianProduct(ResultTable intermediate_set_one, ResultTable intermediate_set_two);
+	ResultTable InnerJoin(ResultTable table_one, ResultTable table_two);
+	ResultTable CartesianProduct(ResultTable intermediate_set_one, ResultTable intermediate_set_two);
+	bool HasFalseResult();
+	int GetNumOfCommonColumn(vector<string> table_one_columns, vector<string> table_two_columns);
+	string GetCommonColumn(vector<string> table_one_columns, vector<string> table_two_columns);
+	string GetOtherColumn(vector<string> table_two_columns, string common_column);
+	void PopulateFinalResultList(ResultTable& final_table, string selected_syn);
 
 private:
 	vector<vector<ResultTable>> intermediate_results_;
