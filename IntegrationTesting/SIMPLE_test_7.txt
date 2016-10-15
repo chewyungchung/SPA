@@ -1,0 +1,28 @@
+procedure A {
+	call B; }
+
+procedure B {
+	call D;
+	call C; }
+
+procedure C {
+	call F;
+	call G; }
+
+procedure D {
+	call E; }
+	
+procedure E {
+	call I; }
+	
+procedure F {
+	call G; }
+	
+procedure G {
+	call H: }
+	
+procedure H {
+	call D; }
+	
+procedure I {
+	call H; }

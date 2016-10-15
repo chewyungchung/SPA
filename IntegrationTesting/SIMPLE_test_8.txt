@@ -1,0 +1,54 @@
+procedure Adam {
+	call Beanstalk;
+	call Cat;
+	call Cat;
+	if a then {
+		apple = armor + arms; }
+	else {
+		arrow = arsenal;}
+	call France;
+	call Germany;}
+
+procedure Beanstalk {
+	call Diamond; }
+
+procedure Cat {
+	while crystal {
+		condiments = cashew;
+		camper = 1; }
+	call Diamond; }
+
+procedure Diamond {
+	call Iowa;
+	call Germany; }
+
+procedure Edmonds {
+	e = 1; }
+	
+procedure France {
+	fructose = futu;
+	call Edmonds; }
+
+procedure Germany {
+	call Houston; }
+
+procedure Houston {
+	while h {
+		haveproblem = hatter; } }
+	
+procedure Iowa {
+	incense = indigo; }
+	
+procedure Jordan {
+	call Kansai;
+	call Llama; }
+
+procedure Kansai {
+	k = 2; }
+	
+procedure Llama {
+	lipton = l; }
+
+procedure Michigan {
+	mint = musk; }
+	
