@@ -9,6 +9,7 @@ ParentTable::ParentTable()
 {
 	TableChildWise = unordered_map<int, int>();
 	TableParentWise = unordered_map<int, list<int> >();
+	TableParentWiseStar = unordered_map<int, list<int> >();
 	TableChildWiseStar = unordered_map<int, list<int> >();
 }
 
@@ -34,7 +35,17 @@ void ParentTable::addParent(int parent, int child)
 		int parentOfParent = it->second;
 		TableChildWiseStar[child].push_back(parentOfParent); // parent-star has been found; track it
 		it = TableChildWise.find(parentOfParent);
-	}	
+	}
+}
+
+// The parser will populate for each child stmt all the parents in the stack (i.e. Parser will call appropriately)
+void ParentTable::addParentStar(int parentStar, int child)
+{
+	if (parentStar == NO_PARENT_FLAG)
+	{
+		return;
+	}
+	TableParentWiseStar[parentStar].push_back(child);
 }
 
 int ParentTable::getParentOf(int stmt)
@@ -115,11 +126,29 @@ bool ParentTable::isParentStar(int parent, int child)
 	unordered_map<int, list<int> >::iterator it = TableChildWiseStar.find(child);
 	bool res = false;
 
-	if (it != TableChildWiseStar.end()) {
+	if (it != TableChildWiseStar.end())
+	{
 		list<int>::iterator lIt = find(it->second.begin(), it->second.end(), parent); // does the argumnent 'parent' exist as a parent-star?
-		if (lIt != it->second.end()) {
+		if (lIt != it->second.end())
+		{
 			res = true;
 		}
 	}
 	return res;
+}
+
+list<int> ParentTable::getChildStarOf(int stmt)
+{
+	unordered_map<int, list<int> >::iterator it = TableParentWiseStar.find(stmt);
+	list<int> results = list<int>();
+
+	if (it != TableParentWiseStar.end())
+	{
+		results = it->second;
+		return results;
+	}
+	else
+	{
+		return results;
+	}
 }

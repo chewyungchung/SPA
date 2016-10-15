@@ -25,9 +25,6 @@ PKB itself is a facade class
 using namespace std;
 typedef short PROC;
 
-//class TNode;
-
-//class VarTable;  // no need to #include "VarTable.h" as all I need is pointer
 class ModUsesTablebyStmt;
 class ModUsesTablebyVariable;
 class StatementTable;
@@ -43,7 +40,6 @@ class CFG;
 class PKB 
 {
 public:
-
 	ModUsesTablebyStmt M_U_TableByStmt;
 	ModUsesTablebyVariable M_U_TableByVar;
 	StatementTable S_Table;
@@ -59,12 +55,14 @@ public:
 	~PKB();
 
 	void addParent(int lineOfParent, int lineNum);
+	void addParentStar(int parentStar, int child);
 	int getParentOf(int stmt);
 	list<int> getParentStar(int stmt);
 	list<int> getChildrenOf(int stmt);
 	bool isParentEmpty();
 	bool isParentOf(int parentStmt, int childStmt);
 	bool isParentStar(int parent, int child);
+	list<int> getChildStarOf(int stmt);
 	
 	void addFollows(int lineNum, int nesting);
 	int getFollowedFrom(int stmt);
@@ -116,9 +114,10 @@ public:
 	list<string> getCalleeStar(string caller);
 	list<string> getCallerStar(string callee);
 
-	void buildCallsGraph(int vertexCount, PKB pkb);
+	void initializeCallsGraph(int vertexCount);
+	void addCallsGraphEdge(int i, int j);
+	bool hasArcCallsGraph(int i, int j);
 	bool isCallsGraphCyclic();
-	void updateAllProcModUses();
 
 	void addProc(string procName);
 	void addProcMod(string procName, string var);

@@ -50,12 +50,17 @@ void Parser::parseProgram()
 	next_token = _tk.getNextToken();
 	parseProcedure();
 
-	// postfixing -> check cyclic call 
-	// update moduses for proc if acyclic
-	_pkb.buildCallsGraph(_pkb.getStatementCount(), _pkb);
+	/******** Program parsed ********/
+	// postfixing -> setup design extractor
+	list<string> procList = _pkb.getProcedureList();
+	int procCount = procList.size();
+	_de = DesignExtractor(_pkb, procCount);
+	// check cyclic call
+	_de.buildCallsGraph(procCount);
+	// update mod/uses for all procedures if acyclic
 	if (!_pkb.isCallsGraphCyclic())
 	{
-		_pkb.updateAllProcModUses();
+		_de.updateAllProcModUses();
 	}
 	else
 	{
@@ -78,7 +83,7 @@ void Parser::parseProcedure()
 	match(LEFT_BRACES);
 	parseStmtLst();
 	match(RIGHT_BRACES);
-	_pkb.closeProcCFG();
+	//////////////////////////////// _pkb.closeProcCFG();
 	if (next_token == PROCEDURE_FLAG)
 	{
 		// Entering into new procedure,
@@ -134,6 +139,7 @@ void Parser::parseWhileStmt()
 
 	// Populate ParentTable for current while stmt and set current while stmt as current parent
 	_pkb.addParent(parentStack.top(), stmtLine);
+	addAllParentsOfCurrStmt(stmtLine);
 	parentStack.push(stmtLine);
 
 	// Populate FollowsTable for current while stmt and enter into new nesting level
@@ -175,8 +181,9 @@ void Parser::parseIfStmt()
 	// Populate CFG
 	_pkb.addStmtCFG(stmtLine, IF_FLAG);
 
-	// Populate ParentTable for current while stmt and set current while stmt as current parent
+	// Populate ParentTable for current if stmt and set current if stmt as current parent
 	_pkb.addParent(parentStack.top(), stmtLine);
+	addAllParentsOfCurrStmt(stmtLine);
 	parentStack.push(stmtLine);
 
 	// Populate FollowsTable for current while stmt and enter into new nesting level
@@ -223,7 +230,7 @@ void Parser::parseElseStmt()
 	parseStmtLst();
 	match(RIGHT_BRACES);
 
-	// Exiting else, pop parent, exit nestingLevel, updateCFG
+	// Exiting else, pop if parent, exit nestingLevel, updateCFG
 	parentStack.pop();
 	followsStack.pop();
 	_pkb.closeElseCFG();
@@ -233,6 +240,11 @@ void Parser::parseCallStmt()
 {
 	// Populate StatementTable
 	_pkb.addStatement(stmtLine, CALL_FLAG);
+
+	// Populate ParentTable and FollowsTable for this call stmt
+	_pkb.addParent(parentStack.top(), stmtLine);
+	addAllParentsOfCurrStmt(stmtLine);
+	_pkb.addFollows(stmtLine, followsStack.top());
 
 	// Populate ProcTable
 	_pkb.addProcCalledInStmt(procName, stmtLine);
@@ -257,6 +269,7 @@ void Parser::parseAssignStmt()
 
 	// Populate ParentTable and FollowsTable for this assign stmt
 	_pkb.addParent(parentStack.top(), stmtLine);
+	addAllParentsOfCurrStmt(stmtLine);
 	_pkb.addFollows(stmtLine, followsStack.top());
 
 	// Populate mod table with LHS variable
@@ -343,6 +356,25 @@ bool Parser::isConstant(string s)
 		return true;
 	}
 	return false;
+}
+
+void Parser::addAllParentsOfCurrStmt(int stmtLine)
+{
+	stack<int> tempStack;
+	int temp;
+	while (parentStack.top() != NO_PARENT_FLAG)
+	{
+		temp = parentStack.top();
+		_pkb.addParentStar(stmtLine, temp);
+		parentStack.pop();
+		tempStack.push(temp);
+	}
+	while (!tempStack.empty())
+	{
+		temp = tempStack.top();
+		parentStack.push(temp);
+		tempStack.pop();
+	}
 }
 
 void Parser::addAllParentsOfUsedVariable(string v)

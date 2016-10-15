@@ -90,7 +90,6 @@ namespace UnitTesting
 			PKB _pkb;
 			// Test if FollowsTable is empty before being populated
 
-
 			Parser p("SIMPLE_test_2.txt");
 			_pkb = p.process();
 			/*
@@ -226,7 +225,6 @@ namespace UnitTesting
 			expectedVec = { 8, 11 };
 			vecToListHelper(expectedVec, expectedList);
 			Assert::IsTrue(listCmpHelper(_pkb.getFollowerStar(7), expectedList));
-
 		}
 
 		TEST_METHOD(TestParentTable)
@@ -463,140 +461,134 @@ namespace UnitTesting
 				}
 			*/
 
-			TEST_METHOD(TestConstantTable3)
-			{
-				Parser p("SIMPLE_test_3.txt");
-				p.process();
-				list<int> expectedList;
-				vector<int> expectedVec;
-				/* Correct Uses relationships (constant not in containers) */
-				// Uses(1, "1") -- TRUE
-				clearVector(expectedVec);
-				expectedVec = { 1 };
-				vecToListHelper(expectedVec, expectedList);
-				Assert::IsTrue(listCmpHelper(_pkb.getStmtlineByConstant(1), expectedList));
+			list<int> expectedList;
+			vector<int> expectedVec;
+			/* Correct Uses relationships (constant not in containers) */
+			// Uses(1, "1") -- TRUE
+			clearVector(expectedVec);
+			expectedVec = { 1 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getStmtlineByConstant(1), expectedList));
 
-				/* Correct Uses relationships (constant in containers) */
-				// Uses(6, "2"), Uses(8, "2"), Uses(9, "2") -- TRUE
-				clearVector(expectedVec);
-				expectedVec = { 6,8,9 };
-				vecToListHelper(expectedVec, expectedList);
-				Assert::IsTrue(listCmpHelper(_pkb.getStmtlineByConstant(2), expectedList));
-			}
+			/* Correct Uses relationships (constant in containers) */
+			// Uses(6, "2"), Uses(8, "2"), Uses(9, "2") -- TRUE
+			clearVector(expectedVec);
+			expectedVec = { 6,8,9 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getStmtlineByConstant(2), expectedList));
+		}
 
-			TEST_METHOD(TestStatementTable)
-			{
-				PKB _pkb;
-				Parser p("SIMPLE_test_3.txt");
-				_pkb = p.process();
-				/*
-					procedure XYZ
+		TEST_METHOD(TestStatementTable)
+		{
+			PKB _pkb;
+			Parser p("SIMPLE_test_3.txt");
+			_pkb = p.process();
+			/*
+				procedure XYZ
+				{
+			1		x=1;
+			2		x=z;
+			3		while i
 					{
-				1		x=1;
-				2		x=z;
-				3		while i
+			4			apple = orange;
+			5			banana = pear;
+					}
+			6		while x
+					{
+			7			s = t;
+			8			while y
 						{
-				4			apple = orange;
-				5			banana = pear;
+			9				r = 2;
+			10				x = y
+			11				mango = durian;
 						}
-				6		while x
+			12			while z
 						{
-				7			s = t;
-				8			while y
-							{
-				9				r = 2;
-				10				x = y
-				11				mango = durian;
-							}
-				12			while z
-							{
-				13				papaya = watermelon;
-							}
+			13				papaya = watermelon;
 						}
 					}
-				*/
-
-				list<int> expectedList;
-				vector<int> expectedVec;
-				/* Select all assign stmts */
-				// assign a; Select a -- 1, 2, 4, 5, 7, 9, 10, 11, 13
-				clearVector(expectedVec);
-				expectedVec = { 1, 2, 4, 5, 7, 9, 10, 11, 13 };
-				vecToListHelper(expectedVec, expectedList);
-				Assert::IsTrue(listCmpHelper(_pkb.getAssignList(), expectedList));
-
-				/* Select all while stmts */
-				// while w; Select w -- 3, 6, 8, 12
-				expectedVec = { 3, 6, 8, 12 };
-				vecToListHelper(expectedVec, expectedList);
-				Assert::IsTrue(listCmpHelper(_pkb.getWhileList(), expectedList));
-			}
-
-		public:
-
-			bool listCmpHelper(list<string> list1, list<string> list2)
-			{
-				if (list1.size() != list2.size())
-				{
-					return false;
 				}
-				else
+			*/
+
+			list<int> expectedList;
+			vector<int> expectedVec;
+			/* Select all assign stmts */
+			// assign a; Select a -- 1, 2, 4, 5, 7, 9, 10, 11, 13
+			clearVector(expectedVec);
+			expectedVec = { 1, 2, 4, 5, 7, 9, 10, 11, 13 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getAssignList(), expectedList));
+
+			/* Select all while stmts */
+			// while w; Select w -- 3, 6, 8, 12
+			expectedVec = { 3, 6, 8, 12 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getWhileList(), expectedList));
+		}
+
+	public:
+
+		bool listCmpHelper(list<string> list1, list<string> list2)
+		{
+			if (list1.size() != list2.size())
+			{
+				return false;
+			}
+			else
+			{
+				list<string>::iterator it = list1.begin();
+				for (; it != list1.end(); ++it)
 				{
-					list<string>::iterator it = list1.begin();
-					for (; it != list1.end(); ++it)
+					if (find(list2.begin(), list2.end(), *it) == list2.end())
 					{
-						if (find(list2.begin(), list2.end(), *it) == list2.end())
-						{
-							return false;
-						}
+						return false;
 					}
-					return true;
 				}
+				return true;
 			}
+		}
 
-			bool listCmpHelper(list<int> list1, list<int> list2)
+		bool listCmpHelper(list<int> list1, list<int> list2)
+		{
+			if (list1.size() != list2.size())
 			{
-				if (list1.size() != list2.size())
+				return false;
+			}
+			else
+			{
+				list<int>::iterator it = list1.begin();
+				for (; it != list1.end(); ++it)
 				{
-					return false;
-				}
-				else
-				{
-					list<int>::iterator it = list1.begin();
-					for (; it != list1.end(); ++it)
+					if (find(list2.begin(), list2.end(), *it) == list2.end())
 					{
-						if (find(list2.begin(), list2.end(), *it) == list2.end())
-						{
-							return false;
-						}
+						return false;
 					}
-					return true;
 				}
+				return true;
 			}
+		}
 
-			// Swap with empty vector to free memory
-			void clearVector(vector<string> v)
-			{
-				vector<string>().swap(v);
-			}
+		// Swap with empty vector to free memory
+		void clearVector(vector<string> v)
+		{
+			vector<string>().swap(v);
+		}
 
-			void clearVector(vector<int> v)
-			{
-				vector<int>().swap(v);
-			}
+		void clearVector(vector<int> v)
+		{
+			vector<int>().swap(v);
+		}
 
-			void vecToListHelper(vector<string> v, list<string> & s)
-			{
-				s.clear();
-				copy(v.begin(), v.end(), back_inserter(s));
-			}
+		void vecToListHelper(vector<string> v, list<string> & s)
+		{
+			s.clear();
+			copy(v.begin(), v.end(), back_inserter(s));
+		}
 
-			void vecToListHelper(vector<int> v, list<int> & s)
-			{
-				s.clear();
-				copy(v.begin(), v.end(), back_inserter(s));
-			}
-
-		};
+		void vecToListHelper(vector<int> v, list<int> & s)
+		{
+			s.clear();
+			copy(v.begin(), v.end(), back_inserter(s));
+		}		
 	};
 }

@@ -23,6 +23,11 @@ void PKB::addParent(int lineOfParent, int lineNum)
 	P_Table.addParent(lineOfParent, lineNum);
 }
 
+void PKB::addParentStar(int lineOfParentStar, int lineNum)
+{
+	P_Table.addParentStar(lineOfParentStar, lineNum);
+}
+
 int PKB::getParentOf(int stmt)
 {
 	return P_Table.getParentOf(stmt);
@@ -51,6 +56,11 @@ bool PKB::isParentOf(int parentStmt, int childStmt)
 bool PKB::isParentStar(int parent, int child)
 {
 	return P_Table.isParentStar(parent, child);
+}
+
+list<int> PKB::getChildStarOf(int stmt)
+{
+	return P_Table.getChildStarOf(stmt);
 }
 
 /***************** FollowsTable ******************/
@@ -279,19 +289,24 @@ list<string> PKB::getCallerStar(string callee)
 
 /***************** CallsGraph ******************/
 
-void PKB::buildCallsGraph(int vertexCount, PKB pkb)
+void PKB::initializeCallsGraph(int vertexCount)
 {
-	this->Calls_Graph = CallsGraph(vertexCount, pkb);
+	Calls_Graph.initializeCallsGraph(vertexCount);
+}
+
+void PKB::addCallsGraphEdge(int i, int j)
+{
+	Calls_Graph.addCallsGraphEdge(i, j);
+}
+
+bool PKB::hasArcCallsGraph(int i, int j)
+{
+	return Calls_Graph.hasArcCallsGraph(i, j);
 }
 
 bool PKB::isCallsGraphCyclic()
 {
 	return Calls_Graph.isCallsGraphCyclic();
-}
-
-void PKB::updateAllProcModUses()
-{
-	Calls_Graph.updateAllProcModUses();
 }
 
 /***************** ProcTable ******************/
@@ -378,7 +393,7 @@ list<string> PKB::getProcedureList()
 /***************** AST ******************/
 string PKB::makeExpr(string input)
 {
-	Ast.makeExpr(input);
+	return Ast.makeExpr(input);
 }
 
 void PKB::addExpr(int stmt, string expr)
@@ -388,18 +403,18 @@ void PKB::addExpr(int stmt, string expr)
 
 bool PKB::isExprExist(string expr)
 {
-	Ast.isExprExist(expr);
+	return Ast.isExprExist(expr);
 }
 
 bool PKB::isSubExprExist(string subExpr)
 {
-	Ast.isSubExprExist(subExpr);
+	return Ast.isSubExprExist(subExpr);
 }
 
 /***************** CFG ******************/
 void PKB::addProcCFG()
 {
-	Cfg.addProcCFG;
+	Cfg.addProcCFG();
 }
 
 void PKB::addStmtCFG(int stmtnum, string stmtType)

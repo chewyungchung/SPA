@@ -233,7 +233,7 @@ list<int> ProcTable::getCallByProcName(string procName)
 	{
 		list<string> s_results = procDataTable[it->second][CALLED_IN_STMT_COL];
 		list<string>::iterator it;
-		for (it = s_results.begin; it != s_results.end(); ++it)
+		for (it = s_results.begin(); it != s_results.end(); ++it)
 		{
 			results.push_back(stoi(*it));
 		}
