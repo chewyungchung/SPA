@@ -1,0 +1,23 @@
+procedure ABC
+{
+	x = 1;
+	b = 2;
+	while i 
+	{
+		apple = orange;
+		banana = pear;
+	}
+	while x
+	{
+		s = t;
+		while y
+		{
+			r = 2;
+			mango = durian;
+		}
+		while z
+		{
+			papaya = watermelon;
+		}
+	}
+}

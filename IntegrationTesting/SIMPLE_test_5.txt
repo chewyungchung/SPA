@@ -1,0 +1,46 @@
+procedure A {
+	if r then {
+		y = x + 2;
+		a = b;
+		if x then {
+			while z {
+				z = 2;
+				call B;}
+			k = kappa;}
+		else {
+			w = omega;
+			if r then {
+				call B;
+				p = pi;
+				if v then {
+					x = 1; 
+					while a {
+						while b {
+							while c {
+								alpha = beta;
+								beta = gamma; }}}}
+				else {
+					call meMaybe; }
+				x = 5;}
+			else {
+				miami = nights; }}}
+	else {
+		e = r;
+		n = m; }
+	tony = montana;}
+
+procedure B {
+	if x then {
+		if y then {
+			if u then {
+				i = 2;
+				k = p;}
+			else {
+				i = 1; }}
+		else {
+			hop = in; }}
+	else {
+		b = 5;}}
+
+		
+		
