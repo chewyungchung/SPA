@@ -60,9 +60,6 @@
     <ClCompile Include="source\ConstantTable.cpp">
       <Filter>Source Files\PKB</Filter>
     </ClCompile>
-    <ClCompile Include="source\QueryResult.cpp">
-      <Filter>Source Files\QueryProcessor</Filter>
-    </ClCompile>
     <ClCompile Include="source\QueryResultProjector.cpp">
       <Filter>Source Files\QueryProcessor</Filter>
     </ClCompile>
@@ -144,9 +141,6 @@
       <Filter>Header Files\QueryProcessor</Filter>
     </ClInclude>
     <ClInclude Include="source\QueryException.h">
-      <Filter>Header Files\QueryProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="source\QueryResult.h">
       <Filter>Header Files\QueryProcessor</Filter>
     </ClInclude>
     <ClInclude Include="source\QueryResultProjector.h">
