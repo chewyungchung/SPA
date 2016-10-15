@@ -174,6 +174,9 @@ void QueryValidator::MatchResultClauseElement(bool is_tuple)
 		Match(",");
 		MatchResultClauseElement(true);
 	}
+
+	Clause select_clause("select", select_arg, select_arg_type);
+	query_table_.SetSelectClause(select_clause);
 }
 
 
@@ -255,7 +258,7 @@ void QueryValidator::MatchAttrCompare()
 		with_arg.push_back(right_ref.value);
 		with_arg_type.push_back(left_ref.arg_type);
 		with_arg_type.push_back(right_ref.arg_type);
-		Clause with_clause("with", with_arg, with_arg_type);
+		Clause with_clause("with", with_arg, with_arg_type, GetClausePriority("with"));
 		query_table_.AddWithClause(with_clause);
 	}
 	else {
@@ -376,9 +379,7 @@ bool QueryValidator::IsAttributeMatchSynType(string synType, string attrName) {
 			return true;
 		}
 	}
-	else {
-		return false;
-	}
+	return false;
 }
 
 bool QueryValidator::IsRefCompatible(Ref left_ref, Ref right_ref)
@@ -399,6 +400,46 @@ string QueryValidator::GetWithTypeByAttrName(string attrName)
 	}
 	else if (attrName == "value" || attrName == "stmt#") {
 		return "number";
+	}
+}
+
+int QueryValidator::GetClausePriority(string relation)
+{
+	if (relation == "follows") {
+		return 1;
+	}
+	else if (relation == "follows*") {
+		return 1;
+	}
+	else if (relation == "parent") {
+		return 1;
+	}
+	else if (relation == "parent*") {
+		return 2;
+	}
+	else if (relation == "next") {
+		return 1;
+	}
+	else if (relation == "next*") {
+		return 2;
+	}
+	else if (relation == "call") {
+		return 1;
+	}
+	else if (relation == "call*") {
+		return 2;
+	}
+	else if (relation == "modifies") {
+		return 2;
+	}
+	else if (relation == "uses") {
+		return 2;
+	}
+	else if (relation == "pattern") {
+		return 2;
+	}
+	else if (relation == "with") {
+		return 0;
 	}
 }
 
@@ -465,7 +506,7 @@ void QueryValidator::MatchPatternAssign()
 			}
 			vector<string> assign_arg = { assign_syn, assign_var_ref.second , expression_string_ };
 			vector<string> assign_arg_type = { "assign", assign_var_ref_type, expression_type };
-			Clause pattern_assign_clause("pattern", assign_arg, assign_arg_type);
+			Clause pattern_assign_clause("pattern", assign_arg, assign_arg_type,GetClausePriority("pattern"));
 			query_table_.AddPatternClause(pattern_assign_clause);
 		}
 		else {
@@ -510,7 +551,7 @@ void QueryValidator::MatchPatternWhile() {
 		if (is_control_variable_valid == true) {
 			vector<string> while_arg = { while_syn, while_control_variable.second };
 			vector<string> while_arg_type = { "while", while_control_var_type };
-			Clause pattern_while_clause("pattern", while_arg, while_arg_type);
+			Clause pattern_while_clause("pattern", while_arg, while_arg_type, GetClausePriority("pattern"));
 			query_table_.AddPatternClause(pattern_while_clause);
 		}
 		else {
@@ -557,7 +598,7 @@ void QueryValidator::MatchPatternIf() {
 		if (is_control_variable_valid == true) {
 			vector<string> if_arg = { if_syn, if_control_variable.second };
 			vector<string> if_arg_type = { "if", if_control_var_type };
-			Clause pattern_if_clause("pattern", if_arg, if_arg_type);
+			Clause pattern_if_clause("pattern", if_arg, if_arg_type, GetClausePriority("pattern"));
 			query_table_.AddPatternClause(pattern_if_clause);
 		}
 		else {
@@ -656,7 +697,7 @@ void QueryValidator::MatchFollow() {
 	if (is_arg1_valid == true && is_arg2_valid == true) {
 		vector<string> followsArg({ arg1.second,arg2.second });
 		vector<string> followsArgType ({ arg1_type,arg2_type });
-		Clause followsRelation("follows", followsArg, followsArgType);
+		Clause followsRelation("follows", followsArg, followsArgType, GetClausePriority("follows"));
 		query_table_.AddSuchThatClause(followsRelation);
 
 	}
@@ -710,7 +751,7 @@ void QueryValidator::MatchFollowStar() {
 	if (is_arg1_valid == true && is_arg2_valid == true) {
 		vector<string> followsStarArg({ arg1.second,arg2.second });
 		vector<string> followsStarArgType({ arg1_type,arg2_type });
-		Clause followsStarRel("follows*", followsStarArg, followsStarArgType);
+		Clause followsStarRel("follows*", followsStarArg, followsStarArgType, GetClausePriority("follows*"));
 		query_table_.AddSuchThatClause(followsStarRel);
 	}
 	else {
@@ -762,8 +803,7 @@ void QueryValidator::MatchParent() {
 	if (is_arg1_valid == true && is_arg2_valid == true) {
 		vector<string> parentArg({ arg1.second,arg2.second });
 		vector<string> parentArgType({ arg1_type,arg2_type });
-		Clause parentClause("parent", parentArg, parentArgType);
-		Clause parentRel("parent", parentArg, parentArgType);
+		Clause parentRel("parent", parentArg, parentArgType, GetClausePriority("parent"));
 		query_table_.AddSuchThatClause(parentRel);
 	}
 	else {
@@ -815,7 +855,7 @@ void QueryValidator::MatchParentStar() {
 	if (is_arg1_valid == true && is_arg2_valid == true) {
 		vector<string> parentStarArg({ arg1.second,arg2.second });
 		vector<string> parentStarArgType({ arg1_type,arg2_type });
-		Clause parentStarRel("parent*", parentStarArg, parentStarArgType);
+		Clause parentStarRel("parent*", parentStarArg, parentStarArgType, GetClausePriority("parent*"));
 		query_table_.AddSuchThatClause(parentStarRel);
 	}
 	else {
@@ -871,7 +911,7 @@ void QueryValidator::MatchModifies() {
 	if (is_arg1_valid == true && is_arg2_valid == true) {
 		vector<string> modifiesArg({ arg1.second,arg2.second });
 		vector<string> modifiesArgType({ arg1_type,arg2_type });
-		Clause modifiesRel("modifies", modifiesArg, modifiesArgType);
+		Clause modifiesRel("modifies", modifiesArg, modifiesArgType, GetClausePriority("modifies"));
 		query_table_.AddSuchThatClause(modifiesRel);
 	}
 	else {
@@ -928,7 +968,7 @@ void QueryValidator::MatchUses() {
 	if (is_arg1_valid == true && is_arg2_valid == true) {
 		vector<string> usesArg({ arg1.second,arg2.second });
 		vector<string> usesArgType({ arg1_type,arg2_type });
-		Clause usesRel("uses", usesArg, usesArgType);
+		Clause usesRel("uses", usesArg, usesArgType, GetClausePriority("uses"));
 		query_table_.AddSuchThatClause(usesRel);
 	}
 	else {
@@ -992,7 +1032,7 @@ void QueryValidator::MatchCalls() {
 	if (is_arg1_valid == true && is_arg2_valid == true) {
 		vector<string> callsArg({ arg1.second,arg2.second });
 		vector<string> callsArgType({ arg1_type,arg2_type });
-		Clause callsRel("calls", callsArg, callsArgType);
+		Clause callsRel("calls", callsArg, callsArgType,GetClausePriority("call"));
 		query_table_.AddSuchThatClause(callsRel);
 	}
 	else {
@@ -1043,7 +1083,7 @@ void QueryValidator::MatchCallsStar() {
 	if (is_arg1_valid == true && is_arg2_valid == true) {
 		vector<string> callsStarArg({ arg1.second,arg2.second });
 		vector<string> callsStarArgType({ arg1_type,arg2_type });
-		Clause callsStarRel("calls*", callsStarArg, callsStarArgType);
+		Clause callsStarRel("calls*", callsStarArg, callsStarArgType,GetClausePriority("call*"));
 		query_table_.AddSuchThatClause(callsStarRel);
 	}
 	else {
@@ -1095,7 +1135,7 @@ void QueryValidator::MatchNext() {
 	if (is_arg1_valid == true && is_arg2_valid == true) {
 		vector<string> nextArg({ arg1.second,arg2.second });
 		vector<string> nextArgType({ arg1_type,arg2_type });
-		Clause nextRel("next", nextArg, nextArgType);
+		Clause nextRel("next", nextArg, nextArgType,GetClausePriority("next"));
 		query_table_.AddSuchThatClause(nextRel);
 	}
 	else {
@@ -1147,7 +1187,7 @@ void QueryValidator::MatchNextStar() {
 	if (is_arg1_valid == true && is_arg2_valid == true) {
 		vector<string> nextStarArg({ arg1.second,arg2.second });
 		vector<string> nextStarArgType({ arg1_type,arg2_type });
-		Clause nextStarRel("next*", nextStarArg, nextStarArgType);
+		Clause nextStarRel("next*", nextStarArg, nextStarArgType,GetClausePriority("next*"));
 		query_table_.AddSuchThatClause(nextStarRel);
 	}
 	else {
