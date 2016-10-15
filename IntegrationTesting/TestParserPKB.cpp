@@ -4,6 +4,8 @@ Parser is given source file and populates PKB
 The test check if PKB is populated correctly
 */
 #include "stdafx.h"
+#include <stdexcept>
+#include <functional>
 #include "CppUnitTest.h"
 
 #include <iterator>
@@ -457,7 +459,7 @@ namespace IntegrationTesting
 		}
 
 		/* Our main objective is to Follows across if/else and multiple procedures and with call stmts */
-		TEST_METHOD(TestFollowsTable_IT2)
+		TEST_METHOD(TestParserFollowsTable_IT2)
 		{
 			PKB _pkb;
 			Parser p("SIMPLE_test_5.txt");
@@ -541,8 +543,8 @@ namespace IntegrationTesting
 			Assert::IsTrue(_pkb.isValidFollows(29, 30));
 		}
 
-		/* Our main objective is to Parent across if/else and multiple procedures and with call stmts */
-		TEST_METHOD(TestParentTable_IT2)
+		/* Our main objective is to test Parent across if/else and multiple procedures and with call stmts */
+		TEST_METHOD(TestParserParentTable_IT2)
 		{
 			PKB _pkb;
 			Parser p("SIMPLE_test_5.txt");
@@ -620,8 +622,8 @@ namespace IntegrationTesting
 			Assert::AreEqual(28, _pkb.getParentOf(31));
 		}
 
-		/* Our main objective is to Parent across if/else and multiple procedures and with call stmts */
-		TEST_METHOD(TestCallsTable_IT2)
+		/* We test the calls functionality */
+		TEST_METHOD(TestParserCallsTable_IT2)
 		{
 			PKB _pkb;
 			Parser p("SIMPLE_test_6.txt");
@@ -663,6 +665,12 @@ namespace IntegrationTesting
 				call Kansai;
 				call Llama; }
 
+			procedure Kansai {
+				k = 2; }
+
+			procedure Llama {
+				l = l; }
+
 			procedure Michigan {
 				x = 1; }
 		*/
@@ -697,6 +705,167 @@ namespace IntegrationTesting
 			expectedVec = { "Adam", "Beanstalk", "Cat", "Diamond" };
 			vecToListHelper(expectedVec, expectedList);
 			Assert::IsTrue(listCmpHelper(_pkb.getCallerStar("Iowa"), expectedList));
+		}
+
+		/* We test whether we can successfully detect cycles in the call graph */
+		TEST_METHOD(TestParserCallsGraphCycleCheck_IT2)
+		{
+			PKB _pkb;
+			Parser p("SIMPLE_test_7.txt");
+		/*
+			procedure A {
+				call B; }
+
+			procedure B {
+				call D;
+				call C; }
+
+			procedure C {
+				call F;
+				call G; }
+
+			procedure D {
+				call E; }
+	
+			procedure E {
+				call I; }
+	
+			procedure F {
+				call G; }
+	
+			procedure G {
+				call H: }
+	
+			procedure H {
+				call D; }
+	
+			procedure I {
+				call H; }
+		*/
+			// Observe the cycle H -> D -> E -> I -> H
+			Assert::ExpectException<invalid_argument>([&]
+			{
+				p.process();
+			});			
+		}
+
+		/* Primarily to test if the Mod/Uses relationships are propagated up correctly */
+		TEST_METHOD(TestParserProcTable_IT2)
+		{
+			PKB _pkb;
+			Parser p("SIMPLE_test_8.txt");
+			_pkb = p.process();
+		/*
+			procedure Adam {
+		1		call Beanstalk;
+		2		call Cat;
+		3		call Cat;
+		4		if a then {
+		5			apple = armor + arms; }
+				else {
+		6			arrow = arsenal; }
+		7		call France;
+		8		call Germany;}
+
+			procedure Beanstalk {
+		9		call Diamond; }
+
+			procedure Cat {
+		10		while crystal {
+		11			condiments = cashew;
+		12			camper = 1; }
+		13		call Diamond; }
+
+			procedure Diamond {
+		14		call Iowa;
+		15		call Germany; }
+
+			procedure Edmonds {
+		16		e = 1; }
+	
+			procedure France {
+		17		fructose = futu;
+		18		call Edmonds; }
+
+			procedure Germany {
+		19		call Houston; }
+
+			procedure Houston {
+		20		while h {
+		21			haveproblem = hatter; } }
+	
+			procedure Iowa {
+		22		incense = indigo; }
+	
+			procedure Jordan {
+		23		call Kansai;
+		24		call Llama; }
+
+			procedure Kansai {
+		25		k = 2; }
+	
+			procedure Llama {
+		26		lipton = l; }
+
+			procedure Michigan {
+		27		mint = musk; }
+		*/
+			list<string> expectedList;
+			vector<string> expectedVec;
+			list<int> i_expectedList;
+			vector<int> i_expectedVec;
+
+			// Test isProcedureExist
+			Assert::IsTrue(_pkb.isProcedureExist("Kansai"));
+			Assert::IsFalse(_pkb.isProcedureExist("Nano"));
+
+			// Test mod for variables directly within a proc
+			Assert::IsTrue(_pkb.isModifiedByProc("Adam", "apple"));
+			Assert::IsTrue(_pkb.isModifiedByProc("Houston", "haveproblem"));
+
+			// Test uses for variables directly within a proc
+			Assert::IsTrue(_pkb.isUsedByProc("Adam", "a"));
+			Assert::IsTrue(_pkb.isUsedByProc("Houston", "hatter"));
+
+			// Test propagation for modifying
+			clearVector(expectedVec);
+			expectedVec = { "Adam", "Beanstalk", "Cat", "Diamond", "Germany", "Houston" };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getProcedureModifying("haveproblem"), expectedList));
+
+			clearVector(expectedVec);
+			expectedVec = { "apple", "arrow", "condiments", "camper", "fructose", "haveproblem", "incense" };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getModifiedByProc("Adam"), expectedList));
+
+			// Test propagation for using
+			clearVector(expectedVec);
+			expectedVec = { "Adam", "Beanstalk", "Cat", "Diamond", "Germany", "Houston" };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getProcedureUsing("hatter"), expectedList));
+
+			clearVector(expectedVec);
+			expectedVec = { "indigo", "h", "hatter" };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getUsedByProc("Diamond"), expectedList));
+
+			// Test getCallByProcName
+			clearVector(i_expectedVec);
+			i_expectedVec = { 9, 13 };
+			vecToListHelper(i_expectedVec, i_expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getCallByProcName("Diamond"), i_expectedList));
+
+			// Test getCalledProcNamesList()
+			clearVector(expectedVec);
+			expectedVec = { "Beanstalk", "Cat", "France", "Edmonds", "Diamond", "Iowa", "Houston", "Germany", "Kansai", "Llama" };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getCalledProcNamesList, expectedList));
+
+			// Test getProcedureList()
+			clearVector(expectedVec);
+			expectedVec = { "Adam", "Beanstalk", "Cat", "France", "Edmonds", "Diamond", "Iowa", "Houston", "Germany", "Jordan", "Kansai", "Llama", "Michigan" };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getProcedureList(), expectedList));
 		}
 
 	public:

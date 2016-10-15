@@ -33,6 +33,12 @@ procedure Iowa {
 procedure Jordan {
 	call Kansai;
 	call Llama; }
+	
+procedure Kansai {
+	k = 2; }
+	
+procedure Llama {
+	l = l; }
 
 procedure Michigan {
 	x = 1; }
