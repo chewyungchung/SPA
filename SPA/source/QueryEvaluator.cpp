@@ -1,39 +1,5 @@
 #include "QueryEvaluator.h"
 
-const string REL_FOLLOWS = "follows";
-const string REL_FOLLOWS_STAR = "follows*";
-const string REL_PARENT = "parent";
-const string REL_PARENT_STAR = "parent*";
-const string REL_MODIFIES = "modifies";
-const string REL_USES = "uses";
-const string REL_NEXT = "next";
-const string REL_NEXT_STAR = "next*";
-const string REL_CALLS = "calls";
-const string REL_CALLS_STAR = "calls*";
-const string REL_PATTERN = "pattern";
-const string REL_WITH = "with";
-
-const string ARGTYPE_CONSTANT = "constant";
-const string ARGTYPE_CONSTANT_VALUE = "value";
-const string ARGTYPE_ANY = "any";
-const string ARGTYPE_VARIABLE = "variable";
-const string ARGTYPE_ASSIGN = "assign";
-const string ARGTYPE_WHILE = "while";
-const string ARGTYPE_IF = "if";
-const string ARGTYPE_STRING = "string";
-const string ARGTYPE_PROCEDURE = "procedure";
-const string ARGTYPE_STMT = "stmt";
-const string ARGTYPE_PROG_LINE = "prog_line";
-const string ARGTYPE_CALLS = "call";
-const string ARGTYPE_CALLS_NAME = "call_name";
-const string ARGTYPE_CALLS_NUMBER = "call_number";
-const string ARGTYPE_EXPR = "expr";
-const string ARGTYPE_SUB_EXPR = "sub_expr";
-
-const string PARAM_ARG1 = "ARG1";
-const string PARAM_ARG2 = "ARG2";
-const string PARAM_PATTERN = "PATTERN";
-
 QueryEvaluator::QueryEvaluator() {
 }
 
@@ -63,7 +29,7 @@ vector<vector<ResultTable>> QueryEvaluator::Evaluate() {
 
 ResultTable QueryEvaluator::ProcessClause(Clause input_clause)
 {
-	string relation = input_clause.getRelation();
+	string relation = input_clause.GetRelation();
 	if (relation == REL_PATTERN) {
 		return ProcessPattern(input_clause);
 	}
@@ -76,7 +42,7 @@ ResultTable QueryEvaluator::ProcessClause(Clause input_clause)
 }
 
 ResultTable QueryEvaluator::ProcessSuchThat(Clause such_that_clause) {
-	string relation = such_that_clause.getRelation();
+	string relation = such_that_clause.GetRelation();
 	ResultTable temp_result;
 
 	if (relation == REL_FOLLOWS) {
@@ -105,7 +71,7 @@ ResultTable QueryEvaluator::ProcessSuchThat(Clause such_that_clause) {
 
 ResultTable QueryEvaluator::ProcessPattern(Clause pattern_clause) {
 	ResultTable temp_result;
-	string pattern_syn_type = pattern_clause.getArgType().at(0);
+	string pattern_syn_type = pattern_clause.GetArgType().at(0);
 	if (pattern_syn_type == ARGTYPE_ASSIGN) {
 		temp_result = ProcessPatternAssign(pattern_clause);
 	}
@@ -115,16 +81,14 @@ ResultTable QueryEvaluator::ProcessPattern(Clause pattern_clause) {
 	else if (pattern_syn_type == ARGTYPE_IF) {
 		temp_result = ProcessPatternIf(pattern_clause);
 	}
-	else {
-		return temp_result;
-	}
+	return temp_result;
 }
 
 ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
-	string arg1 = follows_clause.getArg().at(0);
-	string arg2 = follows_clause.getArg().at(1);
-	string arg1_type = follows_clause.getArgType().at(0);
-	string arg2_type = follows_clause.getArgType().at(1);
+	string arg1 = follows_clause.GetArg().at(0);
+	string arg2 = follows_clause.GetArg().at(1);
+	string arg1_type = follows_clause.GetArgType().at(0);
+	string arg2_type = follows_clause.GetArgType().at(1);
 	
 	ResultTable temp_result;
 
@@ -300,10 +264,10 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 }
 
 ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
-	string arg1 = follow_star_clause.getArg().at(0);
-	string arg2 = follow_star_clause.getArg().at(1);
-	string arg1_type = follow_star_clause.getArgType().at(0);
-	string arg2_type = follow_star_clause.getArgType().at(1);
+	string arg1 = follow_star_clause.GetArg().at(0);
+	string arg2 = follow_star_clause.GetArg().at(1);
+	string arg1_type = follow_star_clause.GetArgType().at(0);
+	string arg2_type = follow_star_clause.GetArgType().at(1);
 
 	ResultTable temp_result;
 
@@ -474,10 +438,10 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 }
 
 ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
-	string arg1 = parent_clause.getArg().at(0);
-	string arg2 = parent_clause.getArg().at(1);
-	string arg1_type = parent_clause.getArgType().at(0);
-	string arg2_type = parent_clause.getArgType().at(1);
+	string arg1 = parent_clause.GetArg().at(0);
+	string arg2 = parent_clause.GetArg().at(1);
+	string arg1_type = parent_clause.GetArgType().at(0);
+	string arg2_type = parent_clause.GetArgType().at(1);
 
 	ResultTable temp_result;
 
@@ -652,10 +616,10 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 }
 
 ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
-	string arg1 = parent_star_clause.getArg().at(0);
-	string arg2 = parent_star_clause.getArg().at(1);
-	string arg1_type = parent_star_clause.getArgType().at(0);
-	string arg2_type = parent_star_clause.getArgType().at(1);
+	string arg1 = parent_star_clause.GetArg().at(0);
+	string arg2 = parent_star_clause.GetArg().at(1);
+	string arg1_type = parent_star_clause.GetArgType().at(0);
+	string arg2_type = parent_star_clause.GetArgType().at(1);
 
 	ResultTable temp_result;
 
@@ -825,10 +789,10 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 }
 
 ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
-	string arg1 = modifies_clause.getArg().at(0);
-	string arg2 = modifies_clause.getArg().at(1);
-	string arg1_type = modifies_clause.getArgType().at(0);
-	string arg2_type = modifies_clause.getArgType().at(1);
+	string arg1 = modifies_clause.GetArg().at(0);
+	string arg2 = modifies_clause.GetArg().at(1);
+	string arg1_type = modifies_clause.GetArgType().at(0);
+	string arg2_type = modifies_clause.GetArgType().at(1);
 	
 	ResultTable temp_result;
 
@@ -925,7 +889,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 			// Check if arg1 modifies anything
 			list<string> arg1_modified_variables = pkb_.getModifiedBy(arg1_stmt_num);
 			if (arg1_modified_variables.empty() == true) {
-				return ;
+				return temp_result;
 			}
 
 			// Query is 1 since arg1_modified_variables is non empty
@@ -1082,10 +1046,10 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 
 ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 {
-	string arg1 = next_clause.getArg().at(0);
-	string arg2 = next_clause.getArg().at(1);
-	string arg1_type = next_clause.getArgType().at(0);
-	string arg2_type = next_clause.getArgType().at(1);
+	string arg1 = next_clause.GetArg().at(0);
+	string arg2 = next_clause.GetArg().at(1);
+	string arg1_type = next_clause.GetArgType().at(0);
+	string arg2_type = next_clause.GetArgType().at(1);
 
 	ResultTable temp_result;
 
@@ -1126,7 +1090,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 
 			// For each statemet of arg2_type, check if arg1_stmt_num is executed before it
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) != -1) {
+				if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) != false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(to_string(arg2_stmt_num));
 					temp_result.InsertRow(temp_row_data);
@@ -1234,7 +1198,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-					if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) != -1) {
+					if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) != false) {
 						temp_result.SetIsQueryTrue(true);
 						temp_row_data.push_back(to_string(arg1_stmt_num));
 						temp_row_data.push_back(to_string(arg2_stmt_num));
@@ -1251,10 +1215,10 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 
 ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 {
-	string arg1 = next_star_clause.getArg().at(0);
-	string arg2 = next_star_clause.getArg().at(1);
-	string arg1_type = next_star_clause.getArgType().at(0);
-	string arg2_type = next_star_clause.getArgType().at(1);
+	string arg1 = next_star_clause.GetArg().at(0);
+	string arg2 = next_star_clause.GetArg().at(1);
+	string arg1_type = next_star_clause.GetArgType().at(0);
+	string arg2_type = next_star_clause.GetArgType().at(1);
 
 	ResultTable temp_result;
 
@@ -1420,10 +1384,10 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 
 ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 {
-	string arg1 = calls_clause.getArg().at(0);
-	string arg2 = calls_clause.getArg().at(1);
-	string arg1_type = calls_clause.getArgType().at(0);
-	string arg2_type = calls_clause.getArgType().at(1);
+	string arg1 = calls_clause.GetArg().at(0);
+	string arg2 = calls_clause.GetArg().at(1);
+	string arg1_type = calls_clause.GetArgType().at(0);
+	string arg2_type = calls_clause.GetArgType().at(1);
 
 	ResultTable temp_result;
 
@@ -1574,10 +1538,10 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 
 ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 {
-	string arg1 = calls_star_clause.getArg().at(0);
-	string arg2 = calls_star_clause.getArg().at(1);
-	string arg1_type = calls_star_clause.getArgType().at(0);
-	string arg2_type = calls_star_clause.getArgType().at(1);
+	string arg1 = calls_star_clause.GetArg().at(0);
+	string arg2 = calls_star_clause.GetArg().at(1);
+	string arg1_type = calls_star_clause.GetArgType().at(0);
+	string arg2_type = calls_star_clause.GetArgType().at(1);
 
 	ResultTable temp_result;
 
@@ -1721,11 +1685,11 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 
 ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 {
-	string pattern_assign_syn = pattern_assign_clause.getArg().at(0);
-	string arg1 = pattern_assign_clause.getArg().at(1);
-	string arg2 = pattern_assign_clause.getArg().at(2);
-	string arg1_type = pattern_assign_clause.getArgType().at(1);
-	string arg2_type = pattern_assign_clause.getArgType().at(2);
+	string pattern_assign_syn = pattern_assign_clause.GetArg().at(0);
+	string arg1 = pattern_assign_clause.GetArg().at(1);
+	string arg2 = pattern_assign_clause.GetArg().at(2);
+	string arg1_type = pattern_assign_clause.GetArgType().at(1);
+	string arg2_type = pattern_assign_clause.GetArgType().at(2);
 
 	list<int> all_assign_statements = GetList(ARGTYPE_ASSIGN);
 
@@ -1772,7 +1736,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_SUB_EXPR) {
-			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpr(arg2);
+			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpression(arg2);
 			if (assign_with_sub_expression.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
@@ -1820,7 +1784,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_SUB_EXPR) {
-			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpr(arg2);
+			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpression(arg2);
 			if (assign_with_sub_expression.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
@@ -1882,7 +1846,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_SUB_EXPR) {
-			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpr(arg2);
+			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpression(arg2);
 			if (assign_with_sub_expression.empty() == true) {
 				return temp_result;
 			}
@@ -1909,9 +1873,9 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 
 ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
 {
-	string pattern_while_syn = pattern_while_clause.getArg().at(0);
-	string arg1 = pattern_while_clause.getArg().at(1);
-	string arg1_type = pattern_while_clause.getArgType().at(1);
+	string pattern_while_syn = pattern_while_clause.GetArg().at(0);
+	string arg1 = pattern_while_clause.GetArg().at(1);
+	string arg1_type = pattern_while_clause.GetArgType().at(1);
 
 	ResultTable temp_result = ResultTable(pattern_while_syn);
 	vector<string> temp_row_data;
@@ -1973,9 +1937,9 @@ ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
 
 ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
 {
-	string pattern_if_syn = pattern_if_clause.getArg().at(0);
-	string arg1 = pattern_if_clause.getArg().at(1);
-	string arg1_type = pattern_if_clause.getArgType().at(1);
+	string pattern_if_syn = pattern_if_clause.GetArg().at(0);
+	string arg1 = pattern_if_clause.GetArg().at(1);
+	string arg1_type = pattern_if_clause.GetArgType().at(1);
 
 	ResultTable temp_result = ResultTable(pattern_if_syn);
 	vector<string> temp_row_data;
@@ -1985,7 +1949,7 @@ ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
 			return temp_result;
 		}
 
-		list<int> if_with_arg1_control_variable = pkb_.getifListWithControlVariable(arg1);
+		list<int> if_with_arg1_control_variable = pkb_.getIfListWithControlVariable(arg1);
 		if (if_with_arg1_control_variable.empty() == false) {
 			temp_result.SetIsQueryTrue(true);
 			for (auto &if_stmt_num : if_with_arg1_control_variable) {
@@ -2037,12 +2001,13 @@ ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
 
 ResultTable QueryEvaluator::ProcessWith(Clause with_clause)
 {
-	string arg1_type = with_clause.getArgType().at(0);
-	string arg2_type = with_clause.getArgType().at(1);
+	string arg1_type = with_clause.GetArgType().at(0);
+	string arg2_type = with_clause.GetArgType().at(1);
 
 	ResultTable temp_result;
 
-	if ((arg1_type != ARGTYPE_PROCEDURE) && (arg1_type != ARGTYPE_CALLS_NAME) && (arg1_type != ARGTYPE_VARIABLE)) {
+	if ((arg1_type != ARGTYPE_PROCEDURE) && (arg1_type != ARGTYPE_CALLS_NAME) && (arg1_type != ARGTYPE_VARIABLE)
+		|| (arg2_type != ARGTYPE_PROCEDURE) && (arg2_type != ARGTYPE_CALLS_NAME) && (arg2_type != ARGTYPE_VARIABLE)) {
 		temp_result = ProcessWithName(with_clause);
 	}
 	else {
@@ -2054,10 +2019,10 @@ ResultTable QueryEvaluator::ProcessWith(Clause with_clause)
 
 ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 {
-	string arg1 = with_name_clause.getArg().at(0);
-	string arg2 = with_name_clause.getArg().at(1);
-	string arg1_type = with_name_clause.getArgType().at(0);
-	string arg2_type = with_name_clause.getArgType().at(1);
+	string arg1 = with_name_clause.GetArg().at(0);
+	string arg2 = with_name_clause.GetArg().at(1);
+	string arg1_type = with_name_clause.GetArgType().at(0);
+	string arg2_type = with_name_clause.GetArgType().at(1);
 
 	ResultTable temp_result = ResultTable(arg1, arg2);
 	vector<string> temp_row_data;
@@ -2104,10 +2069,10 @@ ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 
 ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 {
-	string arg1 = with_number_clause.getArg().at(0);
-	string arg2 = with_number_clause.getArg().at(1);
-	string arg1_type = with_number_clause.getArgType().at(0);
-	string arg2_type = with_number_clause.getArgType().at(1);
+	string arg1 = with_number_clause.GetArg().at(0);
+	string arg2 = with_number_clause.GetArg().at(1);
+	string arg1_type = with_number_clause.GetArgType().at(0);
+	string arg2_type = with_number_clause.GetArgType().at(1);
 
 	ResultTable temp_result = ResultTable(arg1, arg2);
 	vector<string> temp_row_data;
@@ -2133,7 +2098,7 @@ ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 
 bool QueryEvaluator::ProcessNonRelatedGroup()
 {
-	vector<Clause> non_related_group = input_query_.getNoSynGroup();
+	vector<Clause> non_related_group = input_query_.GetNoSynGroup();
 	ResultTable temp_result;
 
 	for (auto &no_syn_clause : non_related_group) {
@@ -2143,7 +2108,7 @@ bool QueryEvaluator::ProcessNonRelatedGroup()
 		}
 	}
 
-	non_related_group = input_query_.getNonConnectedGroup();
+	non_related_group = input_query_.GetNonConnectedGroup();
 	for (auto &non_connected_clause : non_related_group) {
 		temp_result = ProcessClause(non_connected_clause);
 		if (temp_result.IsQueryTrue() == false) {
@@ -2156,7 +2121,7 @@ bool QueryEvaluator::ProcessNonRelatedGroup()
 
 bool QueryEvaluator::ProcessConnectedGroup()
 {
-	vector<vector<Clause>> connected_group = input_query_.getConnectedGroup();
+	vector<vector<Clause>> connected_group = input_query_.GetConnectedGroups();
 	vector<ResultTable> group_intermediate_result;
 	ResultTable temp_result;
 
@@ -2176,10 +2141,10 @@ bool QueryEvaluator::ProcessConnectedGroup()
 }
 
 ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
-	string arg1 = uses_clause.getArg().at(0);
-	string arg2 = uses_clause.getArg().at(1);
-	string arg1_type = uses_clause.getArgType().at(0);
-	string arg2_type = uses_clause.getArgType().at(1);
+	string arg1 = uses_clause.GetArg().at(0);
+	string arg2 = uses_clause.GetArg().at(1);
+	string arg1_type = uses_clause.GetArgType().at(0);
+	string arg2_type = uses_clause.GetArgType().at(1);
 
 	ResultTable temp_result;
 

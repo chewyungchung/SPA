@@ -35,7 +35,6 @@
     <ClCompile Include="source\PKB.cpp" />
     <ClCompile Include="source\ProcTable.cpp" />
     <ClCompile Include="source\QueryEvaluator.cpp" />
-    <ClCompile Include="source\QueryResult.cpp" />
     <ClCompile Include="source\QueryResultProjector.cpp" />
     <ClCompile Include="source\QueryTable.cpp" />
     <ClCompile Include="source\QueryToken.cpp" />
@@ -65,7 +64,6 @@
     <ClInclude Include="source\ProcTable.h" />
     <ClInclude Include="source\QueryEvaluator.h" />
     <ClInclude Include="source\QueryException.h" />
-    <ClInclude Include="source\QueryResult.h" />
     <ClInclude Include="source\QueryResultProjector.h" />
     <ClInclude Include="source\QueryTable.h" />
     <ClInclude Include="source\QueryToken.h" />

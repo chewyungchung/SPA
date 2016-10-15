@@ -14,42 +14,58 @@ using namespace std;
 
 Clause::Clause()
 {
-	_isNull = 1;
+	is_null_ = true;
 }
-Clause::Clause(string relation, vector<string> arg, vector<string> argType)
+Clause::Clause(string relation, vector<string> arg, vector<string> arg_type)
 {
-	_relation = relation;
-	_arg = arg;
-	_argType = argType;
-	_isNull = -1;
+	relation_ = relation;
+	arg_ = arg;
+	arg_type_ = arg_type;
+	is_null_ = false;
 }
 
-/*
-Clause::Clause(string withType, vector<string> arg, vector<string> argType)
+Clause::Clause(string relation, vector<string> arg, vector<string> arg_type, int priority)
 {
-	_withType = withType;
-	_arg = arg;
-	_argType = argType;
-	isNull = -1;
+	relation_ = relation;
+	arg_ = arg;
+	arg_type_ = arg_type;
+	priority_ = priority;
+	is_null_ = false;
 }
-*/
 
-string Clause::getRelation()
+string Clause::GetRelation()
 {
-	return _relation;
+	return relation_;
 }
 
-vector<string> Clause::getArg()
+vector<string> Clause::GetArg()
 {
-	return _arg;
+	return arg_;
 }
 
-vector<string> Clause::getArgType()
+vector<string> Clause::GetArgType()
 {
-	return _argType;
+	return arg_type_;
+}
+
+void Clause::SetArg(int index, string arg)
+{
+	if (index < 0 || index > 1) return;
+	arg_.at(index) = arg;
+}
+
+void Clause::SetArgType(int index, string arg_type)
+{
+	if (index < 0 || index > 1) return;
+	arg_type_.at(index) = arg_type;
 }
 
 
-int Clause::isClauseNull() {
-	return _isNull;
+bool Clause::IsClauseNull() {
+	return is_null_;
+}
+
+int Clause::GetPriority()
+{
+	return priority_;
 }

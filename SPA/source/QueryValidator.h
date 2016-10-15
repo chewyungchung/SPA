@@ -78,6 +78,7 @@ public:
 	bool IsAttributeMatchSynType(string synType, string attrName);
 	bool IsRefCompatible(Ref left_ref, Ref right_ref);
 	string GetWithTypeByAttrName(string attrName);
+	int GetClausePriority(string relation);
 	
 private:
 	QueryTable query_table_;
