@@ -1510,6 +1510,11 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 		}
 		else {
 			// Argument 2 is a synonym of procedure type. Should not be empty
+			// Corner case: Call(p,p)
+			if (arg1 == arg2) {
+				return temp_result;
+			}
+
 			if (procedure_list.size() < 2) {
 				return temp_result;
 			}
@@ -1662,6 +1667,11 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 		}
 		else {
 			// Argument 2 is a synonym of procedure type
+			// Corner Case: Call*(p,p)
+			if (arg1 == arg2) {
+				return temp_result;
+			}
+
 			temp_result = ResultTable(arg1, arg2);
 
 			for (auto &arg1_procedure : procedure_list) {
