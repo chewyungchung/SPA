@@ -456,6 +456,249 @@ namespace IntegrationTesting
 			Assert::IsTrue(listCmpHelper(_pkb.getWhileList(), expectedList));
 		}
 
+		/* Our main objective is to Follows across if/else and multiple procedures and with call stmts */
+		TEST_METHOD(TestFollowsTable_IT2)
+		{
+			PKB _pkb;
+			Parser p("SIMPLE_test_5.txt");
+			_pkb = p.process();
+
+		/*
+			procedure A {
+		1		if r then {
+		2			y = x + 2;
+		3			a = b;
+		4			if x then {
+		5				while z {
+		6					z = 2;
+		7					call B;}
+		8				k = kappa;}
+					else {
+		9				w = omega;
+		10				if r then {
+		11					call B;
+		12					p = pi;
+		13					if v then {
+		14						x = 1; 
+		15						while a {
+		16							while b {
+		17								while c {
+		18									alpha = beta;
+		19									beta = gamma; }}}}
+							else {
+		20						call meMaybe; }
+		21					x = 5;}
+						else {
+		22					miami = nights; }}}
+				else {
+		23			e = r;
+		24			n = m; }
+		25		tony = montana;}
+
+			procedure B {
+		26		if x then {
+		27			if y then {
+		28				if u then {
+		29					i = 2;
+		30					k = p;}
+						else {
+		31					i = 1; }}
+					else {
+		32				hop = in; }}
+				else {
+		33			b = 5;}}
+		*/
+
+			const int NO_STMT = -1;
+			list<int> expectedList;
+			vector<int> expectedVec;
+
+			// Follows(1, 25), where 25 follows the ifstmt 1
+			Assert::AreEqual(1, _pkb.getFollowedFrom(25));
+			Assert::AreEqual(25, _pkb.getFollower(1));
+			Assert::IsTrue(_pkb.isValidFollows(1, 25));
+			Assert::IsTrue(_pkb.isFollowsStar(1, 25));
+
+			// Test Follows does not hold between if/else stmt blocks
+			Assert::IsFalse(_pkb.isValidFollows(5, 9));
+
+			// We test getFollowsStar for some stmts nested deeply in ifstmts
+			// Observe 11, 12, 13, 21 are all in nestinglevel = 6
+			clearVector(expectedVec);
+			expectedVec = { 12, 13, 21 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getFollowerStar(11), expectedList));
+
+			clearVector(expectedVec);
+			expectedVec = { 11, 12, 13 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getFollowedFromStar(21), expectedList));
+
+			// Test Follows does not hold between two procedures
+			Assert::IsFalse(_pkb.isValidFollows(25, 26));
+
+			// Test Follows within second procedure 
+			Assert::IsTrue(_pkb.isValidFollows(29, 30));
+		}
+
+		/* Our main objective is to Parent across if/else and multiple procedures and with call stmts */
+		TEST_METHOD(TestParentTable_IT2)
+		{
+			PKB _pkb;
+			Parser p("SIMPLE_test_5.txt");
+			_pkb = p.process();
+
+		/*
+			procedure A {
+		1		if r then {
+		2			y = x + 2;
+		3			a = b;
+		4			if x then {
+		5				while z {
+		6					z = 2;
+		7					call B;}
+		8				k = kappa;}
+					else {
+		9				w = omega;
+		10				if r then {
+		11					call B;
+		12					p = pi;
+		13					if v then {
+		14						x = 1; 
+		15						while a {
+		16							while b {
+		17								while c {
+		18									alpha = beta;
+		19									beta = gamma; }}}}
+							else {
+		20						call meMaybe; }
+		21					x = 5;}
+						else {
+		22					miami = nights; }}}
+				else {
+		23			e = r;
+		24			n = m; }
+		25		tony = montana;}
+
+			procedure B {
+		26		if x then {
+		27			if y then {
+		28				if u then {
+		29					i = 2;
+		30					k = p;}
+						else {
+		31					i = 1; }}
+					else {
+		32				hop = in; }}
+				else {
+		33			b = 5;}}
+		*/
+			const int NO_PARENT = -1;
+			list<int> expectedList;
+			vector<int> expectedVec;
+
+			// Parent(1, x), x is in fact 2, 3, 4, 23, 24
+			Assert::AreEqual(1, _pkb.getParentOf(2));
+			Assert::AreEqual(1, _pkb.getParentOf(23));
+			Assert::AreEqual(1, _pkb.getParentOf(24));
+
+			clearVector(expectedVec);
+			expectedVec = { 2, 3, 4, 23, 24 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getChildrenOf(1), expectedList));
+
+			// Parent*(13, _)
+			clearVector(expectedVec);
+			expectedVec = { 14, 15, 16, 17, 18, 19, 20 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getChildStarOf(13), expectedList));
+
+			// Test Parent across different procedures
+			Assert::AreNotEqual(_pkb.getParentOf(26), 25);
+
+			// Test Parent else stmts is its ifstmt
+			Assert::AreEqual(28, _pkb.getParentOf(31));
+		}
+
+		/* Our main objective is to Parent across if/else and multiple procedures and with call stmts */
+		TEST_METHOD(TestCallsTable_IT2)
+		{
+			PKB _pkb;
+			Parser p("SIMPLE_test_6.txt");
+			_pkb = p.process();
+		/* 
+			procedure Adam {
+				call Beanstalk;
+				call Cat;
+				call Cat;
+				call France;
+				call Germany;}
+
+			procedure Beanstalk {
+				call Diamond; }
+
+			procedure Cat {
+				call Diamond; }
+
+			procedure Diamond {
+				call Iowa;
+				call Germany; }
+
+			procedure Edmonds {
+				x = 1; }
+	
+			procedure France {
+				call Edmonds; }
+
+			procedure Germany {
+				call Houston; }
+
+			procedure Houston {
+				x = 1; }
+	
+			procedure Iowa {
+				x = 1; }
+
+			procedure Jordan {
+				call Kansai;
+				call Llama; }
+
+			procedure Michigan {
+				x = 1; }
+		*/
+			list<string> expectedList;
+			vector<string> expectedVec;
+
+			// Test isCallExist()
+			Assert::IsTrue(_pkb.isCallExist);
+
+			// Test isCall
+			Assert::IsTrue(_pkb.isCall("Adam", "Beanstalk"));
+			Assert::IsTrue(_pkb.isCall("Adam", "Germany"));
+			Assert::IsTrue(_pkb.isCall("Jordan", "Llama"));
+
+			// Test isCall fails for indirect calls
+			Assert::IsFalse(_pkb.isCall("Adam", "Diamond"));
+
+			// Test isCall fails correctly
+			Assert::IsFalse(_pkb.isCall("Jordan", "Michigan"));
+
+			// Test isCallStar
+			Assert::IsTrue(_pkb.isCallStar("Adam", "Diamond"));
+
+			// Test getCalleeStar
+			clearVector(expectedVec);
+			expectedVec = { "Beanstalk", "Cat", "France", "Diamond", "Edmonds", "Iowa", "Germany", "Houston" };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getCalleeStar("Adam"), expectedList));
+
+			// Test getCallerStar
+			clearVector(expectedVec);
+			expectedVec = { "Adam", "Beanstalk", "Cat", "Diamond" };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getCallerStar("Iowa"), expectedList));
+		}
+
 	public:
 
 		bool listCmpHelper(list<string> list1, list<string> list2)

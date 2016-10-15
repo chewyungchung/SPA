@@ -1,0 +1,39 @@
+procedure Adam {
+	call Beanstalk;
+	call Cat;
+	call Cat;
+	call France;
+	call Germany;}
+
+procedure Beanstalk {
+	call Diamond; }
+
+procedure Cat {
+	call Diamond; }
+
+procedure Diamond {
+	call Iowa;
+	call Germany; }
+
+procedure Edmonds {
+	x = 1; }
+	
+procedure France {
+	call Edmonds; }
+
+procedure Germany {
+	call Houston; }
+
+procedure Houston {
+	x = 1; }
+	
+procedure Iowa {
+	x = 1; }
+	
+procedure Jordan {
+	call Kansai;
+	call Llama; }
+
+procedure Michigan {
+	x = 1; }
+	
