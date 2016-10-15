@@ -27,6 +27,28 @@ bool AST::isSubExprExist(string subExpr) {
 	return false;
 }
 
+list<int> AST::getAssignWithExpression(string expr)
+{
+	list<int> output;
+	for (auto pair : ASTTable) {
+		if (pair.second == expr) {
+			output.push_back(pair.first);
+		}
+	}
+	return output;
+}
+
+list<int> AST::getAssignWithSubExpression(string subExpr)
+{
+	list<int> output;
+	for (auto pair : ASTTable) {
+		if (pair.second.find(subExpr) != string::npos) {
+			output.push_back(pair.first);
+		}
+	}
+	return output;
+}
+
 string AST::makeExpr(string infix) {
 	std::stringstream postfix;
 	std::stack<char> stack;

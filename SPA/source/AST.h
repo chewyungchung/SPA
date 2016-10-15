@@ -13,6 +13,9 @@ public:
 	void AST::addExpr(int stmt, string expr);
 	bool isExprExist(string expr);
 	bool isSubExprExist(string subExpr);
+	list<int> getAssignWithExpression(string expr);
+	list<int> getAssignWithSubExpression(string subExpr);
+
 private:
 	unordered_map<int, string> ASTTable;
 	bool isOperator(char currentChar);
