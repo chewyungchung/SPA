@@ -73,6 +73,7 @@ private:
 	void parseAssignStmt();
 	void parseAssignRHS();
 	bool isConstant(string s);
+	void addAllParentsOfCurrStmt(int stmtLine);
 	void addAllParentsOfUsedVariable(string v);
 	void addAllParentsOfModifiedVariable(string v);
 	void addAllParentsOfUsedConstant(int c);

@@ -55,12 +55,14 @@ public:
 	~PKB();
 
 	void addParent(int lineOfParent, int lineNum);
+	void addParentStar(int parentStar, int child);
 	int getParentOf(int stmt);
 	list<int> getParentStar(int stmt);
 	list<int> getChildrenOf(int stmt);
 	bool isParentEmpty();
 	bool isParentOf(int parentStmt, int childStmt);
 	bool isParentStar(int parent, int child);
+	list<int> getChildStarOf(int stmt);
 	
 	void addFollows(int lineNum, int nesting);
 	int getFollowedFrom(int stmt);

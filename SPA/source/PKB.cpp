@@ -23,6 +23,11 @@ void PKB::addParent(int lineOfParent, int lineNum)
 	P_Table.addParent(lineOfParent, lineNum);
 }
 
+void PKB::addParentStar(int lineOfParentStar, int lineNum)
+{
+	P_Table.addParentStar(lineOfParentStar, lineNum);
+}
+
 int PKB::getParentOf(int stmt)
 {
 	return P_Table.getParentOf(stmt);
@@ -51,6 +56,11 @@ bool PKB::isParentOf(int parentStmt, int childStmt)
 bool PKB::isParentStar(int parent, int child)
 {
 	return P_Table.isParentStar(parent, child);
+}
+
+list<int> PKB::getChildStarOf(int stmt)
+{
+	return P_Table.getChildStarOf(stmt);
 }
 
 /***************** FollowsTable ******************/
