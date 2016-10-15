@@ -71,14 +71,28 @@ void CFG::closeWhileCFG()
 void CFG::buildCFGMatrix()
 {
 	int size = nodeTable.size + 1;
-	matrix = new int*[size];
+	int** graph = new int*[size];
 	for (int i = 0; i < size; ++i) {
-		matrix[i] = new int[size];
+		graph[i] = new int[size];
 	}
 
 	for (auto map : nodeTable) {
 		for (Node n : map.second.getNextList()) {
-			matrix[map.first][n.getStmtnum] = 1;
+			graph[map.first][n.getStmtnum] = 1;
+		}
+	}
+
+	matrix = new int*[size];
+	int i, j, k;
+	for (i = 0; i < size; i++)
+		for (j = 0; j < size; j++)
+			matrix[i][j] = graph[i][j];
+	for (k = 0; k < size; k++) {
+		for (i = 0; i < size; i++) {
+			for (j = 0; j < size; j++) {
+				if (matrix[i][k] + matrix[k][j] < matrix[i][j])
+					matrix[i][j] = matrix[i][k] + matrix[k][j];
+			}
 		}
 	}
 }
