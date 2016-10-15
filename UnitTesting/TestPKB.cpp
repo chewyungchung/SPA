@@ -6,6 +6,7 @@ To unit test the PKB, we manually populate it directly by 'add' methods and test
 #include "stdafx.h"
 #include "CppUnitTest.h"
 #include <iterator>
+#include "Parser.h"
 #include "PKB.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -315,7 +316,123 @@ namespace UnitTesting
 			Assert::IsTrue(listCmpHelper(_pkb.getFollowerStar(7), expectedList));
 		}
 
-		TEST_METHOD(TestParentTable)
+		/* Our main objective is to Follows across if/else and multiple procedures and with call stmts */
+		TEST_METHOD(TestFollowsTable_IT2)
+		{
+			PKB _pkb;
+		/*
+			procedure A {
+		1		if r then {
+		2			y = x + 2;
+		3			a = b;
+		4			if x then {
+		5				while z {
+		6					z = 2;
+		7					call B;}
+		8				k = kappa;}
+					else {
+		9				w = omega;
+		10				if r then {
+		11					call B;
+		12					p = pi;
+		13					if v then {
+		14						x = 1; 
+		15						while a {
+		16							while b {
+		17								while c {
+		18									alpha = beta;
+		19									beta = gamma; }}}}
+							else {
+		20						call meMaybe; }
+		21					x = 5;}
+						else {
+		22					miami = nights; }}}
+				else {
+		23			e = r;
+		24			n = m; }
+		25		tony = montana;}
+
+			procedure B {
+		26		if x then {
+		27			if y then {
+		28				if u then {
+		29					i = 2;
+		30					k = p;}
+						else {
+		31					i = 1; }}
+					else {
+		32				hop = in; }}
+				else {
+		33			b = 5;}}
+		*/
+
+			_pkb.addFollows(1, 1);
+			_pkb.addFollows(2, 2);
+			_pkb.addFollows(3, 2);
+			_pkb.addFollows(4, 2);
+			_pkb.addFollows(5, 3);
+			_pkb.addFollows(6, 4);
+			_pkb.addFollows(7, 4);
+			_pkb.addFollows(8, 3);
+			_pkb.addFollows(9, 5);
+			_pkb.addFollows(10, 5);
+			_pkb.addFollows(11, 6);
+			_pkb.addFollows(12, 6);
+			_pkb.addFollows(13, 6);
+			_pkb.addFollows(14, 7);
+			_pkb.addFollows(15, 7);
+			_pkb.addFollows(16, 8);
+			_pkb.addFollows(17, 9);
+			_pkb.addFollows(18, 10);
+			_pkb.addFollows(19, 10);
+			_pkb.addFollows(20, 11);
+			_pkb.addFollows(21, 6);
+			_pkb.addFollows(22, 12);
+			_pkb.addFollows(23, 13);
+			_pkb.addFollows(24, 13);
+			_pkb.addFollows(25, 1);
+			_pkb.addFollows(26, 14);
+			_pkb.addFollows(27, 15);
+			_pkb.addFollows(28, 16);
+			_pkb.addFollows(29, 17);
+			_pkb.addFollows(30, 17);
+			_pkb.addFollows(31, 18);
+			_pkb.addFollows(32, 19);
+			_pkb.addFollows(33, 20);
+
+			const int NO_STMT = -1;
+			list<int> expectedList;
+			vector<int> expectedVec;
+
+			// Follows(1, 25), where 25 follows the ifstmt 1
+			Assert::AreEqual(1, _pkb.getFollowedFrom(25));
+			Assert::AreEqual(25, _pkb.getFollower(1));
+			Assert::IsTrue(_pkb.isValidFollows(1, 25));
+			Assert::IsTrue(_pkb.isFollowsStar(1, 25));
+
+			// Test Follows does not hold between if/else stmt blocks
+			Assert::IsFalse(_pkb.isValidFollows(5, 9));
+
+			// We test getFollowsStar for some stmts nested deeply in ifstmts
+			// Observe 11, 12, 13, 21 are all in nestinglevel = 6
+			clearVector(expectedVec);
+			expectedVec = { 12, 13, 21 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getFollowerStar(11), expectedList));
+
+			clearVector(expectedVec);
+			expectedVec = { 11, 12, 13 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getFollowedFromStar(21), expectedList));
+
+			// Test Follows does not hold between two procedures
+			Assert::IsFalse(_pkb.isValidFollows(25, 26));
+
+			// Test Follows within second procedure 
+			Assert::IsTrue(_pkb.isValidFollows(29, 30));
+		}
+
+		TEST_METHOD(TestParentTable_IT1)
 		{
 			PKB _pkb;
 
@@ -345,7 +462,30 @@ namespace UnitTesting
 				}
 			*/
 
-			_pkb.addParent()
+			_pkb.addParent(-1, 1);
+			_pkb.addParent(-1, 2);
+			_pkb.addParent(-1, 3);
+			_pkb.addParent(3, 4);
+			_pkb.addParent(3, 5);
+			_pkb.addParent(-1, 6);
+			_pkb.addParent(6, 7);
+			_pkb.addParent(6, 8);
+			_pkb.addParent(8, 9);
+			_pkb.addParent(8, 10);
+			_pkb.addParent(6, 11);
+			_pkb.addParent(11, 12);
+
+			_pkb.addParentStar(3, 4);
+			_pkb.addParentStar(3, 5);
+			_pkb.addParentStar(6, 7);
+			_pkb.addParentStar(6, 8);
+			_pkb.addParentStar(8, 9);
+			_pkb.addParentStar(6, 9);
+			_pkb.addParentStar(8, 10);
+			_pkb.addParentStar(6, 10);
+			_pkb.addParentStar(6, 11);
+			_pkb.addParentStar(11, 12);
+			_pkb.addParentStar(6, 12);
 
 			const int NO_PARENT = -1;
 			const int FALSE = -1;
@@ -371,12 +511,131 @@ namespace UnitTesting
 
 			// Incorrect Parent relationships 
 			// (not direct parent, i.e. Parent* holds but not Parent)
-
 			Assert::AreNotEqual(_pkb.getParentOf(10), 6);
 			Assert::AreNotEqual(_pkb.getParentOf(12), 6);
 		}
 
-		TEST_METHOD(TestModifiesTable)
+		/* Our main objective is to Parent across if/else and multiple procedures and with call stmts */
+		TEST_METHOD(TestParentTable_IT2)
+		{
+			PKB _pkb;
+		/*
+			procedure A {
+		1		if r then {
+		2			y = x + 2;
+		3			a = b;
+		4			if x then {
+		5				while z {
+		6					z = 2;
+		7					call B;}
+		8				k = kappa;}
+					else {
+		9				w = omega;
+		10				if r then {
+		11					call B;
+		12					p = pi;
+		13					if v then {
+		14						x = 1; 
+		15						while a {
+		16							while b {
+		17								while c {
+		18									alpha = beta;
+		19									beta = gamma; }}}}
+							else {
+		20						call meMaybe; }
+		21					x = 5;}
+						else {
+		22					miami = nights; }}}
+				else {
+		23			e = r;
+		24			n = m; }
+		25		tony = montana;}
+
+			procedure B {
+		26		if x then {
+		27			if y then {
+		28				if u then {
+		29					i = 2;
+		30					k = p;}
+						else {
+		31					i = 1; }}
+					else {
+		32				hop = in; }}
+				else {
+		33			b = 5;}}
+		*/
+
+			_pkb.addParent(-1, 1);
+			_pkb.addParent(1, 2);
+			_pkb.addParent(1, 3);
+			_pkb.addParent(1, 4);
+			_pkb.addParent(4, 5);
+			_pkb.addParent(5, 6);
+			_pkb.addParent(5, 7);
+			_pkb.addParent(4, 8);
+			_pkb.addParent(4, 9);
+			_pkb.addParent(4, 10);
+			_pkb.addParent(10, 11);
+			_pkb.addParent(10, 12);
+			_pkb.addParent(10, 13);
+			_pkb.addParent(13, 14);
+			_pkb.addParent(13, 15);
+			_pkb.addParent(15, 16);
+			_pkb.addParent(16, 17);
+			_pkb.addParent(17, 18);
+			_pkb.addParent(17, 19);
+			_pkb.addParent(13, 20);
+			_pkb.addParent(10, 21);
+			_pkb.addParent(10, 22);
+			_pkb.addParent(1, 23);
+			_pkb.addParent(1, 24);
+			_pkb.addParent(-1, 25);
+			_pkb.addParent(-1, 26);
+			_pkb.addParent(26, 27);
+			_pkb.addParent(26, 28);
+			_pkb.addParent(28, 29);
+			_pkb.addParent(28, 30);
+			_pkb.addParent(28, 31);
+			_pkb.addParent(27, 32);
+			_pkb.addParent(26, 33);
+
+			/* We will only populate for some */
+			_pkb.addParentStar(13, 14);
+			_pkb.addParentStar(13, 15);
+			_pkb.addParentStar(13, 16);
+			_pkb.addParentStar(13, 17);
+			_pkb.addParentStar(13, 18);
+			_pkb.addParentStar(13, 19);
+			_pkb.addParentStar(13, 20);
+
+			const int NO_PARENT = -1;
+			list<int> expectedList;
+			vector<int> expectedVec;
+
+			// Parent(1, x), x is in fact 2, 3, 4, 23, 24
+			Assert::AreEqual(1, _pkb.getParentOf(2));
+			Assert::AreEqual(1, _pkb.getParentOf(23));
+			Assert::AreEqual(1, _pkb.getParentOf(24));
+
+			clearVector(expectedVec);
+			expectedVec = { 2, 3, 4, 23, 24 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getChildrenOf(1), expectedList));
+
+			// Parent*(13, _)
+			clearVector(expectedVec);
+			expectedVec = { 14, 15, 16, 17, 18, 19, 20 };
+			vecToListHelper(expectedVec, expectedList);
+			Assert::IsTrue(listCmpHelper(_pkb.getChildStarOf(13), expectedList));
+
+			// Test Parent across different procedures
+			Assert::AreNotEqual(_pkb.getParentOf(26), 25);
+
+			// Test Parent else stmts is its ifstmt
+			Assert::AreEqual(28, _pkb.getParentOf(31));
+		}
+
+		TEST_METHOD(TestModifiesTable_IT1)
 		{
 			PKB _pkb;
 			Parser p("SIMPLE_test_3.txt");
@@ -450,7 +709,7 @@ namespace UnitTesting
 			Assert::IsTrue(listCmpHelper(_pkb.getModifiedBy(8), expectedList));
 		}
 
-		TEST_METHOD(TestUsesTable)
+		TEST_METHOD(TestUsesTable_IT1)
 		{
 			PKB _pkb;
 			Parser p("SIMPLE_test_3.txt");
@@ -518,36 +777,36 @@ namespace UnitTesting
 			Assert::IsTrue(listCmpHelper(_pkb.getUsedBy(6), expectedList));
 		}
 
-		TEST_METHOD(TestConstantTable1)
+		TEST_METHOD(TestConstantTable_IT1)
 		{
 			PKB _pkb;
 			Parser p("SIMPLE_test_3.txt");
 			_pkb = p.process();
+
 			/*
-			procedure XYZ
-			{
-			1		x=1;
-			2		x=z;
+				procedure ABC
+				{
+			1		x = 1;
+			2		b = 2;
 			3		while i
-			{
+					{
 			4			apple = orange;
 			5			banana = pear;
-			}
+					}
 			6		while x
-			{
+					{
 			7			s = t;
 			8			while y
-			{
+						{
 			9				r = 2;
-			10				x = y
-			11				mango = durian;
-			}
-			12			while z
-			{
-			13				papaya = watermelon;
-			}
-			}
-			}
+			10				mango = durian;
+						}
+			11			while z
+						{
+			12				papaya = watermelon;
+						}
+					}
+				}
 			*/
 
 			list<int> expectedList;
@@ -567,7 +826,7 @@ namespace UnitTesting
 			Assert::IsTrue(listCmpHelper(_pkb.getStmtlineByConstant(2), expectedList));
 		}
 
-		TEST_METHOD(TestStatementTable)
+		TEST_METHOD(TestStatementTable_IT1)
 		{
 			PKB _pkb;
 			Parser p("SIMPLE_test_3.txt");
@@ -615,7 +874,7 @@ namespace UnitTesting
 			Assert::IsTrue(listCmpHelper(_pkb.getWhileList(), expectedList));
 		}
 
-		TEST_METHOD(testStatementFunction)
+		TEST_METHOD(TestStatementFunction_IT1)
 		{
 			PKB _pkb;
 
