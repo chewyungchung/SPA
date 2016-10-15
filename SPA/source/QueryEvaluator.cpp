@@ -824,7 +824,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 				return temp_result;
 			}
 
-			if (pkb_.isModifiedBy(arg1, arg2) == true) {
+			if (pkb_.isModifiedByProc(arg1, arg2) == true) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -837,7 +837,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 			list<string> procedure_list = pkb_.getProcedureList();
 
 			for (auto &arg1_procedure : procedure_list) {
-				if (pkb_.isModifiedBy(arg1_procedure, arg2) == true) {
+				if (pkb_.isModifiedByProc(arg1_procedure, arg2) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg1_procedure);
 					temp_result.InsertRow(temp_row_data);
@@ -2176,7 +2176,7 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 				return temp_result;
 			}
 
-			if (pkb_.isUsedBy(arg1, arg2) == true) {
+			if (pkb_.isUsedByProc(arg1, arg2) == true) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -2189,7 +2189,7 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 			list<string> procedure_list = pkb_.getProcedureList();
 
 			for (auto &arg1_procedure : procedure_list) {
-				if (pkb_.isUsedBy(arg1_procedure, arg2) == true) {
+				if (pkb_.isUsedByProc(arg1_procedure, arg2) == true) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg1_procedure);
 					temp_result.InsertRow(temp_row_data);
