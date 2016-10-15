@@ -82,11 +82,27 @@ void CFG::buildCFGMatrix()
 		}
 	}
 
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			if (matrix[i][j] == 0 && i != j) {
+				matrix[i][j] = size;
+			}
+		}
+	}
+
 	for (int k = 0; k < size; k++) {
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
 				if (matrix[i][k] + matrix[k][j] < matrix[i][j])
 					matrix[i][j] = matrix[i][k] + matrix[k][j];
+			}
+		}
+	}
+
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			if (matrix[i][j] == size) {
+				matrix[i][j] = 0;
 			}
 		}
 	}
