@@ -14,6 +14,8 @@ public:
 
 	int GetSynonymColumnIndex(string synonym);
 	int GetTableHeight();
+	int GetColumnCount();
+	vector<string> GetColumnNames();
 	string GetValue(string synonym, int row_index);
 	void InsertRow(vector<string> row_data);
 	void InsertNewColumn(string synonym);
