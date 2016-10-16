@@ -1510,6 +1510,11 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 		}
 		else {
 			// Argument 2 is a synonym of procedure type. Should not be empty
+			// Corner case: Call(p,p)
+			if (arg1 == arg2) {
+				return temp_result;
+			}
+
 			if (procedure_list.size() < 2) {
 				return temp_result;
 			}
@@ -1662,6 +1667,11 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 		}
 		else {
 			// Argument 2 is a synonym of procedure type
+			// Corner Case: Call*(p,p)
+			if (arg1 == arg2) {
+				return temp_result;
+			}
+
 			temp_result = ResultTable(arg1, arg2);
 
 			for (auto &arg1_procedure : procedure_list) {
@@ -1723,7 +1733,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_EXPR) {
-			list<int> assign_with_expression = pkb_.getAssignWithExpression(arg2);
+			list<int> assign_with_expression;// = pkb_.getAssignWithExpression(arg2);
 			if (assign_with_expression.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &pattern_assign_syn_stmt_num : assign_with_expression) {
@@ -1736,7 +1746,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_SUB_EXPR) {
-			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpression(arg2);
+			list<int> assign_with_sub_expression;// = pkb_.getAssignWithSubExpression(arg2);
 			if (assign_with_sub_expression.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
@@ -1771,7 +1781,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_EXPR) {
-			list<int> assign_with_expression = pkb_.getAssignWithExpression(arg2);
+			list<int> assign_with_expression;// = pkb_.getAssignWithExpression(arg2);
 			if (assign_with_expression.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &pattern_assign_syn_stmt_num : assign_with_expression) {
@@ -1784,7 +1794,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_SUB_EXPR) {
-			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpression(arg2);
+			list<int> assign_with_sub_expression;// = pkb_.getAssignWithSubExpression(arg2);
 			if (assign_with_sub_expression.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
@@ -1825,7 +1835,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_EXPR) {
-			list<int> assign_with_expression = pkb_.getAssignWithExpression(arg2);
+			list<int> assign_with_expression;// = pkb_.getAssignWithExpression(arg2);
 			if (assign_with_expression.empty() == true) {
 				return temp_result;
 			}
@@ -1846,7 +1856,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_SUB_EXPR) {
-			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpression(arg2);
+			list<int> assign_with_sub_expression;// = pkb_.getAssignWithSubExpression(arg2);
 			if (assign_with_sub_expression.empty() == true) {
 				return temp_result;
 			}
@@ -2024,30 +2034,50 @@ ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 	string arg1_type = with_name_clause.GetArgType().at(0);
 	string arg2_type = with_name_clause.GetArgType().at(1);
 
-	ResultTable temp_result = ResultTable(arg1, arg2);
+	ResultTable temp_result;// = ResultTable(arg1, arg2);
 	vector<string> temp_row_data;
 
+	bool is_arg1_syn = false;
+	bool is_arg2_syn = false;
 	list<string> arg1_data_list;
 	list<string> arg2_data_list;
 
 	if (arg1_type == ARGTYPE_PROCEDURE) {
+		is_arg1_syn = true;
+		temp_result.InsertNewColumn(arg1);
 		arg1_data_list = pkb_.getProcedureList();
 	}
 	else if (arg1_type == ARGTYPE_VARIABLE) {
+		is_arg1_syn = true;
+		temp_result.InsertNewColumn(arg1);
 		arg1_data_list = pkb_.getVarList();
 	}
 	else if (arg1_type == ARGTYPE_CALLS_NAME) {
+		is_arg1_syn = true;
+		temp_result.InsertNewColumn(arg1);
 		arg1_data_list = pkb_.getCalledProcNamesList();
+	}
+	else {
+		arg1_data_list.push_back(arg1); // Arg1 is a string
 	}
 
 	if (arg2_type == ARGTYPE_PROCEDURE) {
+		is_arg2_syn = true;
+		temp_result.InsertNewColumn(arg2);
 		arg2_data_list = pkb_.getProcedureList();
 	}
 	else if (arg2_type == ARGTYPE_VARIABLE) {
+		is_arg2_syn = true;
+		temp_result.InsertNewColumn(arg2);
 		arg2_data_list = pkb_.getVarList();
 	}
 	else if (arg2_type == ARGTYPE_CALLS_NAME) {
+		is_arg2_syn = true;
+		temp_result.InsertNewColumn(arg2);
 		arg2_data_list = pkb_.getCalledProcNamesList();
+	}
+	else {
+		arg2_data_list.push_back(arg2); // Arg2 is a string
 	}
 
 	if ((arg1_data_list.empty() == false) && (arg2_data_list.empty() == false)) {
@@ -2055,8 +2085,12 @@ ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 			for (auto &arg2_data : arg2_data_list) {
 				if (arg1_data == arg2_data) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(arg1_data);
-					temp_row_data.push_back(arg2_data);
+					if (is_arg1_syn == true) {
+						temp_row_data.push_back(arg1_data);
+					}
+					if (is_arg2_syn == true) {
+						temp_row_data.push_back(arg2_data);
+					}
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -2074,19 +2108,44 @@ ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 	string arg1_type = with_number_clause.GetArgType().at(0);
 	string arg2_type = with_number_clause.GetArgType().at(1);
 
-	ResultTable temp_result = ResultTable(arg1, arg2);
+	ResultTable temp_result;
 	vector<string> temp_row_data;
 
-	list<int> arg1_data_list = GetList(arg1_type);
-	list<int> arg2_data_list = GetList(arg2_type);
+	bool is_arg1_syn = false;
+	bool is_arg2_syn = false;
+
+	list<int> arg1_data_list;
+	list<int> arg2_data_list;
+
+	if (arg1_type == ARGTYPE_NUMBER) {
+		arg1_data_list.push_back(stoi(arg1));
+	}
+	else {
+		is_arg1_syn = true;
+		temp_result.InsertNewColumn(arg1);
+		arg1_data_list = GetList(arg1_type);
+	}
+
+	if (arg2_type == ARGTYPE_NUMBER) {
+		arg2_data_list.push_back(stoi(arg2));
+	}
+	else {
+		is_arg1_syn = true;
+		temp_result.InsertNewColumn(arg2);
+		arg2_data_list = GetList(arg2_type);
+	}
 
 	if ((arg1_data_list.empty() == false) && (arg2_data_list.empty() == false)) {
 		for (auto &arg1_stmt_num : arg1_data_list) {
 			for (auto &arg2_stmt_num : arg2_data_list) {
 				if (arg1_stmt_num == arg2_stmt_num) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					if (is_arg1_syn == true) {
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+					}
+					if (is_arg2_syn == true) {
+						temp_row_data.push_back(to_string(arg2_stmt_num));
+					}
 					temp_row_data.clear();
 				}
 			}
@@ -2410,7 +2469,7 @@ list<int> QueryEvaluator::GetList(string arg_type) {
 	else if (arg_type == ARGTYPE_IF) {
 		wanted_list = pkb_.getIfList();
 	} 
-	else if (arg_type == ARGTYPE_CALLS) {
+	else if (arg_type == ARGTYPE_CALLS_NUMBER) {
 		wanted_list = pkb_.getCallList();
 	}
 	else if (arg_type == ARGTYPE_STMT || arg_type == ARGTYPE_PROG_LINE) {

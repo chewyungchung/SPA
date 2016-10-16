@@ -68,6 +68,7 @@ private:
 	bool IsSynonym(string arg);
 	bool IsSynFound(Clause clause, string synonym);
 	bool IsSynSelected(Clause select_clause);
+	bool IsImplicitTrueWithClause(Clause clause);
 
 	unordered_map<string, string> syn_entity_map_;
 	bool is_null_;
