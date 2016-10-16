@@ -74,6 +74,10 @@ void QueryTable::PopulateTwoSynClauses()
 {
 	for (auto &clause : all_clauses_) {
 		if (GetNumOfSynInClause(clause) == 2) {
+			// Corner. Discard with clauses that are e.g. s1.stmt# = s1.stmt#
+			if (IsImplicitTrueWithClause(clause) == true) {
+				continue;
+			}
 			two_syn_clauses_.push_back(clause);
 		}
 	}
@@ -383,6 +387,16 @@ bool QueryTable::IsSynSelected(Clause select_clause)
 	string select_arg_type = select_clause.GetArgType().at(0);
 	if (select_arg_type != "BOOLEAN") {
 		return true;
+	}
+	return false;
+}
+
+bool QueryTable::IsImplicitTrueWithClause(Clause clause)
+{
+	if (clause.GetRelation() == "with") {
+		if (clause.GetArg().at(0) == clause.GetArg().at(1)) {
+			return true;
+		}
 	}
 	return false;
 }
