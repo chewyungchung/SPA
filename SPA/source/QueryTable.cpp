@@ -275,7 +275,12 @@ void QueryTable::GroupClauses() {
 	if (IsNullQuery() == true) {
 		return;
 	}
+	GroupConnectedClauses();
+	GroupNonConnectedClauses();
+}
 
+void QueryTable::GroupConnectedClauses()
+{
 	queue<string> processing_synonyms;
 	unordered_map<string, bool> is_syn_processed_map;
 
@@ -304,27 +309,23 @@ void QueryTable::GroupClauses() {
 			continue;
 		}
 
-		if (one_syn_clauses_.empty() == false) {
-			for (auto &one_syn_clause : one_syn_clauses_) {
-				if (IsSynFound(one_syn_clause, current_processing_syn) == true) {
-					one_syn_queue.push(one_syn_clause);
-				}
-				else {
-					unprocessed_one_syn_clauses.push_back(one_syn_clause);
-				}
+		for (auto &one_syn_clause : one_syn_clauses_) {
+			if (IsSynFound(one_syn_clause, current_processing_syn) == true) {
+				one_syn_queue.push(one_syn_clause);
+			}
+			else {
+				unprocessed_one_syn_clauses.push_back(one_syn_clause);
 			}
 		}
 
-		if (two_syn_clauses_.empty() == false) {
-			for (auto &two_syn_clause : two_syn_clauses_) {
-				if (IsSynFound(two_syn_clause, current_processing_syn)) {
-					two_syn_queue.push(two_syn_clause);
-					string new_synonym_in_clause = GetSecondSynonym(two_syn_clause, current_processing_syn);
-					processing_synonyms.push(new_synonym_in_clause);
-				}
-				else {
-					unprocessed_two_syn_clauses.push_back(two_syn_clause);
-				}
+		for (auto &two_syn_clause : two_syn_clauses_) {
+			if (IsSynFound(two_syn_clause, current_processing_syn)) {
+				two_syn_queue.push(two_syn_clause);
+				string new_synonym_in_clause = GetSecondSynonym(two_syn_clause, current_processing_syn);
+				processing_synonyms.push(new_synonym_in_clause);
+			}
+			else {
+				unprocessed_two_syn_clauses.push_back(two_syn_clause);
 			}
 		}
 
@@ -344,7 +345,11 @@ void QueryTable::GroupClauses() {
 		processing_synonyms.pop();
 	}
 
-	if (unprocessed_one_syn_clauses.empty() == false) {
+	// All the non-connected clauses
+	one_syn_clauses_ = unprocessed_one_syn_clauses;
+	two_syn_clauses_ = unprocessed_two_syn_clauses;
+
+	/*if (unprocessed_one_syn_clauses.empty() == false) {
 		for (auto &unprocessed_one_syn_clause : unprocessed_one_syn_clauses) {
 			non_connected_group_.push_back(unprocessed_one_syn_clause);
 		}
@@ -354,9 +359,120 @@ void QueryTable::GroupClauses() {
 		for (auto &unprocessed_two_syn_clause : unprocessed_two_syn_clauses) {
 			non_connected_group_.push_back(unprocessed_two_syn_clause);
 		}
+	}*/
+
+	// Support for iteration 2. Need to update for iteration 3.
+	connected_groups_.push_back(current_group);
+}
+
+void QueryTable::GroupNonConnectedClauses()
+{
+	// If no non-connected clauses (most of the time have)
+	if (one_syn_clauses_.empty() == true && two_syn_clauses_.empty() == true) {
+		return;
 	}
 
-	connected_groups_.push_back(current_group);
+	// All the non-connected clauses are in one_syn_clauses_ and two_syn_clauses_. Need to get all the synonym referenced.
+	unordered_map<string, bool> is_syn_processed_map;
+	set<string> referenced_synonym = ExtractSynonymsFromSet();
+	queue<string> unconnected_clause_synonyms;
+	queue<string> processing_synonyms;
+
+	for (auto &element : referenced_synonym) {
+		unconnected_clause_synonyms.push(element);
+	}
+
+	priority_queue<Clause, vector<Clause>, ClauseComparator> one_syn_queue;
+	priority_queue<Clause, vector<Clause>, ClauseComparator> two_syn_queue;
+	vector<Clause> unprocessed_one_syn_clauses;
+	vector<Clause> unprocessed_two_syn_clauses;
+	vector<Clause> current_non_connected_group;
+
+	while (unconnected_clause_synonyms.empty() == false) {
+		string next_syn_to_consider = unconnected_clause_synonyms.front();
+		unconnected_clause_synonyms.pop();
+		processing_synonyms.push(next_syn_to_consider);
+		current_non_connected_group.clear();
+		while (processing_synonyms.empty() == false) {
+			unprocessed_one_syn_clauses.clear();
+			unprocessed_two_syn_clauses.clear();
+
+			string processing_syn = processing_synonyms.front();
+			if (is_syn_processed_map[processing_syn] == true) {
+				processing_synonyms.pop();
+				continue;
+			}
+
+			for (auto &one_syn_clause : one_syn_clauses_) {
+				if (IsSynFound(one_syn_clause, processing_syn)) {
+					one_syn_queue.push(one_syn_clause);
+				}
+				else {
+					unprocessed_one_syn_clauses.push_back(one_syn_clause);
+				}
+			}
+
+			for (auto &two_syn_clause : two_syn_clauses_) {
+				if (IsSynFound(two_syn_clause, processing_syn)) {
+					two_syn_queue.push(two_syn_clause);
+					string new_synonym_in_clause = GetSecondSynonym(two_syn_clause, processing_syn);
+					processing_synonyms.push(new_synonym_in_clause);
+				}
+				else {
+					unprocessed_two_syn_clauses.push_back(two_syn_clause);
+				}
+			}
+
+			while (one_syn_queue.empty() == false) {
+				current_non_connected_group.push_back(one_syn_queue.top());
+				one_syn_queue.pop();
+			}
+
+			while (two_syn_queue.empty() == false) {
+				current_non_connected_group.push_back(two_syn_queue.top());
+				two_syn_queue.pop();
+			}
+
+			one_syn_clauses_ = unprocessed_one_syn_clauses;
+			two_syn_clauses_ = unprocessed_two_syn_clauses;
+			is_syn_processed_map[processing_syn] = true;
+			processing_synonyms.pop();
+		}
+		
+		if (current_non_connected_group.empty() == false) {
+			non_connected_groups_.push_back(current_non_connected_group);
+			one_syn_clauses_ = unprocessed_one_syn_clauses;
+			two_syn_clauses_ = unprocessed_two_syn_clauses;
+		}
+	}
+
+}
+
+set<string> QueryTable::ExtractSynonymsFromSet()
+{
+	set<string> synonym_set;
+	for (auto &one_syn_clause : one_syn_clauses_) {
+		string one_syn_clause_arg1 = one_syn_clause.GetArg().at(0);
+		string one_syn_clause_arg2 = one_syn_clause.GetArg().at(1);
+		if (IsSynonym(one_syn_clause_arg1) == true) {
+			synonym_set.insert(one_syn_clause_arg1);
+		}
+		if (IsSynonym(one_syn_clause_arg2) == true) {
+			synonym_set.insert(one_syn_clause_arg2);
+		}
+	}
+
+	for (auto &two_syn_clause : two_syn_clauses_) {
+		string two_syn_clause_arg1 = two_syn_clause.GetArg().at(0);
+		string two_syn_clause_arg2 = two_syn_clause.GetArg().at(1);
+		if (IsSynonym(two_syn_clause_arg1) == true) {
+			synonym_set.insert(two_syn_clause_arg1);
+		}
+		if (IsSynonym(two_syn_clause_arg2) == true) {
+			synonym_set.insert(two_syn_clause_arg2);
+		}
+	}
+	return synonym_set;
 }
 
 bool QueryTable::IsSynonym(string key) {
@@ -435,6 +551,11 @@ vector<Clause> QueryTable::GetConnectedGroup()
 vector<vector<Clause>> QueryTable::GetConnectedGroups()
 {
 	return connected_groups_;
+}
+
+vector<vector<Clause>> QueryTable::GetNonConnectedGroups()
+{
+	return non_connected_groups_;
 }
 
 string QueryTable::GetSynType(string syn) {

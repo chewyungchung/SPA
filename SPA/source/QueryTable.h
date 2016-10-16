@@ -4,11 +4,12 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include <set>
+
 #include "map"
 #include "unordered_map"
 
 #include "Clause.h"
-//#include "WeightTable.h"
 
 using namespace std;
 
@@ -37,6 +38,7 @@ public:
 	vector<Clause> GetNonConnectedGroup();
 	vector<Clause> GetConnectedGroup();
 	vector<vector<Clause>> GetConnectedGroups();
+	vector<vector<Clause>> GetNonConnectedGroups();
 	string GetSynType(string syn_type);
 	bool IsNullQuery();
 
@@ -58,6 +60,9 @@ private:
 	void PopulateNonConnectedGroup();
 	void EvaluateWithConstantClauses();
 	void GroupClauses();
+	void GroupConnectedClauses();
+	void GroupNonConnectedClauses();
+	set<string> ExtractSynonymsFromSet();
 	int GetNumOfSynInClause(Clause clause);
 	void ReplaceWithClauses(); // Not used yet
 
@@ -84,6 +89,7 @@ private:
 	vector<Clause> non_connected_group_;
 	vector<Clause> connected_group_;
 	vector<vector<Clause>> connected_groups_;
+	vector<vector<Clause>> non_connected_groups_;
 
 	// Main Structures
 	vector<Clause> all_clauses_;
