@@ -72,8 +72,8 @@ ResultTable QueryResultProjector::InnerJoin(ResultTable table_one, ResultTable t
 
 	if (table_two.GetColumnCount() == 1) {
 		string common_column = GetCommonColumn(table_one_columns, table_two_columns);
-		for (unsigned i = 0; i < table_two.GetTableHeight(); ++i) {
-			for (unsigned j = 0; j < table_one.GetTableHeight(); ++j) {
+		for (int i = 0; i < table_two.GetTableHeight(); ++i) {
+			for (int j = 0; j < table_one.GetTableHeight(); ++j) {
 				if (table_two.GetValue(common_column, i) == table_one.GetValue(common_column, j)) {
 					joined_table.InsertRow(table_one.GetRow(j));
 				}
@@ -88,8 +88,8 @@ ResultTable QueryResultProjector::InnerJoin(ResultTable table_one, ResultTable t
 			string common_column = GetCommonColumn(table_one_columns, table_two_columns);
 			string new_column = GetOtherColumn(table_two_columns, common_column);
 			joined_table.InsertNewColumn(new_column);
-			for (unsigned i = 0; i < table_one.GetTableHeight(); ++i) {
-				for (unsigned j = 0; j < table_two.GetTableHeight(); ++j) {
+			for (int i = 0; i < table_one.GetTableHeight(); ++i) {
+				for (int j = 0; j < table_two.GetTableHeight(); ++j) {
 					if (table_one.GetValue(common_column,i) == table_two.GetValue(common_column,j)) {
 						temp_row_data = table_one.GetRow(i);
 						temp_row_data.push_back(table_two.GetValue(new_column, j));
@@ -102,8 +102,8 @@ ResultTable QueryResultProjector::InnerJoin(ResultTable table_one, ResultTable t
 		else if (common_syn_count == 2) {
 			string common_syn_one = table_two_columns.at(0);
 			string common_syn_two = table_two_columns.at(1);
-			for (unsigned i = 0; i < table_two.GetTableHeight(); ++i) {
-				for (unsigned j = 0; j < table_one.GetTableHeight(); ++j) {
+			for (int i = 0; i < table_two.GetTableHeight(); ++i) {
+				for (int j = 0; j < table_one.GetTableHeight(); ++j) {
 					if ((table_two.GetValue(common_syn_one, i) == table_one.GetValue(common_syn_one, j))
 						&& (table_two.GetValue(common_syn_two, i) == table_one.GetValue(common_syn_two, j))) {
 						joined_table.InsertRow(table_one.GetRow(j));
@@ -181,7 +181,7 @@ void QueryResultProjector::PopulateFinalResultList(ResultTable& final_table, str
 	int column_index = final_table.GetSynonymColumnIndex(selected_syn);
 	int table_height = final_table.GetTableHeight();
 	if (column_index != -1 && table_height != 0) {
-		for (unsigned i = 0; i < table_height; ++i) {
+		for (int i = 0; i < table_height; ++i) {
 			final_results_.push_back(final_table.GetValue(selected_syn, i));
 		}
 	}

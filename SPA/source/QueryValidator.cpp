@@ -401,6 +401,9 @@ string QueryValidator::GetWithTypeByAttrName(string attrName)
 	else if (attrName == "value" || attrName == "stmt#") {
 		return "number";
 	}
+	else {
+		return "";
+	}
 }
 
 int QueryValidator::GetClausePriority(string relation)
@@ -440,6 +443,9 @@ int QueryValidator::GetClausePriority(string relation)
 	}
 	else if (relation == "with") {
 		return 0;
+	}
+	else {
+		return -1;
 	}
 }
 
