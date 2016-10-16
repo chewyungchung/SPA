@@ -58,7 +58,8 @@ public:
 	vector<vector<ResultTable>> Evaluate();
 
 private:
-	vector<vector<ResultTable>> intermediate_result_;
+	vector<vector<ResultTable>> connected_group_intermediate_result_;
+	vector<vector<ResultTable>> non_connected_group_intermediate_result_;
 	vector<string> _result;
 	QueryTable input_query_;
 	PKB pkb_;
@@ -83,8 +84,9 @@ private:
 	ResultTable ProcessWithName(Clause with_name_clause);
 	ResultTable ProcessWithNumber(Clause with_number_clause);
 
-	bool ProcessNonRelatedGroup();
-	bool ProcessConnectedGroup();
+	bool ProcessNoSynGroup();
+	bool ProcessConnectedGroups();
+	bool ProcessNonConnectedGroups();
 
 	list<int> GetList(string arg_type);
 };

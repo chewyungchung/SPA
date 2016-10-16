@@ -4,43 +4,76 @@ QueryResultProjector::QueryResultProjector()
 {
 }
 
-QueryResultProjector::QueryResultProjector(vector<vector<ResultTable>> intermediate_results, Clause select_clause)
+QueryResultProjector::QueryResultProjector(vector<vector<ResultTable>> connected_group_intermediate_results, vector<vector<ResultTable>> non_connected_group_intermediate_results, Clause select_clause)
 {
-	intermediate_results_ = intermediate_results;
+	connected_group_intermediate_results_ = connected_group_intermediate_results;
+	non_connected_group_intermediate_results_ = non_connected_group_intermediate_results;
 	select_clause_ = select_clause;
 }
 
 list<string> QueryResultProjector::GetResults()
 {
-	ProcessIntermediateResults();
+	if (IsBooleanSelected() == true) {
+		ProcessNonConnectedResults();
+	}
+	else {
+		ProcessNonConnectedResults();
+		ProcessConnectedResults();
+	}
 	final_results_.sort();
 	final_results_.unique();
 	return final_results_;
 }
 
-void QueryResultProjector::ProcessIntermediateResults()
+void QueryResultProjector::ProcessConnectedResults()
 {
-	string selected_arg = select_clause_.GetArg().at(0);
-	string selected_arg_type = select_clause_.GetArgType().at(0);
-	bool is_false_query = HasFalseResult();
+	if (is_stop_evaluating == true) {
+		return;
+	}
 
-	if (is_false_query == true) {
-		if (selected_arg_type == "BOOLEAN") {
-			final_results_.push_back("false");
+	if (HasFalseResult(connected_group_intermediate_results_)) {
+		return;
+	}
+
+	// Perform inner join within each connected group
+	string selected_arg = select_clause_.GetArg().at(0);
+	vector<ResultTable> joined_tables;
+	ResultTable joined_table;
+
+	for (auto &intermediate_result_set : connected_group_intermediate_results_) {
+		bool is_first_join = true;
+		for (auto &intermediate_result : intermediate_result_set) {
+			if (is_first_join == true) {
+				joined_table = intermediate_result;
+				is_first_join = false;
+			}
+			else {
+				joined_table = InnerJoin(joined_table, intermediate_result);
+			}
 		}
+		joined_tables.push_back(joined_table);
+	}
+
+	PopulateFinalResultList(joined_tables.at(0), selected_arg);
+	// Perform cartesian product between intermediate result set. Required for iteration 3
+}
+
+void QueryResultProjector::ProcessNonConnectedResults()
+{
+	string selected_arg_type = select_clause_.GetArgType().at(0);
+	bool is_false_query = HasFalseResult(non_connected_group_intermediate_results_);
+
+	if (HasFalseResult(non_connected_group_intermediate_results_) == true && selected_arg_type == "BOOLEAN") {
+		final_results_.push_back("false");
 		return;
 	}
 	else {
-		if (selected_arg_type == "BOOLEAN") {
-			final_results_.push_back("true");
-			return;
-		}
-
-		// Perform inner join
+		// Perform inner join within each non-connected group and check if they are empty
 		vector<ResultTable> joined_tables;
 		ResultTable joined_table;
+		bool is_result_exist = true;
 
-		for (auto &intermediate_result_set : intermediate_results_) {
+		for (auto &intermediate_result_set : non_connected_group_intermediate_results_) {
 			bool is_first_join = true;
 			for (auto &intermediate_result : intermediate_result_set) {
 				if (is_first_join == true) {
@@ -51,11 +84,23 @@ void QueryResultProjector::ProcessIntermediateResults()
 					joined_table = InnerJoin(joined_table, intermediate_result);
 				}
 			}
-			joined_tables.push_back(joined_table);
+			if (joined_table.GetTableHeight() == 0) {
+				is_result_exist = false;
+				break;
+			}
 		}
 
-		PopulateFinalResultList(joined_tables.at(0), selected_arg);
-		// Perform cartesian product between intermediate result set. Required for iteration 3
+		if (is_result_exist == false) {
+			is_stop_evaluating = true;
+			if (selected_arg_type == "BOOLEAN") {
+				final_results_.push_back("false");
+			}
+		}
+		else {
+			if (selected_arg_type == "BOOLEAN") {
+				final_results_.push_back("false");
+			}
+		}
 	}
 }
 
@@ -123,11 +168,11 @@ ResultTable QueryResultProjector::CartesianProduct(ResultTable intermediate_set_
 	return ResultTable();
 }
 
-bool QueryResultProjector::HasFalseResult()
+bool QueryResultProjector::HasFalseResult(vector<vector<ResultTable>>& results)
 {
-	for (auto &intermediate_result_set : intermediate_results_) {
-		for (auto &intermediate_result : intermediate_result_set) {
-			if (intermediate_result.IsQueryTrue() == false) {
+	for (auto &result_set : results) {
+		for (auto &result : result_set) {
+			if (result.IsQueryTrue() == false) {
 				return true;
 			}
 		}
@@ -185,4 +230,13 @@ void QueryResultProjector::PopulateFinalResultList(ResultTable& final_table, str
 			final_results_.push_back(final_table.GetValue(selected_syn, i));
 		}
 	}
+}
+
+bool QueryResultProjector::IsBooleanSelected()
+{
+	string selected_arg_type = select_clause_.GetArgType().at(0);
+	if (selected_arg_type == "BOOLEAN") {
+		return true;
+	}
+	return false;
 }

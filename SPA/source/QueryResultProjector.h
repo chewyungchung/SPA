@@ -13,20 +13,24 @@ using namespace std;
 class QueryResultProjector {
 public:
 	QueryResultProjector();
-	QueryResultProjector(vector<vector<ResultTable>> intermediate_results, Clause select_clause);
-
+	QueryResultProjector(vector<vector<ResultTable>> connected_group_intermediate_results, vector<vector<ResultTable>> non_connected_group_intermediate_results, Clause select_clause);
 	list<string> GetResults();
-	void ProcessIntermediateResults();
+
+private:
+	void ProcessConnectedResults();
+	void ProcessNonConnectedResults();
+	void PopulateFinalResultList(ResultTable& final_table, string selected_syn);
 	ResultTable InnerJoin(ResultTable table_one, ResultTable table_two);
 	ResultTable CartesianProduct(ResultTable intermediate_set_one, ResultTable intermediate_set_two);
-	bool HasFalseResult();
+	bool HasFalseResult(vector<vector<ResultTable>>& results);
+	bool IsBooleanSelected();
 	int GetNumOfCommonColumn(vector<string> table_one_columns, vector<string> table_two_columns);
 	string GetCommonColumn(vector<string> table_one_columns, vector<string> table_two_columns);
 	string GetOtherColumn(vector<string> table_two_columns, string common_column);
-	void PopulateFinalResultList(ResultTable& final_table, string selected_syn);
 
-private:
-	vector<vector<ResultTable>> intermediate_results_;
+	vector<vector<ResultTable>> connected_group_intermediate_results_;
+	vector<vector<ResultTable>> non_connected_group_intermediate_results_;
 	Clause select_clause_;
 	list<string> final_results_;
+	bool is_stop_evaluating = false;
 };
