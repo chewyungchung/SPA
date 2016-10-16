@@ -1,0 +1,179 @@
+1 - select statement before while
+stmt s; while w;
+Select s such that Follows*(s, w)
+14, 15, 17, 45, 65
+5000
+
+2 - select statement before call
+stmt s; call c;
+Select s such that Follows(s, c)
+3, 5, 8, 10, 14, 20, 31, 37, 47, 49, 57, 67, 72
+5000
+
+3 - select call before statment
+stmt s; call c;
+Select c such that Follows(s, c)
+4, 6, 9, 11, 15, 21, 32, 38, 48, 50, 58, 68, 73
+5000
+
+4 - select call after if 
+if ifstat; call c;
+Select c such that Follows*(ifstat, c)
+73
+5000
+
+5 - select while after call
+call c; while w;
+Select w such that Follows(c, w)
+16, 46
+5000
+
+6 - select deep while after call
+call c; while w;
+Select w such that Follows*(c, w)
+16, 46
+5000
+
+7 - select deep call before while
+call c; while w;
+Select c such that Follows*(c, w)
+15, 45
+5000
+
+8 - select call after assignment
+call c; assign a;
+Select c such that Follows(a, c)
+4, 6, 9, 11, 15, 21, 32, 38, 48, 50, 58, 68, 73
+5000
+
+9 - select deep call after assignment
+call c; assign a;
+Select c such that Follows*(a, c)
+4, 6, 9, 11, 15, 21, 32, 38, 48, 50, 58, 68, 73
+5000
+
+10 - select stmt after while
+stmt s; while w;
+Select s such that Follows(w, s)
+24, 26, 49
+5000
+
+11 - select deep stmt after a while
+stmt s; while w;
+Select s such that Follows*(w, s)
+24, 25, 26, 49, 50
+5000
+
+12 - select while before stmt
+stmt s; while w;
+Select w such that Follows(w, s)
+16, 18, 44
+5000
+
+13 - select deep while before stmt
+stmt s; while w;
+Select w such that Follows*(w, s)
+16, 18, 44
+5000
+
+14 - select stmt before while
+stmt s; while w;
+Select s such that Follows(s, w)
+15, 17, 45, 65
+5000
+
+15 - select deep stmt before while
+stmt s; while w;
+Select s such that Follows*(s, w)
+14, 15, 17, 45, 65
+5000
+
+16 - select while after stmt
+stmt s; while w;
+Select w such that Follows(s, w)
+16, 18, 46, 66
+5000
+
+17 - select deep while after stmt
+stmt s; while w;
+Select w such that Follows*(s, w)
+16, 18, 46, 66
+5000
+
+18 - select if before some stmt
+if ifstat;
+Select ifstat such that Follows(ifstat, _)
+13, 69
+5000
+
+19 - select while before stmt
+while w;
+Select w such that Follows(w, _)
+16, 18, 44
+5000
+
+20 - select call before some stmt
+call c;
+Select c such that Follows(c, _)
+4, 6, 9, 15, 21, 32, 38, 45
+5000
+
+21 - select if after some stmt
+if ifstat;
+Select ifstat such that Follows*(_, ifstat)
+13, 29, 62
+5000
+
+22 - select deep while after some stmt
+while w;
+Select w such that Follows*(_, w)
+16, 18, 46, 66
+5000
+
+23 - select deep call after stmt
+call c;
+Select c such that Follows*(_, c)
+4, 6, 9, 11, 15, 21, 32, 38, 48, 50, 58, 68, 73
+5000
+
+24 - select bool that same s follows same s
+stmt s;
+Select BOOLEAN such that Follows*(s, s)
+false
+5000
+
+25 - select bool that same a follows same a
+assign a;
+Select BOOLEAN such that Follows*(a, a)
+false
+5000
+
+26 - select bool that same call follows same call
+call c;
+Select BOOLEAN such that Follows*(c, c)
+false
+5000
+
+27 - select bool that same if follows same if
+if ifstat;
+Select BOOLEAN such that Follows*(ifstat, ifstat)
+false
+5000
+
+28 - comment
+while w;
+Select BOOLEAN such that Follows*(w, w)
+false
+5000
+
+29 - comment
+stmt s;
+Select BOOLEAN such that Follows*(s, s)
+false
+5000
+
+30 - comment
+prog_line n;
+Select BOOLEAN such that Follows*(n, n)
+false
+5000

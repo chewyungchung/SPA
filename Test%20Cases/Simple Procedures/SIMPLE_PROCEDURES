@@ -1,0 +1,108 @@
+procedure Procedures {
+    Alpha=7; //1
+    b=Alpha; //2
+    Charlie=b; //3
+    call Golf;  //4
+    d=Charlie; //5
+    call Charlie; //6
+    Echo=d; //7
+    Foxtrot=Alpha; //8
+    call Echo;  //9
+    Golf=Alpha; //10
+    call Alpha;  //11
+}
+procedure Alpha {
+    z=7; //12
+    if Alpha then {  //13
+        y=z; //14
+        call Beta; //15 
+        while Charlie { //16
+            x=z; //17
+            while d { //18
+                w=x; //19
+                u=w; //20 
+                call Golf; //21 
+                t=w; //22
+                x=0; //23
+            } 
+            s=x; //24
+            y=6; //25
+        }
+        r=y; //26
+    }
+    else {
+        z=8; //27
+        q=z; //28
+        if b then { //29
+            g=q; //30
+            p=q; //31
+            call Charlie; //32 
+            o=p; //33
+            n=g; //34
+        } 
+        else {
+            q=5; //35
+            m=q; //36
+            l=q; //37
+            call Delta;  //38
+            k=m; //39
+            j=l; //40
+        }
+    }
+    i=z; //41
+    h=k; //42
+    g=g; //43
+}
+procedure Beta { 
+    while Beta { //44
+        call Charlie; //45 
+        while Charlie { //46
+            Z=a; //47
+            call Delta; //48 
+        }
+    }
+    X=Z; //49
+    call Golf; //50 
+}
+procedure Charlie {
+    a=af+(n-k)*l*a*(s+m)-f*c; //51
+    b=(s-b9)*u; //52
+    c=s8*(a-f*a)*a*v; //53
+    d=K-VC*U+v; //54
+    e=Beta+Ki*(nO-Np)*np; //55
+    f=an*0-f*(9-a); //56
+    g=(v*(2+q)*e)+b*9; //57
+    call Echo; //58
+}
+procedure Delta {
+    m=0; //59
+    a=0; //60
+    b=0; //61
+    if Alpha then { //62
+        call Foxtrot; //63
+    }
+    else {
+        call Golf; //64
+    }
+}
+procedure Echo {
+    k=Alpha+Charlie+Echo; //65
+    while K { //66
+        t=c*k; //67
+        call Golf;  //68
+    }
+}
+procedure Foxtrot {
+    if Beta then { //69
+        call Echo; //70
+    }
+    else { 
+        a=i*g; //71
+    }
+    f=t+i; //72
+    call Golf;  //73
+}
+procedure Golf {
+    w=0; //74
+    last=end; //75
+}

@@ -1,0 +1,10 @@
+1 - Select stmt after call
+stmt s; call c;
+Select s such that Next (c, s)
+5, 7, 10, 16, 22, 33, 39, 46, 66, 72
+5000
+2 - comment
+stmt s; call c;
+Select c such that Next (c, s)
+4, 6, 9, 15, 21, 32, 38, 45, 65, 70
+5000
