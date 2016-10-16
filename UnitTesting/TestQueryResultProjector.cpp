@@ -161,5 +161,41 @@ namespace UnitTesting {
 
 			joined_table = qrp.InnerJoin(test_table1, test_table2);
 		}
+
+		TEST_METHOD(testConstructors) {
+			
+			QueryResultProjector _qrp;
+			
+			list<string> finalResults;
+			
+			ResultTable rt;
+			rt = ResultTable("a1");
+			ResultTable r2d2;
+			r2d2 = ResultTable("r2d2");
+			vector<ResultTable> vrt;
+			vrt.push_back(rt);
+			vrt.push_back(r2d2);
+			ResultTable rt2 = ResultTable("a1");
+			ResultTable c3po = ResultTable("c3po");
+			vector<ResultTable> vrt2;
+			vrt2.push_back(rt2);
+			vrt2.push_back(c3po);
+			vector<vector<ResultTable>> vvrt;
+			vvrt.push_back(vrt);
+			vvrt.push_back(vrt2);
+
+			Clause c;
+			vector<string> args;
+			args.push_back("a1");
+			vector<string> arg_types;
+			arg_types.push_back("nonsense");
+			c = Clause("NONSENSE", args, arg_types);
+			_qrp = QueryResultProjector(vvrt, c);
+
+			finalResults = _qrp.GetResults();
+			size_t NUM_OF_COLUMNS_AFTER_INNER_JOIN = 3;
+
+			Assert::AreEqual(NUM_OF_COLUMNS_AFTER_INNER_JOIN, finalResults.size(), L"FINAL RESULTS SIZE");
+		}
 	};
 }
