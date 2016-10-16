@@ -28,6 +28,7 @@ const string REL_CALLS_STAR = "calls*";
 const string REL_PATTERN = "pattern";
 const string REL_WITH = "with";
 
+const string ARGTYPE_NUMBER = "number";
 const string ARGTYPE_CONSTANT = "constant";
 const string ARGTYPE_CONSTANT_VALUE = "value";
 const string ARGTYPE_ANY = "any";
