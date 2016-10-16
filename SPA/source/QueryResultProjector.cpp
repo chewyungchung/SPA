@@ -13,6 +13,8 @@ QueryResultProjector::QueryResultProjector(vector<vector<ResultTable>> intermedi
 list<string> QueryResultProjector::GetResults()
 {
 	ProcessIntermediateResults();
+	final_results_.sort();
+	final_results_.unique();
 	return final_results_;
 }
 
@@ -60,22 +62,65 @@ void QueryResultProjector::ProcessIntermediateResults()
 // Pre-cond: Both tables are non-empty
 ResultTable QueryResultProjector::InnerJoin(ResultTable table_one, ResultTable table_two)
 {
-	ResultTable joined_table;
 	vector<string> table_one_columns = table_one.GetColumnNames();
 	vector<string> table_two_columns = table_two.GetColumnNames();
-
-	if (table_two.GetColumnCount() == 1) {
-
+	ResultTable joined_table;
+	
+	for (auto &table_one_column_name : table_one_columns) {
+		joined_table.InsertNewColumn(table_one_column_name);
 	}
 
-	int common_syn_count = GetNumOfCommonColumn(table_one_columns, table_one_columns);
-	if (common_syn_count == 1) {
+	if (table_two.GetColumnCount() == 1) {
 		string common_column = GetCommonColumn(table_one_columns, table_two_columns);
+		for (unsigned i = 0; i < table_two.GetTableHeight(); ++i) {
+			for (unsigned j = 0; j < table_one.GetTableHeight(); ++j) {
+				if (table_two.GetValue(common_column, i) == table_one.GetValue(common_column, j)) {
+					joined_table.InsertRow(table_one.GetRow(j));
+				}
+			}
+		}
+		return joined_table;
+	}
+	else {
+		vector<string> temp_row_data;
+		int common_syn_count = GetNumOfCommonColumn(table_one_columns, table_two_columns);
+		if (common_syn_count == 1) {
+			string common_column = GetCommonColumn(table_one_columns, table_two_columns);
+			string new_column = GetOtherColumn(table_two_columns, common_column);
+			joined_table.InsertNewColumn(new_column);
+			for (unsigned i = 0; i < table_one.GetTableHeight(); ++i) {
+				for (unsigned j = 0; j < table_two.GetTableHeight(); ++j) {
+					if (table_one.GetValue(common_column,i) == table_two.GetValue(common_column,j)) {
+						temp_row_data = table_one.GetRow(i);
+						temp_row_data.push_back(table_two.GetValue(new_column, j));
+						joined_table.InsertRow(temp_row_data);
+					}
+				}
+			}
+			return joined_table;
+		}
+		else if (common_syn_count == 2) {
+			string common_syn_one = table_two_columns.at(0);
+			string common_syn_two = table_two_columns.at(1);
+			for (unsigned i = 0; i < table_two.GetTableHeight(); ++i) {
+				for (unsigned j = 0; j < table_one.GetTableHeight(); ++j) {
+					if ((table_two.GetValue(common_syn_one, i) == table_one.GetValue(common_syn_one, j))
+						&& (table_two.GetValue(common_syn_two, i) == table_one.GetValue(common_syn_two, j))) {
+						joined_table.InsertRow(table_one.GetRow(j));
+					}
+				}
+			}
+			return joined_table;
+		}
+		else {
+			return joined_table;
+		}
 	}
 }
 
 ResultTable QueryResultProjector::CartesianProduct(ResultTable intermediate_set_one, ResultTable intermediate_set_two)
 {
+	return ResultTable();
 }
 
 bool QueryResultProjector::HasFalseResult()
@@ -122,7 +167,13 @@ string QueryResultProjector::GetCommonColumn(vector<string> table_one_columns, v
 string QueryResultProjector::GetOtherColumn(vector<string> table_two_columns, string common_column)
 {
 	string other_column = "";
-	return string();
+	for (auto &column : table_two_columns) {
+		if (column != common_column) {
+			other_column = column;
+			break;
+		}
+	}
+	return other_column;
 }
 
 void QueryResultProjector::PopulateFinalResultList(ResultTable& final_table, string selected_syn)
