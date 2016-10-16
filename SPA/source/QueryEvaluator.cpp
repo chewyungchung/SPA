@@ -16,15 +16,19 @@ vector<vector<ResultTable>> QueryEvaluator::Evaluate() {
 		return empty_table;
 	}
 
-	if (ProcessNonRelatedGroup() == false) {
+	if (ProcessNoSynGroup() == false) {
 		return empty_table;
 	} 
 
-	if (ProcessConnectedGroup() == false) {
+	if (ProcessNonConnectedGroups() == false) {
 		return empty_table;
 	}
 
-	return intermediate_result_;
+	if (ProcessConnectedGroups() == false) {
+		return empty_table;
+	}
+
+	return connected_group_intermediate_result_;
 }
 
 ResultTable QueryEvaluator::ProcessClause(Clause input_clause)
@@ -2155,7 +2159,7 @@ ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 	return temp_result;
 }
 
-bool QueryEvaluator::ProcessNonRelatedGroup()
+bool QueryEvaluator::ProcessNoSynGroup()
 {
 	vector<Clause> non_related_group = input_query_.GetNoSynGroup();
 	ResultTable temp_result;
@@ -2166,25 +2170,16 @@ bool QueryEvaluator::ProcessNonRelatedGroup()
 			return false;
 		}
 	}
-
-	non_related_group = input_query_.GetNonConnectedGroup();
-	for (auto &non_connected_clause : non_related_group) {
-		temp_result = ProcessClause(non_connected_clause);
-		if (temp_result.IsQueryTrue() == false) {
-			return false;
-		}
-	}
-
 	return true;
 }
 
-bool QueryEvaluator::ProcessConnectedGroup()
+bool QueryEvaluator::ProcessConnectedGroups()
 {
-	vector<vector<Clause>> connected_group = input_query_.GetConnectedGroups();
+	vector<vector<Clause>> connected_groups = input_query_.GetConnectedGroups();
 	vector<ResultTable> group_intermediate_result;
 	ResultTable temp_result;
 
-	for (auto &group : connected_group) {
+	for (auto &group : connected_groups) {
 		for (auto &connected_clause : group) {
 			temp_result = ProcessClause(connected_clause);
 			if (temp_result.IsQueryTrue() == false) {
@@ -2192,7 +2187,28 @@ bool QueryEvaluator::ProcessConnectedGroup()
 			}
 			group_intermediate_result.push_back(temp_result);
 		}
-		intermediate_result_.push_back(group_intermediate_result);
+		connected_group_intermediate_result_.push_back(group_intermediate_result);
+		group_intermediate_result.clear();
+	}
+
+	return true;
+}
+
+bool QueryEvaluator::ProcessNonConnectedGroups()
+{
+	vector<vector<Clause>> non_connected_groups = input_query_.GetNonConnectedGroups();
+	vector<ResultTable> group_intermediate_result;
+	ResultTable temp_result;
+
+	for (auto &group : non_connected_groups) {
+		for (auto &non_connected_clause : group) {
+			temp_result = ProcessClause(non_connected_clause);
+			if (temp_result.IsQueryTrue() == false) {
+				return false;
+			}
+			group_intermediate_result.push_back(temp_result);
+		}
+		non_connected_group_intermediate_result_.push_back(group_intermediate_result);
 		group_intermediate_result.clear();
 	}
 
