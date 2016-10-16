@@ -1,0 +1,355 @@
+1 - Select assignment if stmt is 1 [D]
+assign a;
+Select a with a.stmt#=1
+1
+5000
+2 - Return true if line 1 is an assignment statement [D]
+assign a;
+Select BOOLEAN with a.stmt#=1
+TRUE
+5000
+3 Empty 102
+stmt s; constant c;
+Select s with s.stmt# = c.value 
+1,2,3,4,5
+5000
+4 Empty 103
+stmt s; stmt s1; constant c;
+Select s1 with s.stmt# = c.value
+1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,1,17,18,19,20,21,22,23,24,25,26,27,28,29,30
+5000
+5 - All variables
+variable v;
+Select v
+a, b, c, d, v, x, y, z, m, t
+5000
+6 - All statements
+stmt s;
+Select s
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30
+5000
+7 - All while statements
+while w;
+Select w
+19, 6, 8, 25
+5000
+8 - All if statements
+if i;
+Select i
+20, 24, 14
+5000
+9 - All call statements
+call c;
+Select c
+4, 11, 26, 18, 30
+5000
+10 - All assign statements
+assign a;
+Select a
+1, 2, 3, 21, 22, 5, 7, 9, 10, 23, 27, 28, 12, 13, 15, 16, 17, 29
+5000
+11 - All procedures
+procedure p;
+Select p.procName
+Panda, Elephant, Monkey, Giraffe
+5000
+12 - All call procNames
+call c;
+Select c.procName
+Elephant, Monkey, Giraffe
+5000
+13 - All constants
+constant c;
+Select c
+4, 3, 2, 5, 1 
+5000
+14 – Modifies 56
+variable v; 
+Select v such that Modifies (3, v)
+c
+5000
+15 – Modifies 62
+while w; 
+Select w such that Modifies (w, “d”)
+16, 19, 25, 8
+5000
+16 – Modifies 64
+while w; 
+Select v such that Modifies (“Monkey”, v)
+d, t, m
+5000
+17 – Modifies and Uses 71
+while w; 
+Select a such that Modifies (a, a) and Uses (a, a) 
+29 
+5000
+18 – Modifies and Parent 75
+while w; 
+Select a such that Modifies (a, “x”) and Parent (w, a)
+9
+5000
+19 Uses 65
+stmt s; 
+Select s such that Uses (s, “d”)
+22,6,20,12,27,19,23,24,25,28,4,8,11,18,26,30
+5000
+20 Uses 67
+variable v; 
+Select v such that Uses (n, 5)
+a, c
+5000
+21 Uses 70
+assign a; variable v;
+Select v such that Uses (a, v)
+a, b, m, c, y, x, d, z, v, t
+5000
+22 Calls 79
+procedure p; 
+Select p such that Calls (“Panda”, p) and Modifies (p, “a”) and Uses (p, “t”)
+Giraffe
+5000
+23
+if ifstmt; if ifstmt1
+Select <ifstmt, ifstmt1> such that Calls(“Giraffe”, “Monkey”)
+14 14, 20 20, 24 24, 14 20, 20 14, 14 24, 24 14, 20 24, 24 20
+5000
+24 – Calls 104
+while w;
+Select w such that Calls (“Panda”,_)
+6,8,19,25
+5000
+25 - Part 1: return all while if Panda calls elephant
+while w;
+Select w such that Calls (“Panda”, “Elephant”)
+19, 6, 8, 25 
+5000
+26 Calls* 78
+procedure p; 
+Select p such that Calls* (p, “Elephant”)
+Giraffe, Panda, Monkey
+5000
+27 Calls* 80
+procedure p; 
+Select p such that Calls* (“Giraffe”, p) and Modifies (p, “d”)
+Monkey, Elephant
+5000
+28– Parent 1
+statement s; statement s1;  
+Select s such that Parent (s, s1) with s1.stmt# = 2
+none
+5000
+29– Parent 5
+statement s; 
+Select s such that Parent (s, 2) 
+none
+5000
+30– Parent 9
+statement s; 
+Select s such that Parent (2, s) 
+none
+5000
+31– Parent 76
+assign a; while w; 
+Select a such that Parent (w, a) and Modifies (a, “z”)
+none
+5000
+32– Parent* 13
+stmt s; 
+Select s such that Parent* (s, 2)
+none
+5000
+33– Parent* 17
+while w; stmt s; 
+Select w such that Parent* (s, 2)
+none
+5000
+34– Parent* 21
+while w; 
+Select w such that Parent* (w, 9)
+8, 6
+5000
+35– Parent* 105
+assign a; while w; 
+Select <w,w1> such that Parent*(w,w1)
+6 8
+5000
+36– Follows 25
+stmt s; 
+Select s such that Follows (s, 2)
+none
+5000
+37– Follows 32
+assign a; while w; 
+Select a such that Follows (a, n)
+none
+5000
+38– Follows* 38
+while w; stmt s; 
+Select w such that Follows* (s, w)
+8, 6
+5000
+39– Follows* 39
+while w; stmt s;
+Select w such that Follows* (w, s)
+8, 6
+5000
+40– Follows* 40
+stmt s;
+Select s such that Follows* (s, n) 
+none
+5000
+41– Follows* 46
+If ifstmt;
+Select ifstmt such that Follows* (ifstmt, 8)
+none
+5000
+42– Follows* 50
+assign a; 
+Select a such that Follows* (a, 6)
+1,2,3,5
+5000
+43– Next 108
+
+Select BOOLEAN such that Next (6, 8)
+FALSE
+5000
+44– Next* 106
+prog_line n;
+Select n such that Next* (19, n) and Next* (n, 20)
+19,20,21,22
+5000
+45– Next* 107
+prog_line n;
+Select n such that Next* (n, n)
+6,7,8,9,10,11,12,19,20,21,22,25,26,27
+5000
+46– Affects 117
+assign a1; assign a2;
+Select BOOLEAN such that Affects (a1, a2)
+TRUE
+5000
+47– Affects 128
+assign a1; assign a2;
+Select a1 such that Affects (a1, a2) 
+1
+5000
+48– Affects* 133
+assign a1; assign a2;
+Select BOOLEAN such that Affects* (a1, a2)
+TRUE
+5000
+49– Affects* 138
+assign a1; assign a2;
+Select a1 such that Affects* (a1, a2)
+1, 2, 3
+5000
+50 Affects* 143
+assign a1; assign a2;
+Select a2 such that Affects* (a1, a2)
+7, 9, 12, 13, 15, 16, 17
+5000
+51– Pattern 81
+assign a; 
+Select a pattern a (“d”, _)
+7,21,22,27
+5000
+52– Pattern 82
+assign a; 
+Select a pattern a (“x”, “v * y”)
+none
+5000
+53– Pattern 83
+assign a; 
+Select a pattern a (“y”, _”t - b”_)
+none
+5000
+54– Pattern 84
+assign a; 
+Select a pattern a (_, “d + y”)
+23
+5000
+55– Pattern 85
+assign a; 
+Select a pattern a (_, “z + d + 1”)
+none
+5000
+56– Pattern 86
+assign a; 
+Select a pattern a (_, _“ z + d + 1”_)
+28
+5000
+57– Pattern 87
+assign a; 
+Select a pattern a (_, _” x * y + v”)
+none
+5000
+58– Pattern 88
+assign a; 
+Select a pattern a (_, _“ a + y”_)
+7
+5000
+59– Pattern 89
+assign a; 
+Select a pattern a (_, _“40 + 1”_)
+none
+5000
+60– Pattern 90
+assign a; 
+Select a pattern a (_, _“ + 2”_)
+none
+5000
+61– Pattern 91
+assign a; 
+Select a pattern a (_, _“z + 2 * y”_)
+none
+5000
+62– Pattern 92
+assign a; 
+Select a pattern a (_, _“5 * y”_)
+9
+5000
+63– Pattern 93
+assign a; 
+Select a pattern a (_, _“d+ 1”_)
+none
+5000
+64– Pattern 94
+assign a1; assign a;
+Select a1 pattern a (“x”, “m + v”)
+none
+5000
+65– Pattern 95
+assign a; assign a1; 
+Select a pattern a1 (_, _“d + a”_)
+1,2,3,5,7,9,10,12,13,15,16,17,21,22,23,27,28,29
+5000
+66– Pattern 96
+procedure p; if ifstmt;
+Select p pattern ifstmt (“t”,_,_)
+Giraffe, Panda, Elephant, Monkey
+5000
+67– Pattern 97
+assign a; while w;
+Select a pattern a (“v”, _) such that Follows (w, a)
+12
+5000
+68– Pattern 98
+assign a; while w;
+Select a pattern a (“y”, _) such that Follows* (w, a)
+17
+5000
+69– Pattern 99
+assign a; if ifstmt;
+Select a pattern a (_,”x”) such that Follows (ifstmt, a)
+none
+5000
+
+
+
+
+
+
+
+
+
+

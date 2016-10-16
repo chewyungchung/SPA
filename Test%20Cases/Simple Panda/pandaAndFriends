@@ -1,0 +1,51 @@
+procedure Panda {
+    a = 4;
+    b = a * a;
+    c = a * b + 3 * a;
+    call Elephant;
+    y = a + 2 * c;
+    while d {
+        d = a + y;
+        while z {
+            x = b + 5 * y + z;
+            m = z - 1;
+            call Monkey; 
+        }
+        v = d + 40 + 1; 
+    }
+    x = z + 2 * m + v;
+    if a then {
+        x = x * a; 
+    }
+    else {
+        x = x + a; 
+    }
+    y = x + 2;
+    call Giraffe; 
+}
+procedure Elephant {
+    while c {
+        if b then {
+            d = v + a; 
+        }
+        else {
+            d = x * y + v * y + d; 
+        } 
+    } 
+}
+procedure Monkey {
+    t = d + y;
+    if t then {
+        while x {
+            call Elephant;
+            d = d + a; 
+        } 
+    }
+    else {
+        m = z + d + 1 + a; 
+    } 
+}
+procedure Giraffe {
+    a = a * c - t - b + x * m;
+    call Monkey; 
+}
