@@ -176,7 +176,7 @@ void CallsTable::getCallersStarHelper(string callee)
 		{
 			if (*calleeIndex == callee)
 			{
-				bool checkedBefore = find(getCallersStarHelperList.begin(), getCallersStarHelperList.end(), *callerIndex) != getCallersStarHelperList.end();
+				bool checkedBefore = find(getCallersStarHelperList.begin(), getCallersStarHelperList.end(), *calleeIndex) != getCallersStarHelperList.end();
 				if (!checkedBefore)
 				{
 					// Push this caller into the list and search into it
