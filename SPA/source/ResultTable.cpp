@@ -38,6 +38,17 @@ int ResultTable::GetColumnCount()
 	return column_names_.size();
 }
 
+vector<string> ResultTable::GetRow(int row_index)
+{
+	vector<string> empty;
+	if (row_index + 1 > table_height_) {
+		return empty;
+	}
+	else {
+		return row_data_.at(row_index);
+	}
+}
+
 vector<string> ResultTable::GetColumnNames()
 {
 	return column_names_;
@@ -47,11 +58,11 @@ string ResultTable::GetValue(string synonym, int row_index)
 {
 	string empty_string = "";
 
-	if ((table_height_ == 0) || (synonym_to_column_map_.count(synonym) == 0) || (row_index+1 > row_width_)) {
+	if ((table_height_ == 0) || (synonym_to_column_map_.count(synonym) == 0) || (row_index+1 > table_height_)) {
 		return empty_string;
 	}
 
-	return row_data_.at(synonym_to_column_map_[synonym]).at(row_index);
+	return row_data_.at(row_index).at(synonym_to_column_map_[synonym]);
 }
 
 void ResultTable::InsertNewColumn(string synonym) {
@@ -59,6 +70,7 @@ void ResultTable::InsertNewColumn(string synonym) {
 		column_names_.push_back(synonym);
 		synonym_to_column_map_[synonym] = next_column_index;
 		++next_column_index;
+		++row_width_;
 	}
 }
 
