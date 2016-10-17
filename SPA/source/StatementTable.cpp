@@ -90,7 +90,7 @@ list<int> StatementTable::getIfListWithControlVariable(string ctrlvar)
 	list<int> iflist;
 	for (const auto& i : ctrlvarList)
 	{
-		if (i.second == ctrlvar && (find(ifList.begin(), ifList.end(), ctrlvar) != ifList.end()))
+		if (i.second == ctrlvar && (find(ifList.begin(), ifList.end(), i.first) != ifList.end()))
 		{
 			iflist.push_back(i.first);
 		}
@@ -103,7 +103,7 @@ list<int> StatementTable::getWhileListWithControlVariable(string ctrlvar)
 	list<int> whilelist;
 	for (const auto& i : ctrlvarList)
 	{
-		if (i.second == ctrlvar && (find(whileList.begin(), whileList.end(), ctrlvar) != whileList.end()))
+		if (i.second == ctrlvar && (find(whileList.begin(), whileList.end(), i.first) != whileList.end()))
 		{
 			whilelist.push_back(i.first);
 		}
