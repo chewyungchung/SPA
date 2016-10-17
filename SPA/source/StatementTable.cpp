@@ -24,7 +24,7 @@ void StatementTable::addStatement(int stmtNum, string stmtType)
 		assignList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
 	}
-	else if (stmtType == "calls")
+	else if (stmtType == "call")
 	{
 		callList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
