@@ -283,6 +283,8 @@ void QueryTable::GroupConnectedClauses()
 {
 	queue<string> processing_synonyms;
 	unordered_map<string, bool> is_syn_processed_map;
+	bool is_selected_syn_used = false;
+	string selected_syn;
 
 	if (IsSynSelected(select_clause_) == false) {
 		PopulateNonConnectedGroup();
@@ -291,6 +293,7 @@ void QueryTable::GroupConnectedClauses()
 
 	for (auto &selected_synonym : select_clause_.GetArg()) {
 		processing_synonyms.push(selected_synonym);
+		selected_syn = selected_synonym;
 	}
 
 	priority_queue<Clause, vector<Clause>, ClauseComparator> one_syn_queue;
@@ -312,6 +315,9 @@ void QueryTable::GroupConnectedClauses()
 		for (auto &one_syn_clause : one_syn_clauses_) {
 			if (IsSynFound(one_syn_clause, current_processing_syn) == true) {
 				one_syn_queue.push(one_syn_clause);
+				if (current_processing_syn == selected_syn) {
+					is_selected_syn_used = true;
+				}
 			}
 			else {
 				unprocessed_one_syn_clauses.push_back(one_syn_clause);
@@ -323,10 +329,21 @@ void QueryTable::GroupConnectedClauses()
 				two_syn_queue.push(two_syn_clause);
 				string new_synonym_in_clause = GetSecondSynonym(two_syn_clause, current_processing_syn);
 				processing_synonyms.push(new_synonym_in_clause);
+				if (current_processing_syn == selected_syn) {
+					is_selected_syn_used = true;
+				}
 			}
 			else {
 				unprocessed_two_syn_clauses.push_back(two_syn_clause);
 			}
+		}
+
+		if (is_selected_syn_used == false) {
+			vector<string> substitute_arg = { select_clause_.GetArg().at(0) };
+			vector<string> substitute_arg_type = { select_clause_.GetArgType().at(0) };
+			Clause substitute_clause("substitute", substitute_arg, substitute_arg_type);
+			current_group.push_back(substitute_clause);
+			is_selected_syn_used = true;
 		}
 
 		while (one_syn_queue.empty() == false) {
@@ -491,6 +508,10 @@ bool QueryTable::IsSynFound(Clause clause, string synonym) {
 	string clause_arg2_type = clause.GetArgType().at(1);
 	string select_arg_type = syn_entity_map_[synonym];
 
+	if (select_arg_type == "constant") {
+		select_arg_type = "value";
+	}
+
 	if ((clause_arg1 == synonym && clause_arg1_type == select_arg_type)
 		|| (clause_arg2 == synonym && clause_arg2_type == select_arg_type)) {
 		return true;
@@ -535,17 +556,7 @@ vector<Clause> QueryTable::GetPatternClauses() {
 
 vector<Clause> QueryTable::GetNoSynGroup()
 {
-	return vector<Clause>();
-}
-
-vector<Clause> QueryTable::GetNonConnectedGroup()
-{
-	return vector<Clause>();
-}
-
-vector<Clause> QueryTable::GetConnectedGroup()
-{
-	return vector<Clause>();
+	return no_syn_group_;
 }
 
 vector<vector<Clause>> QueryTable::GetConnectedGroups()

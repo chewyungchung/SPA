@@ -35,8 +35,6 @@ public:
 	vector<Clause> GetWithClauses();
 	vector<Clause> GetPatternClauses();
 	vector<Clause> GetNoSynGroup();
-	vector<Clause> GetNonConnectedGroup();
-	vector<Clause> GetConnectedGroup();
 	vector<vector<Clause>> GetConnectedGroups();
 	vector<vector<Clause>> GetNonConnectedGroups();
 	string GetSynType(string syn_type);
