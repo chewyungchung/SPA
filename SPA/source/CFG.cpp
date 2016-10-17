@@ -4,7 +4,7 @@
 CFG::CFG()
 {
 	unordered_map<int, Node> nodeTable();
-	Node *ptr = NULL;
+	Node *ptr = nullptr;
 }
 
 void CFG::addProcCFG()
@@ -12,21 +12,20 @@ void CFG::addProcCFG()
 	if (!(stack.empty())) {
 		assert(false);
 	}
-	*ptr = NULL;
+	ptr = nullptr;
 }
 
 void CFG::addStmtCFG(int stmtnum, string stmtType) {
-	if (stmtType == "assign" || stmtType == "calls") {
+	if (stmtType == "assign" || stmtType == "call") {
 		if (!ptr) {
-			Node n(stmtnum);
-			nodeTable.insert(pair<int, Node>(stmtnum, n));
-			ptr = &n;
+			ptr = new Node(stmtnum);
+			nodeTable.insert(pair<int, Node>(stmtnum, *ptr));
 		}
 		else {
-			Node n(stmtnum);
-			nodeTable.insert(pair<int, Node>(stmtnum, n));
-			Node(*ptr).addNext(n);
-			ptr = &n;
+			Node *n = new Node(stmtnum);
+			nodeTable.insert(pair<int, Node>(stmtnum, (*n)));
+			(*ptr).addNext((*n));
+			ptr = n;
 		}
 	}
 	else if (stmtType == "if" || stmtType == "while") {
@@ -43,16 +42,16 @@ void CFG::addStmtCFG(int stmtnum, string stmtType) {
 		}
 		stack.push(ptr);
 	}
-	assert(false);
+	//assert(false);
 }
 
 void CFG::closeIfCFG()
 {
-	Node empty(-1);
-	Node(*ptr).addNext(empty);
+	Node *empty = new Node(-1);
+	Node(*ptr).addNext(*empty);
 	ptr = stack.top();
 	stack.pop();
-	stack.push(&empty);
+	stack.push(empty);
 }
 
 void CFG::closeElseCFG()
