@@ -411,6 +411,16 @@ bool PKB::isSubExprExist(string subExpr)
 	return Ast.isSubExprExist(subExpr);
 }
 
+list<int> PKB::getAssignWithExpression(string expr)
+{
+	return Ast.getAssignWithExpression(expr);
+}
+
+list<int> PKB::getAssignWithSubExpression(string subExpr)
+{
+	return Ast.getAssignWithSubExpression(subExpr);
+}
+
 /***************** CFG ******************/
 void PKB::addProcCFG()
 {
@@ -456,12 +466,12 @@ bool PKB::isNextEmpty()
 	return Cfg.isNextEmpty();
 }
 
-int PKB::getExecutedBefore(int n)
+list<int> PKB::getExecutedBefore(int n)
 {
 	return Cfg.getExecutedBefore(n);
 }
 
-int PKB::getExecutedAfter(int n)
+list<int> PKB::getExecutedAfter(int n)
 {
 	return Cfg.getExecutedAfter(n);
 }
