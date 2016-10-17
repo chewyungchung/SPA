@@ -41,7 +41,7 @@ void ProcTable::addProc(string procName)
 	list<string> calledInStmtList = list<string>();
 	newProc[CALLED_IN_STMT_COL] = calledInStmtList;
 	
-	procDataTable[maxProcIndex] = newProc;
+	procDataTable.push_back(newProc);
 	maxProcIndex++;
 }
 
