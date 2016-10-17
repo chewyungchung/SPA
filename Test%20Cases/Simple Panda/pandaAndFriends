@@ -1,51 +1,108 @@
-procedure Panda {
-    a = 4;
-    b = a * a;
-    c = a * b + 3 * a;
-    call Elephant;
-    y = a + 2 * c;
-    while d {
-        d = a + y;
-        while z {
-            x = b + 5 * y + z;
-            m = z - 1;
-            call Monkey; 
+procedure Procedures {
+    Alpha=7; 
+    b=Alpha; 
+    Charlie=b;
+    call Golf;
+    d=Charlie; 
+    call Charlie;
+    Echo=d; 
+    Foxtrot=Alpha; 
+    call Echo;  
+    Golf=Alpha; 
+    call Alpha;  
+}
+procedure Alpha {
+    z=7; 
+    if Alpha then {  
+        y=z; 
+        call Bravo;  
+        while Charlie { 
+            x=z; 
+            while d { 
+                w=x; 
+                u=w;  
+                call Golf; 
+                t=w; 
+                x=0; 
+            } 
+            s=x; 
+            y=6; 
         }
-        v = d + 40 + 1; 
-    }
-    x = z + 2 * m + v;
-    if a then {
-        x = x * a; 
+        r=y; 
     }
     else {
-        x = x + a; 
-    }
-    y = x + 2;
-    call Giraffe; 
-}
-procedure Elephant {
-    while c {
-        if b then {
-            d = v + a; 
-        }
+        z=8; 
+        q=z; 
+        if b then { 
+            g=q; 
+            p=q; 
+            call Charlie;
+            o=p; 
+            n=g; 
+        } 
         else {
-            d = x * y + v * y + d; 
-        } 
-    } 
+            q=5; 
+            m=q; 
+            l=q; 
+            call Delta;  
+            k=m; 
+            j=l; 
+        }
+    }
+    i=z; 
+    h=k; 
+    g=g; 
 }
-procedure Monkey {
-    t = d + y;
-    if t then {
-        while x {
-            call Elephant;
-            d = d + a; 
-        } 
+procedure Bravo { 
+    while Bravo { 
+        call Charlie;  
+        while Charlie { 
+            Z=a; 
+            call Delta; 
+        }
+    }
+    X=Z; 
+    call Golf;  
+}
+procedure Charlie {
+    a=af+(n-k)*l*a*(s+m)-f*c; 
+    b=(s-b9)*u; 
+    c=s8*(a-f*a)*a*v; 
+    d=K*U-VC+v; 
+    e=Bravo+Ki*(nO-Np)*np; 
+    f=an*0-f*(9-a); 
+    g=(v*(2+q)*e)+b*9; 
+    call Echo; 
+}
+procedure Delta {
+    m=0; 
+    a=0; 
+    b=0; 
+    if Alpha then { 
+        call Foxtrot; 
     }
     else {
-        m = z + d + 1 + a; 
-    } 
+        call Golf; 
+    }
 }
-procedure Giraffe {
-    a = a * c - t - b + x * m;
-    call Monkey; 
+procedure Echo {
+    k=Alpha+Charlie+Echo; 
+    while K { 
+        t=c*k; 
+        call Golf;  
+    }
+}
+procedure Foxtrot {
+    if Bravo then { 
+        call Echo;
+    }
+    else { 
+        a=i*g; 
+    }
+    f=t+i; 
+    call Golf;  
+}
+procedure Golf {
+    w=0; 
+    last=end; 
 }
