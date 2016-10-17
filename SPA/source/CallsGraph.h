@@ -14,6 +14,6 @@ public:
 
 private:
 	int** adjM;
-	int vertexCount;
+	int vertexCount = 0;
 	bool isCyclicHelper(int v, bool visited[], bool* recStack);
 };

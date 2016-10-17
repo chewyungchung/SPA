@@ -13,11 +13,11 @@ CallsGraph::CallsGraph()
 
 CallsGraph::~CallsGraph()
 {
-	for (int i = 0; i < vertexCount; i++)
+	/*for (int i = 0; i < vertexCount; i++)
 	{
 		delete[] adjM[i];
 	}
-	delete[] adjM;
+	delete[] adjM;*/
 }
 
 void CallsGraph::initializeCallsGraph(int vertexCount)
