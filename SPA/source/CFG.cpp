@@ -9,7 +9,7 @@ CFG::CFG()
 
 void CFG::addProcCFG()
 {
-	if (!(stack.empty)) {
+	if (!(stack.empty())) {
 		assert(false);
 	}
 	*ptr = NULL;
@@ -50,22 +50,25 @@ void CFG::closeIfCFG()
 {
 	Node empty(-1);
 	Node(*ptr).addNext(empty);
-	ptr = stack.pop;
+	ptr = stack.top();
+	stack.pop();
 	stack.push(&empty);
 }
 
 void CFG::closeElseCFG()
 {
-	Node cur = stack.pop;
-	Node(*ptr).addNext(cur);
-	ptr = &cur;
+	Node *cur = stack.top();
+	stack.pop();
+	Node(*ptr).addNext(*cur);
+	ptr = cur;
 }
 
 void CFG::closeWhileCFG()
 {
-	Node cur = stack.pop;
-	Node(*ptr).addNext(cur);
-	ptr = &cur;
+	Node *cur = stack.top();
+	stack.pop();
+	Node(*ptr).addNext(*cur);
+	ptr = cur;
 }
 
 void CFG::buildCFGMatrix()

@@ -151,8 +151,8 @@ public:
 	bool isNext(int n1, int n2);
 	bool isNextStar(int n1, int n2);
 	bool isNextEmpty();
-	int getExecutedBefore(int n);
-	int getExecutedAfter(int n);
+	list<int> getExecutedBefore(int n);
+	list<int> getExecutedAfter(int n);
 	list<int> getExecutedBeforeStar(int n);
 	list<int> getExecutedAfterStar(int n);
 private:

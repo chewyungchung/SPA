@@ -456,12 +456,12 @@ bool PKB::isNextEmpty()
 	return Cfg.isNextEmpty();
 }
 
-int PKB::getExecutedBefore(int n)
+list<int> PKB::getExecutedBefore(int n)
 {
 	return Cfg.getExecutedBefore(n);
 }
 
-int PKB::getExecutedAfter(int n)
+list<int> PKB::getExecutedAfter(int n)
 {
 	return Cfg.getExecutedAfter(n);
 }
