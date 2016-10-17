@@ -13,17 +13,19 @@ volatile bool TestWrapper::GlobalStop = false;
 TestWrapper::TestWrapper() {
   // create any objects here as instance variables of this class
   // as well as any initialization required for your spa program
-	_qv = QueryValidator();
-	_qe = QueryEvaluator();
-	_qrp = QueryResultProjector();
+	qv_ = QueryValidator();
+	//qe_ = QueryEvaluator();
 }
 
 // method for parsing the SIMPLE source
 void TestWrapper::parse(std::string filename) {
 	// call your parser to do the parsing
   // ...rest of your code...
-	_parser = Parser(filename);
-	_pkb = _parser.process();
+	cout << "Start parsing!" << endl;
+	parser_ = Parser(filename);
+	cout << "File initialized" << endl;
+	pkb_ = parser_.process();
+	cout << "SRC code parsing complete" << endl;
 }
 
 // method to evaluating a query
@@ -31,24 +33,14 @@ void TestWrapper::evaluate(std::string query, std::list<std::string>& results){
 // call your evaluator to evaluate the query here
   // ...code to evaluate query...
 	//std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	_qv = QueryValidator(query);
-	QueryTable _qt = _qv.parse();
-	_qe = QueryEvaluator(_qt, _pkb);
-	QueryTable _qtresults = _qe.evaluate();
-
-	/*vector<string> patternResults = _qtresults.getPatternResult().getPatternResultList();
-	if (patternResults.empty() == false) {
-		cout << "Pattern results:::::" << endl;
-		for (vector<string>::iterator it = patternResults.begin(); it != patternResults.end(); it++) {
-			cout << *it << endl;
-		}
-	}*/
-
-	_qrp = QueryResultProjector(_qtresults,_pkb);
-	//std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	list<string> finalResults = _qrp.getResults();
-	finalResults.unique();
-	results = finalResults;
+	cout << "Starting query stuff" << endl;
+	qv_ = QueryValidator(query);
+	QueryTable qt_ = qv_.Parse();
+	qt_.Optimize();
+	QueryEvaluator qe_(qt_, pkb_);
+	list<string> final_results = qe_.Evaluate();
+	final_results.unique();
+	results = final_results;
 
 	//// store the answers to the query in the results list (it is initially empty)
 	//// each result must be a string.
