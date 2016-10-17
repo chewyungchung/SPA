@@ -5,18 +5,6 @@
 #include <iostream>
 #include <list>
 
-#include "Parser.h"
-#include "QueryValidator.h"
-#include "QueryEvaluator.h"
-#include "QueryResultProjector.h"
-#include "QueryTokenizer.h"
-#include "QueryToken.h"
-#include "QueryTable.h"
-#include "QueryException.h"
-#include "RelationTable.h"
-#include "Relation.h"
-#include "Clause.h"
-
 class AbstractWrapper {
 public:
   static volatile bool GlobalStop;
