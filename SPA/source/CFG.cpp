@@ -73,7 +73,7 @@ void CFG::closeWhileCFG()
 
 void CFG::buildCFGMatrix()
 {
-	int size = nodeTable.size + 1;
+	int size = nodeTable.size() + 1;
 	int** matrix = new int*[size];
 	for (int i = 0; i < size; ++i) {
 		matrix[i] = new int[size];
@@ -81,7 +81,7 @@ void CFG::buildCFGMatrix()
 
 	for (auto map : nodeTable) {
 		for (Node n : map.second.getNextList()) {
-			matrix[map.first][n.getStmtnum] = 1;
+			matrix[map.first][n.getStmtnum()] = 1;
 		}
 	}
 
@@ -120,7 +120,7 @@ bool CFG::isNextStar(int n1, int n2) {
 }
 
 bool CFG::isNextEmpty() {
-	int size = nodeTable.size + 1;
+	int size = nodeTable.size() + 1;
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			if (matrix[i][j] != 0) {
@@ -132,7 +132,7 @@ bool CFG::isNextEmpty() {
 }
 
 list<int> CFG::getExecutedBefore(int n) {
-	int size = nodeTable.size + 1;
+	int size = nodeTable.size() + 1;
 	list<int> output;
 	for (int i = 0; i < size; ++i) {
 		if (matrix[i][n] == 1) {
@@ -143,7 +143,7 @@ list<int> CFG::getExecutedBefore(int n) {
 }
 
 list<int> CFG::getExecutedAfter(int n) {
-	int size = nodeTable.size + 1;
+	int size = nodeTable.size() + 1;
 	list<int> output;
 	for (int i = 0; i < size; ++i) {
 		if (matrix[n][i] == 1) {
@@ -154,7 +154,7 @@ list<int> CFG::getExecutedAfter(int n) {
 }
 
 list<int> CFG::getExecutedBeforeStar(int n) {
-	int size = nodeTable.size + 1;
+	int size = nodeTable.size() + 1;
 	list<int> output;
 	for (int i = 0; i < size; ++i) {
 		if (matrix[i][n] != 0) {
@@ -165,7 +165,7 @@ list<int> CFG::getExecutedBeforeStar(int n) {
 }
 
 list<int> CFG::getExecutedAfterStar(int n) {
-	int size = nodeTable.size + 1;
+	int size = nodeTable.size() + 1;
 	list<int> output;
 	for (int i = 0; i < size; ++i) {
 		if (matrix[n][i] != 0) {
