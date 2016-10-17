@@ -1,0 +1,75 @@
+1 - select all assignments 
+procedure p, q; assign a;
+Select a such that Calls (p,q)
+1, 2, 3, 5, 7, 8, 10, 12, 14, 17, 19, 20, 22, 23, 24, 25, 26, 27, 28, 30, 31, 33, 34, 35, 36, 37, 39, 40, 41, 42, 43, 47, 49, 51, 52, 53, 54, 55, 56, 57, 59, 60, 61, 65, 67, 71, 72, 74, 75
+5000
+2 - select all while
+procedure p, q; while w;
+Select w such that Calls (p,q)
+16, 18, 44, 46, 66
+5000
+3 - select procedure such that procedure direct call or indirect call another procedure
+procedure p;
+Select p such that Calls* (p, _)
+Procedures, Alpha, Bravo, Charlie, Delta, Echo, Foxtrot
+5000
+4 - select procedures calls in procedure
+procedure p;
+Select p such that Calls ("Procedures", p)
+Alpha, Charlie, Echo, Golf
+5000
+5 - select procedures in Delta
+procedure p;
+Select p such that Calls ("Delta",p)
+Foxtrot, Golf
+5000
+6 - select procedures in Echo
+procedure p;
+Select p such that Calls ("Echo",p)
+Golf
+5000
+7 - select procedure q, such that p call q
+procedure p, q;
+Select q such that Calls (p, q)
+Alpha, Bravo, Charlie, Delta, Echo, Foxtrot, Golf
+5000
+8 - select all stmt
+procedure p, q; stmt s;
+Select s such that Calls* (p,q)
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75
+5000
+9 - select all assignments
+procedure p, q; assign a;
+Select a such that Calls* (p,q)
+1, 2, 3, 5, 7, 8, 10, 12, 14, 17, 19, 20, 22, 23, 24, 25, 26, 27, 28, 30, 31, 33, 34, 35, 36, 37, 39, 40, 41, 42, 43, 47, 49, 51, 52, 53, 54, 55, 56, 57, 59, 60, 61, 65, 67, 71, 72, 74, 75
+5000
+10 - select procedure such that Bravo call golf directly/indirectly
+procedure p;
+Select p such that Calls* ("Bravo","Golf")
+Procedures, Alpha, Bravo, Charlie, Delta, Echo, Foxtrot, Golf
+5000
+11 - no "k"
+procedure p;
+Select p such that Calls* (p,"k")
+
+5000
+12 - Select procedure such that Delta call procedure
+procedure p;
+Select p such that Calls ("Delta",p)
+Foxtrot, Golf
+5000
+13 - procedure calling procedures
+procedure p;
+Select p such that Calls ("Bravo",p)
+Charlie, Delta, Golf 
+5000
+14 - anything that call foxtrot
+
+Select BOOLEAN such that Calls (_, "Foxtrot")
+true
+5000
+15 - echo calling anything
+
+Select BOOLEAN such that Calls ("Echo", _)
+true
+5000
