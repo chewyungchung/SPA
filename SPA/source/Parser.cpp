@@ -51,13 +51,13 @@ void Parser::parseProgram()
 	parseProcedure();
 
 	/******** Program parsed ********/
-	// postfixing -> setup design extractor
+	// Postfixing -> setup design extractor
 	list<string> procList = _pkb.getProcedureList();
 	int procCount = procList.size();
 	_de = DesignExtractor(_pkb, procCount);
-	// check cyclic call
+	// Check cyclic call
 	_de.buildCallsGraph(procCount);
-	// update mod/uses for all procedures if acyclic
+	// Update mod/uses for all procedures if acyclic
 	if (!_pkb.isCallsGraphCyclic())
 	{
 		_de.updateAllProcModUses();
@@ -66,6 +66,8 @@ void Parser::parseProgram()
 	{
 		throw invalid_argument("SIMPLE syntax error, recursive calls");
 	}
+	// Now update callStmts for Mod/Uses as well as all parentStar of the callStmts
+	_de.updateAllCallStmtModUses();
 
 	// build CFG matrix
 	_pkb.buildCFGMatrix();
@@ -83,7 +85,7 @@ void Parser::parseProcedure()
 	match(LEFT_BRACES);
 	parseStmtLst();
 	match(RIGHT_BRACES);
-	//////////////////////////////// _pkb.closeProcCFG();
+	// _pkb.closeProcCFG();
 	if (next_token == PROCEDURE_FLAG)
 	{
 		// Entering into new procedure,
@@ -238,9 +240,6 @@ void Parser::parseElseStmt()
 
 void Parser::parseCallStmt()
 {
-	// Populate StatementTable
-	_pkb.addStatement(stmtLine, CALL_FLAG);
-
 	// Populate ParentTable and FollowsTable for this call stmt
 	_pkb.addParent(parentStack.top(), stmtLine);
 	addAllParentsOfCurrStmt(stmtLine);
@@ -256,6 +255,9 @@ void Parser::parseCallStmt()
 
 	string caller = procName;
 	string callee = next_token;
+
+	// Populate StatementTable
+	_pkb.addStatement(stmtLine, CALL_FLAG, callee);
 
 	match(callee);
 

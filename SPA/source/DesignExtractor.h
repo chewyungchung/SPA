@@ -13,6 +13,7 @@ public:
 
 	void buildCallsGraph(int vertexCount);
 	void updateAllProcModUses();
+	void updateAllCallStmtModUses();
 
 private:
 	PKB _pkb;

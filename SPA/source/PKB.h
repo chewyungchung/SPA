@@ -98,6 +98,7 @@ public:
 	list<int> getStmtList();
 	int getStatementCount();
 	bool isValidStmt(int stmtNum);
+	string getProcNameByCallStmt(int callStmt);
 	list<int> getIfListWithControlVariable(string control_var);
 	list<int> getWhileListWithControlVariable(string control_var);
 

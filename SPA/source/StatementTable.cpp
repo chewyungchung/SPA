@@ -10,6 +10,7 @@ StatementTable::StatementTable()
 	list<int> allStmtList;
 	list<int> ifList;
 	list<int> callList;
+	unordered_map<int, string> callProcList; // key: callstmt#, value: associated procName
 	unordered_map<int, string> ctrlvarList;
 }
 
@@ -24,18 +25,13 @@ void StatementTable::addStatement(int stmtNum, string stmtType)
 		assignList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
 	}
-	else if (stmtType == "call")
-	{
-		callList.push_back(stmtNum);
-		allStmtList.push_back(stmtNum);
-	}
 	else
 	{
 		assert(false);
 	}
 }
 
-void StatementTable::addStatement(int stmtNum, string stmtType, string ctrlvar)
+void StatementTable::addStatement(int stmtNum, string stmtType, string ctrlVar_or_procName)
 {
 	if (stmtType == "assign")
 	{
@@ -46,18 +42,19 @@ void StatementTable::addStatement(int stmtNum, string stmtType, string ctrlvar)
 	{
 		callList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
+		callProcList.insert(pair<int, string>(stmtNum, ctrlVar_or_procName));
 	}
 	else if (stmtType == "while")
 	{
 		whileList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
-		ctrlvarList.insert(pair<int, string>(stmtNum, ctrlvar));
+		ctrlvarList.insert(pair<int, string>(stmtNum, ctrlVar_or_procName));
 	}
 	else if (stmtType == "if")
 	{
 		ifList.push_back(stmtNum);
 		allStmtList.push_back(stmtNum);
-		ctrlvarList.insert(pair<int, string>(stmtNum, ctrlvar));
+		ctrlvarList.insert(pair<int, string>(stmtNum, ctrlVar_or_procName));
 	}
 	else
 	{
@@ -83,6 +80,20 @@ list<int> StatementTable::getIfList()
 list<int> StatementTable::getCallList()
 {
 	return callList;
+}
+
+string StatementTable::getProcNameByCallStmt(int callStmt)
+{
+	string result = "";
+	for (const auto& i : callProcList)
+	{
+		if (i.first == callStmt && (find(callList.begin(), callList.end(), i.first) != callList.end()))
+		{
+			result = i.second;
+			break;
+		}
+	}
+	return result;
 }
 
 list<int> StatementTable::getIfListWithControlVariable(string ctrlvar)

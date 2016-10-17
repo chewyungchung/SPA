@@ -100,3 +100,47 @@ void DesignExtractor::addAllUsedVar(int parent, int child)
 		_pkb.addProcUses(s_parent, *it);
 	}
 }
+
+void DesignExtractor::updateAllCallStmtModUses()
+{
+	list<int> callStmtList = _pkb.getCallList();
+
+	list<int>::iterator it;
+	for (it = callStmtList.begin(); it != callStmtList.end(); ++it)
+	{
+		// Update this callStmt with its associated called procedure's Mod/Uses
+		int currCallStmt = *it;
+		// Update this parentStars of this callStmt with associated proc's Mod/Uses as well
+		list<int> currCallStmtParentStars = _pkb.getParentStar(currCallStmt);
+
+		string associatedProc = _pkb.getProcNameByCallStmt(currCallStmt);
+		list<string> mVarList = _pkb.getModifiedByProc(associatedProc);
+		list<string> uVarList = _pkb.getUsedByProc(associatedProc);
+
+		list<int>::iterator parentStarIt;
+
+		list<string>::iterator mIt;		
+		for (mIt = mVarList.begin(); mIt != mVarList.end(); ++mIt)
+		{
+			_pkb.addModifies(currCallStmt, *mIt);
+			_pkb.addModifies(*mIt, currCallStmt);
+			for (parentStarIt = currCallStmtParentStars.begin(); parentStarIt != currCallStmtParentStars.end(); ++parentStarIt)
+			{
+				_pkb.addModifies(*parentStarIt, *mIt);
+				_pkb.addModifies(*mIt, *parentStarIt);
+			}
+		}
+
+		list<string>::iterator uIt;
+		for (uIt = uVarList.begin(); uIt != uVarList.end(); ++uIt)
+		{
+			_pkb.addUses(currCallStmt, *uIt);
+			_pkb.addUses(*uIt, currCallStmt);
+			for (parentStarIt = currCallStmtParentStars.begin(); parentStarIt != currCallStmtParentStars.end(); ++parentStarIt)
+			{
+				_pkb.addUses(*parentStarIt, *uIt);
+				_pkb.addUses(*uIt, *parentStarIt);
+			}
+		}
+	}
+}
