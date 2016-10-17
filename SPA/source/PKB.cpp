@@ -411,6 +411,16 @@ bool PKB::isSubExprExist(string subExpr)
 	return Ast.isSubExprExist(subExpr);
 }
 
+list<int> PKB::getAssignWithExpression(string expr)
+{
+	return Ast.getAssignWithExpression(expr);
+}
+
+list<int> PKB::getAssignWithSubExpression(string subExpr)
+{
+	return Ast.getAssignWithSubExpression(subExpr);
+}
+
 /***************** CFG ******************/
 void PKB::addProcCFG()
 {

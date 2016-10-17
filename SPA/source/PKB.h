@@ -140,6 +140,8 @@ public:
 	void addExpr(int stmt, string expr);
 	bool isExprExist(string expr);
 	bool isSubExprExist(string subExpr);
+	list<int> getAssignWithExpression(string expr);
+	list<int> getAssignWithSubExpression(string subExpr);
 
 	void addProcCFG();
 	void addStmtCFG(int stmtnum, string stmtType);
