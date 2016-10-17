@@ -12,21 +12,17 @@
 #include "QueryToken.h"
 #include "QueryTokenizer.h"
 #include "QueryTable.h"
-#include "QueryResult.h"
 #include "QueryEvaluator.h"
 #include "QueryValidator.h"
+#include "ResultTable.h"
 #include "QueryResultProjector.h"
-#include <chrono>
-#include <thread>
 
 class TestWrapper : public AbstractWrapper {
 private:
-	Parser _parser;
-	QueryValidator _qv;
-	QueryEvaluator _qe;
-	QueryResultProjector _qrp;
-	PKB _pkb;
-
+	Parser parser_;
+	PKB pkb_;
+	QueryValidator qv_;
+	QueryEvaluator qe_;
 public:
   // default constructor
   TestWrapper();
