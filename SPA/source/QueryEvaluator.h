@@ -27,6 +27,7 @@ const string REL_CALLS = "calls";
 const string REL_CALLS_STAR = "calls*";
 const string REL_PATTERN = "pattern";
 const string REL_WITH = "with";
+const string REL_SUBSTITUTE = "substitute";
 
 const string ARGTYPE_NUMBER = "number";
 const string ARGTYPE_CONSTANT = "constant";
@@ -55,7 +56,7 @@ class QueryEvaluator {
 public:
 	QueryEvaluator();
 	QueryEvaluator(QueryTable, PKB);
-	vector<vector<ResultTable>> Evaluate();
+	list<string> Evaluate();
 
 private:
 	vector<vector<ResultTable>> connected_group_intermediate_result_;
@@ -64,6 +65,7 @@ private:
 	QueryTable input_query_;
 	PKB pkb_;
 
+	ResultTable ProcessSubstitute(Clause substitute_clause);
 	ResultTable ProcessClause(Clause input_clause);
 	ResultTable ProcessSuchThat(Clause such_that_clause);
 	ResultTable ProcessFollows(Clause follow_clause);

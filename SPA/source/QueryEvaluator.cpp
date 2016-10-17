@@ -8,33 +8,88 @@ QueryEvaluator::QueryEvaluator(QueryTable input_query, PKB pkb) {
 	pkb_ = pkb;
 }
 
-vector<vector<ResultTable>> QueryEvaluator::Evaluate() {
+list<string> QueryEvaluator::Evaluate() {
 	// Check if the QueryTable given by validator is NULL. Return NULL if 1
-	vector<vector<ResultTable>> empty_table;
+	//vector<vector<ResultTable>> empty_table;
+	list<string> final_results;
 
 	if (input_query_.IsNullQuery() == true) {
-		return empty_table;
+		return final_results;
 	}
 
 	if (ProcessNoSynGroup() == false) {
-		return empty_table;
+		return final_results;
 	} 
 
 	if (ProcessNonConnectedGroups() == false) {
-		return empty_table;
+		return final_results;
 	}
 
 	if (ProcessConnectedGroups() == false) {
-		return empty_table;
+		return final_results;
 	}
 
-	return connected_group_intermediate_result_;
+	QueryResultProjector output_manager(connected_group_intermediate_result_, non_connected_group_intermediate_result_, input_query_.GetSelectClause());
+	final_results = output_manager.GetResults();
+	return final_results;
+}
+
+ResultTable QueryEvaluator::ProcessSubstitute(Clause substitute_clause)
+{
+	string substitute_arg = substitute_clause.GetArg().at(0);
+	string substitute_arg_type = substitute_clause.GetArgType().at(0);
+	ResultTable temp_result = ResultTable(substitute_arg);
+	list<int> data_list;
+	vector<string> temp_row_data;
+
+	if (substitute_arg_type == ARGTYPE_PROCEDURE) {
+		list<string> procedure_list = pkb_.getProcedureList();
+		if (procedure_list.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &procedure : procedure_list) {
+				temp_row_data.push_back(procedure);
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
+	else if (substitute_arg_type == ARGTYPE_VARIABLE) {
+		list<string> variable_list = pkb_.getVarList();
+		if (variable_list.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &variable : variable_list) {
+				temp_row_data.push_back(variable);
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
+	else {
+		data_list = GetList(substitute_arg_type);
+		if (data_list.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &data : data_list) {
+				temp_row_data.push_back(to_string(data));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
 }
 
 ResultTable QueryEvaluator::ProcessClause(Clause input_clause)
 {
 	string relation = input_clause.GetRelation();
-	if (relation == REL_PATTERN) {
+	if (relation == REL_SUBSTITUTE) {
+		return ProcessSubstitute(input_clause);
+	}
+	else if (relation == REL_PATTERN) {
 		return ProcessPattern(input_clause);
 	}
 	else if (relation == REL_WITH) {
@@ -135,7 +190,7 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 				return temp_result;
 			}
 
-			temp_result = ResultTable(arg1);
+			temp_result = ResultTable(arg2);
 			vector<string> temp_row_data;
 
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
@@ -187,7 +242,6 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 					temp_row_data.push_back(to_string(arg2_stmt_num));
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
-					break;
 				}
 			}
 
@@ -2020,12 +2074,12 @@ ResultTable QueryEvaluator::ProcessWith(Clause with_clause)
 
 	ResultTable temp_result;
 
-	if ((arg1_type != ARGTYPE_PROCEDURE) && (arg1_type != ARGTYPE_CALLS_NAME) && (arg1_type != ARGTYPE_VARIABLE)
-		|| (arg2_type != ARGTYPE_PROCEDURE) && (arg2_type != ARGTYPE_CALLS_NAME) && (arg2_type != ARGTYPE_VARIABLE)) {
-		temp_result = ProcessWithName(with_clause);
+	if ((arg1_type != ARGTYPE_PROCEDURE && arg1_type != ARGTYPE_CALLS_NAME && arg1_type != ARGTYPE_VARIABLE && arg1_type != ARGTYPE_STRING)
+		&& (arg2_type != ARGTYPE_PROCEDURE && arg2_type != ARGTYPE_CALLS_NAME && arg2_type != ARGTYPE_VARIABLE && arg2_type != ARGTYPE_STRING)) {
+		temp_result = ProcessWithNumber(with_clause);
 	}
 	else {
-		temp_result = ProcessWithNumber(with_clause);
+		temp_result = ProcessWithName(with_clause);
 	}
 
 	return temp_result;
@@ -2134,7 +2188,7 @@ ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 		arg2_data_list.push_back(stoi(arg2));
 	}
 	else {
-		is_arg1_syn = true;
+		is_arg2_syn = true;
 		temp_result.InsertNewColumn(arg2);
 		arg2_data_list = GetList(arg2_type);
 	}
@@ -2150,6 +2204,7 @@ ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 					if (is_arg2_syn == true) {
 						temp_row_data.push_back(to_string(arg2_stmt_num));
 					}
+					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
 			}
@@ -2485,7 +2540,7 @@ list<int> QueryEvaluator::GetList(string arg_type) {
 	else if (arg_type == ARGTYPE_IF) {
 		wanted_list = pkb_.getIfList();
 	} 
-	else if (arg_type == ARGTYPE_CALLS_NUMBER) {
+	else if (arg_type == ARGTYPE_CALLS || arg_type == ARGTYPE_CALLS_NUMBER) {
 		wanted_list = pkb_.getCallList();
 	}
 	else if (arg_type == ARGTYPE_STMT || arg_type == ARGTYPE_PROG_LINE) {
