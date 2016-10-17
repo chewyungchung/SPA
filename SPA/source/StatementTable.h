@@ -14,6 +14,7 @@ private:
 	list<int> allStmtList;
 	list<int> ifList;
 	list<int> callList;
+	unordered_map<int, string> callProcList; // key: callstmt#, value: associated procName
 	unordered_map<int, string> ctrlvarList;
 
 	public:
@@ -25,6 +26,7 @@ private:
 	list<int> getWhileList();
 	list<int> getIfList();
 	list<int> getCallList();
+	string getProcNameByCallStmt(int callStmt);
 	list<int> getIfListWithControlVariable(string ctrlvar);
 	list<int> getWhileListWithControlVariable(string ctrlvar);
 	list<int> getStmtList();

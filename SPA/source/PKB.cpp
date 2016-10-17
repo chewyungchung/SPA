@@ -207,11 +207,18 @@ list<int> PKB::getCallList()
 	return S_Table.getCallList();
 }
 
-list<int> PKB::getIfListWithControlVariable(string control_var) {
+string PKB::getProcNameByCallStmt(int callStmt)
+{
+	return S_Table.getProcNameByCallStmt(callStmt);
+}
+
+list<int> PKB::getIfListWithControlVariable(string control_var)
+{
 	return S_Table.getIfListWithControlVariable(control_var);
 }
 
-list<int> PKB::getWhileListWithControlVariable(string control_var) {
+list<int> PKB::getWhileListWithControlVariable(string control_var)
+{
 	return S_Table.getWhileListWithControlVariable(control_var);
 }
 
