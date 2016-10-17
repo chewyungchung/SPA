@@ -156,7 +156,11 @@ void QueryValidator::MatchResultClauseElement(bool is_tuple)
 		}
 
 		select_arg.push_back(result_syn);
-		select_arg_type.push_back(result_syn_type);
+		if (result_syn_type == "constant") {
+			select_arg_type.push_back("value");
+		} else{
+			select_arg_type.push_back(result_syn_type);
+		}
 		Match(result_syn);
 	}
 
