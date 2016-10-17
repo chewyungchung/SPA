@@ -68,7 +68,7 @@ void Parser::parseProgram()
 	}
 
 	// build CFG matrix
-	_pkb.buildCFGMatrix();
+	//_pkb.buildCFGMatrix();
 }
 
 void Parser::parseProcedure()
@@ -77,7 +77,7 @@ void Parser::parseProcedure()
 	procName = next_token;
 
 	_pkb.addProc(procName);
-	_pkb.addProcCFG();
+	//_pkb.addProcCFG();
 
 	match(procName);
 	match(LEFT_BRACES);
@@ -135,7 +135,7 @@ void Parser::parseStmtLst()
 void Parser::parseWhileStmt()
 {
 	// Populate CFG
-	_pkb.addStmtCFG(stmtLine, WHILE_FLAG);
+	//_pkb.addStmtCFG(stmtLine, WHILE_FLAG);
 
 	// Populate ParentTable for current while stmt and set current while stmt as current parent
 	_pkb.addParent(parentStack.top(), stmtLine);
@@ -173,13 +173,13 @@ void Parser::parseWhileStmt()
 	// As well inform CFG of exit
 	parentStack.pop();
 	followsStack.pop();
-	_pkb.closeWhileCFG();
+	//_pkb.closeWhileCFG();
 }
 
 void Parser::parseIfStmt()
 {
 	// Populate CFG
-	_pkb.addStmtCFG(stmtLine, IF_FLAG);
+	//_pkb.addStmtCFG(stmtLine, IF_FLAG);
 
 	// Populate ParentTable for current if stmt and set current if stmt as current parent
 	_pkb.addParent(parentStack.top(), stmtLine);
@@ -216,7 +216,7 @@ void Parser::parseIfStmt()
 	// Exiting from if: exit nesting level
 	// As well inform CFG of exit
 	followsStack.pop();
-	_pkb.closeIfCFG();
+	//_pkb.closeIfCFG();
 }
 
 void Parser::parseElseStmt()
@@ -233,7 +233,7 @@ void Parser::parseElseStmt()
 	// Exiting else, pop if parent, exit nestingLevel, updateCFG
 	parentStack.pop();
 	followsStack.pop();
-	_pkb.closeElseCFG();
+	//_pkb.closeElseCFG();
 }
 
 void Parser::parseCallStmt()
@@ -250,10 +250,14 @@ void Parser::parseCallStmt()
 	_pkb.addProcCalledInStmt(procName, stmtLine);
 
 	// Populate CFG
-	_pkb.addStmtCFG(stmtLine, CALL_FLAG);
+	//_pkb.addStmtCFG(stmtLine, CALL_FLAG);
+
+	match(CALL_FLAG);
 
 	string caller = procName;
 	string callee = next_token;
+
+	match(callee);
 
 	// Populate CallTable
 	_pkb.addCalls(caller, callee);
@@ -265,7 +269,7 @@ void Parser::parseAssignStmt()
 	_pkb.addStatement(stmtLine, ASSIGN_FLAG);
 
 	// Populate CFG
-	_pkb.addStmtCFG(stmtLine, ASSIGN_FLAG);
+	//_pkb.addStmtCFG(stmtLine, ASSIGN_FLAG);
 
 	// Populate ParentTable and FollowsTable for this assign stmt
 	_pkb.addParent(parentStack.top(), stmtLine);
