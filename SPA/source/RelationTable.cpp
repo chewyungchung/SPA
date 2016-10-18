@@ -6,8 +6,8 @@ RelationTable::RelationTable() {
 	vector<string> arg2_type;
 
 	// Follow & Follow*
-	arg1_type = { "stmt", "assign", "while", "if", "calls", "constant", "_", "prog_line" };
-	arg2_type = { "stmt", "assign", "while", "if", "calls", "constant", "_", "prog_line" };
+	arg1_type = { "stmt", "assign", "while", "if", "call", "constant", "_", "prog_line" };
+	arg2_type = { "stmt", "assign", "while", "if", "call", "constant", "_", "prog_line" };
 	Relation follow(2, arg1_type, arg2_type);
 	relation_table_["follows"] = follow;
 	relation_table_["follows*"] = follow;
@@ -16,7 +16,7 @@ RelationTable::RelationTable() {
 
 	// Parent & Parent*
 	arg1_type = { "stmt", "prog_line", "while", "if", "constant", "_" };
-	arg2_type = { "stmt", "assign", "while", "if", "prog_line", "calls", "constant", "_" };
+	arg2_type = { "stmt", "assign", "while", "if", "prog_line", "call", "constant", "_" };
 	Relation parent(2, arg1_type, arg2_type);
 	relation_table_["parent"] = parent;
 	relation_table_["parent*"] = parent;
@@ -24,7 +24,7 @@ RelationTable::RelationTable() {
 	arg2_type.clear();
 
 	// Modifies
-	arg1_type = { "stmt", "assign", "while", "if", "calls", "prog_line", "string", "constant", "procedure" };
+	arg1_type = { "stmt", "assign", "while", "if", "call", "prog_line", "string", "constant", "procedure" };
 	arg2_type = { "variable", "string", "_" };
 	Relation modifies(2, arg1_type, arg2_type);
 	relation_table_["modifies"] = modifies;
@@ -32,7 +32,7 @@ RelationTable::RelationTable() {
 	arg2_type.clear();
 
 	// Uses
-	arg1_type = { "stmt", "assign", "while", "if", "calls", "prog_line", "string", "constant", "procedure" };
+	arg1_type = { "stmt", "assign", "while", "if", "call", "prog_line", "string", "constant", "procedure" };
 	arg2_type = { "variable", "string", "_" };
 	Relation uses(2, arg1_type, arg2_type);
 	relation_table_["uses"] = uses;
@@ -73,8 +73,8 @@ RelationTable::RelationTable() {
 	arg2_type.clear();
 
 	// Next & Next*
-	arg1_type = { "stmt", "assign", "while", "if", "calls", "prog_line", "constant", "_" };
-	arg2_type = { "stmt", "assign", "while", "if", "calls", "prog_line", "constant", "_" };
+	arg1_type = { "stmt", "assign", "while", "if", "call", "prog_line", "constant", "_" };
+	arg2_type = { "stmt", "assign", "while", "if", "call", "prog_line", "constant", "_" };
 	Relation next(2, arg1_type, arg2_type);
 	relation_table_["next"] = next;
 	relation_table_["next*"] = next;
