@@ -88,7 +88,7 @@ void ProcTable::addProcCalledInStmt(string procName, int stmtLine)
 		bool foundDup = find(calledInVarList.begin(), calledInVarList.end(), to_string(stmtLine)) != calledInVarList.end();
 		if (!foundDup)
 		{
-			procDataTable[it->second][USEVAR_COL].push_back(to_string(stmtLine));
+			procDataTable[it->second][CALLED_IN_STMT_COL].push_back(to_string(stmtLine));
 		}
 	}
 }
@@ -190,7 +190,7 @@ list<string> ProcTable::getProcedureModifying(string varName)
 {
 	list<string> results = list<string>();
 
-	for (int i = 0; i < procDataTable.size(); i++)
+	for (unsigned i = 0; i < procDataTable.size(); i++)
 	{
 		list<string> currModVarList = procDataTable[i][MODVAR_COL];
 		bool foundVar = find(currModVarList.begin(), currModVarList.end(), varName) != currModVarList.end();
@@ -206,7 +206,7 @@ list<string> ProcTable::getProcedureUsing(string varName)
 {
 	list<string> results = list<string>();
 
-	for (int i = 0; i < procDataTable.size(); i++)
+	for (unsigned i = 0; i < procDataTable.size(); i++)
 	{
 		list<string> currUsesVarList = procDataTable[i][USEVAR_COL];
 		bool foundVar = find(currUsesVarList.begin(), currUsesVarList.end(), varName) != currUsesVarList.end();
@@ -249,7 +249,7 @@ list<string> ProcTable::getCalledProcNamesList()
 {
 	list<string> results = list<string>();
 
-	for (int i = 0; i < procDataTable.size(); i++)
+	for (unsigned i = 0; i < procDataTable.size(); i++)
 	{
 		list<string> currCalledInStmtList = procDataTable[i][CALLED_IN_STMT_COL];
 		if (!currCalledInStmtList.empty())
