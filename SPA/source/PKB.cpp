@@ -485,7 +485,7 @@ list<int> PKB::getExecutedAfter(int n)
 
 list<int> PKB::getExecutedBeforeStar(int n)
 {
-	return getExecutedBeforeStar(n);
+	return Cfg.getExecutedBeforeStar(n);
 }
 
 list<int> PKB::getExecutedAfterStar(int n)
