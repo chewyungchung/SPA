@@ -164,6 +164,8 @@ list<string> CallsTable::getCallerStar(string callee)
 {
 	getCallersStarHelperList = list<string>();
 	getCallersStarHelper(callee);
+	getCalleesStarHelperList.sort();
+	getCallersStarHelperList.unique();
 	return getCallersStarHelperList;
 }
 
@@ -176,13 +178,15 @@ void CallsTable::getCallersStarHelper(string callee)
 		{
 			if (*calleeIndex == callee)
 			{
-				bool checkedBefore = find(getCallersStarHelperList.begin(), getCallersStarHelperList.end(), *calleeIndex) != getCallersStarHelperList.end();
-				if (!checkedBefore)
-				{
-					// Push this caller into the list and search into it
-					getCallersStarHelperList.push_back(callerIndex->first);
-					getCallersStarHelper(callerIndex->first);
-				}
+				getCallersStarHelperList.push_back(callerIndex->first);
+				getCallersStarHelper(callerIndex->first);
+				//bool checkedBefore = find(getCallersStarHelperList.begin(), getCallersStarHelperList.end(), *calleeIndex) != getCallersStarHelperList.end();
+				//if (!checkedBefore)
+				//{
+				//	// Push this caller into the list and search into it
+				//	getCallersStarHelperList.push_back(callerIndex->first);
+				//	getCallersStarHelper(callerIndex->first);
+				//}
 			}
 		}
 	}
