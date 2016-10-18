@@ -86,11 +86,16 @@ void CFG::buildCFGMatrix()
 	}
 
 	for (auto map : nodeTable) {
-		for (Node* n : map.second->getNextList()) {	
+		for (Node* n : map.second->getNextList()) {
 			while (n->getStmtnum() == -1) {
+				if (n->getNextList().empty()) {
+					break;
+				}
 				n = n->getNextList().front();
 			}
-			matrix[map.first][n->getStmtnum()] = 1;
+			if (n->getStmtnum() != -1) {
+				matrix[map.first][n->getStmtnum()] = 1;
+			}
 		}
 	}
 
