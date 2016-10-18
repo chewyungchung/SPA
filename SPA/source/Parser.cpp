@@ -70,7 +70,7 @@ void Parser::parseProgram()
 	_de.updateAllCallStmtModUses();
 
 	// build CFG matrix
-    //_pkb.buildCFGMatrix();
+    _pkb.buildCFGMatrix();
 }
 
 void Parser::parseProcedure()
