@@ -1,9 +1,10 @@
 #include "CFG.h"
 #include <assert.h>
+#include <iostream>
 
 CFG::CFG()
 {
-	unordered_map<int, Node> nodeTable();
+	unordered_map<int, Node> nodeTable = unordered_map<int, Node>();
 	Node *ptr = nullptr;
 }
 
@@ -19,36 +20,35 @@ void CFG::addStmtCFG(int stmtnum, string stmtType) {
 	if (stmtType == "assign" || stmtType == "call") {
 		if (!ptr) {
 			ptr = new Node(stmtnum);
-			nodeTable.insert(pair<int, Node>(stmtnum, *ptr));
+			nodeTable.insert(pair<int, Node*>(stmtnum, ptr));
 		}
 		else {
 			Node *n = new Node(stmtnum);
-			nodeTable.insert(pair<int, Node>(stmtnum, (*n)));
-			(*ptr).addNext((*n));
+			nodeTable.insert(pair<int, Node*>(stmtnum, n));
+			ptr->addNext(n);
 			ptr = n;
 		}
 	}
 	else if (stmtType == "if" || stmtType == "while") {
 		if (!ptr) {
-			Node n(stmtnum);
-			nodeTable.insert(pair<int, Node>(stmtnum, n));
-			ptr = &n;
+			Node *n = new Node(stmtnum);
+			nodeTable.insert(pair<int, Node*>(stmtnum, n));
+			ptr = n;
 		}
 		else {
-			Node n(stmtnum);
-			nodeTable.insert(pair<int, Node>(stmtnum, n));
-			Node(*ptr).addNext(n);
-			ptr = &n;
+			Node *n = new Node(stmtnum);
+			nodeTable.insert(pair<int, Node*>(stmtnum, n));
+			ptr->addNext(n);
+			ptr = n;
 		}
 		stack.push(ptr);
 	}
-	//assert(false);
 }
 
 void CFG::closeIfCFG()
 {
 	Node *empty = new Node(-1);
-	Node(*ptr).addNext(*empty);
+	ptr->addNext(empty);
 	ptr = stack.top();
 	stack.pop();
 	stack.push(empty);
@@ -58,7 +58,7 @@ void CFG::closeElseCFG()
 {
 	Node *cur = stack.top();
 	stack.pop();
-	Node(*ptr).addNext(*cur);
+	ptr->addNext(cur);
 	ptr = cur;
 }
 
@@ -66,27 +66,37 @@ void CFG::closeWhileCFG()
 {
 	Node *cur = stack.top();
 	stack.pop();
-	Node(*ptr).addNext(*cur);
+	ptr->addNext(cur);
 	ptr = cur;
 }
 
 void CFG::buildCFGMatrix()
 {
 	int size = nodeTable.size() + 1;
-	int** matrix = new int*[size];
+	matrix = new int*[size];
 	for (int i = 0; i < size; ++i) {
 		matrix[i] = new int[size];
 	}
 
+	// init 0
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			matrix[i][j] = 0;
+		}
+	}
+
 	for (auto map : nodeTable) {
-		for (Node n : map.second.getNextList()) {
-			matrix[map.first][n.getStmtnum()] = 1;
+		for (Node* n : map.second->getNextList()) {	
+			while (n->getStmtnum() == -1) {
+				n = n->getNextList().front();
+			}
+			matrix[map.first][n->getStmtnum()] = 1;
 		}
 	}
 
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
-			if (matrix[i][j] == 0 && i != j) {
+			if (matrix[i][j] != 1 && i != j) {
 				matrix[i][j] = size;
 			}
 		}
@@ -109,6 +119,7 @@ void CFG::buildCFGMatrix()
 		}
 	}
 
+<<<<<<< HEAD
 	for (int i = 1; i < size; i++) {
 		for (int j : getExecutedBefore(i)) {
 			if (isNextStar(i, j)) {
@@ -117,10 +128,28 @@ void CFG::buildCFGMatrix()
 			}
 		}
 	}
+=======
+	//cout << "PRINTING FLOYD YO!!!!!!!!!!!!!!!!!1" << endl;
+	//// Print matrix to see
+	//for (int i = 0; i < size; i++) {
+	//	cout << "   ";
+	//	for (int j = 0; j < size; j++) {
+	//		std::cout << matrix[i][j];
+	//		if (j != size) {
+	//			cout << " ";
+	//		}
+	//	}
+	//	cout << endl;
+	//}
+	//cout << endl;
+>>>>>>> 01b7bdf27adab17cc488ff139f62f0d2aa4bcbd2
 }
 
 bool CFG::isNext(int n1, int n2) {
-	return matrix[n1][n2] == 1;
+	if ((matrix[n1][n2] == 1) == true) {
+		return true;
+	}
+	return false;
 }
 
 bool CFG::isNextStar(int n1, int n2) {

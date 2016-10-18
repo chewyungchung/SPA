@@ -113,7 +113,7 @@ list<int> ParentTable::getParentStar(int stmt)
 
 	if (it == TableChildWiseStar.end())
 	{
-		res = list<int>();
+		return res;
 	}
 	else
 	{

@@ -13,6 +13,11 @@ QueryResultProjector::QueryResultProjector(vector<vector<ResultTable>> connected
 
 list<string> QueryResultProjector::GetResults()
 {
+	if (IsBooleanSelected() == true && IsResultsEmpty() == true) {
+		final_results_.push_back("true");
+		return final_results_;
+	}
+
 	if (IsBooleanSelected() == true) {
 		ProcessNonConnectedResults();
 	}
@@ -32,6 +37,9 @@ void QueryResultProjector::ProcessConnectedResults()
 	}
 
 	if (HasFalseResult(connected_group_intermediate_results_)) {
+		if (IsBooleanSelected() == true) {
+			final_results_.push_back("false");
+		}
 		return;
 	}
 
@@ -51,7 +59,15 @@ void QueryResultProjector::ProcessConnectedResults()
 				joined_table = InnerJoin(joined_table, intermediate_result);
 			}
 		}
-		joined_tables.push_back(joined_table);
+		if (joined_table.GetTableHeight() == 0) {
+			if (IsBooleanSelected() == true) {
+				final_results_.push_back("false");
+			}
+			return;
+		}
+		else {
+			joined_tables.push_back(joined_table);
+		}
 	}
 
 	PopulateFinalResultList(joined_tables.at(0), selected_arg);
@@ -60,12 +76,11 @@ void QueryResultProjector::ProcessConnectedResults()
 
 void QueryResultProjector::ProcessNonConnectedResults()
 {
-	string selected_arg_type = select_clause_.GetArgType().at(0);
-	bool is_false_query = HasFalseResult(non_connected_group_intermediate_results_);
-
-	if (HasFalseResult(non_connected_group_intermediate_results_) == true && selected_arg_type == "BOOLEAN") {
-		final_results_.push_back("false");
-		return;
+	if (HasFalseResult(non_connected_group_intermediate_results_) == true) {
+		if (IsBooleanSelected() == true) {
+			final_results_.push_back("false");
+			return;
+		}
 	}
 	else {
 		// Perform inner join within each non-connected group and check if they are empty
@@ -92,13 +107,13 @@ void QueryResultProjector::ProcessNonConnectedResults()
 
 		if (is_result_exist == false) {
 			is_stop_evaluating = true;
-			if (selected_arg_type == "BOOLEAN") {
+			if (IsBooleanSelected() == true) {
 				final_results_.push_back("false");
 			}
 		}
 		else {
-			if (selected_arg_type == "BOOLEAN") {
-				final_results_.push_back("false");
+			if (IsBooleanSelected() == true) {
+				final_results_.push_back("true");
 			}
 		}
 	}
@@ -236,6 +251,14 @@ bool QueryResultProjector::IsBooleanSelected()
 {
 	string selected_arg_type = select_clause_.GetArgType().at(0);
 	if (selected_arg_type == "BOOLEAN") {
+		return true;
+	}
+	return false;
+}
+
+bool QueryResultProjector::IsResultsEmpty()
+{
+	if (connected_group_intermediate_results_.empty() == true && non_connected_group_intermediate_results_.empty() == true) {
 		return true;
 	}
 	return false;

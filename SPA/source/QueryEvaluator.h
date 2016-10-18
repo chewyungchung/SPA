@@ -89,6 +89,7 @@ private:
 	bool ProcessNoSynGroup();
 	bool ProcessConnectedGroups();
 	bool ProcessNonConnectedGroups();
+	bool IsBooleanSelected();
 
 	list<int> GetList(string arg_type);
 };

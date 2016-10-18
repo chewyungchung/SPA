@@ -24,6 +24,7 @@ private:
 	ResultTable CartesianProduct(ResultTable intermediate_set_one, ResultTable intermediate_set_two);
 	bool HasFalseResult(vector<vector<ResultTable>>& results);
 	bool IsBooleanSelected();
+	bool IsResultsEmpty();
 	int GetNumOfCommonColumn(vector<string> table_one_columns, vector<string> table_two_columns);
 	string GetCommonColumn(vector<string> table_one_columns, vector<string> table_two_columns);
 	string GetOtherColumn(vector<string> table_two_columns, string common_column);

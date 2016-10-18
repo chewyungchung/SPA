@@ -555,7 +555,7 @@ void QueryValidator::MatchPatternWhile() {
 		}
 		else if (while_control_variable.first == STRING) {
 			is_control_variable_valid = true;
-			is_control_variable_valid = "string";
+			while_control_var_type = "string";
 		}
 
 		if (is_control_variable_valid == true) {
@@ -602,7 +602,7 @@ void QueryValidator::MatchPatternIf() {
 		}
 		else if (if_control_variable.first == STRING) {
 			is_control_variable_valid = true;
-			is_control_variable_valid = "string";
+			if_control_var_type = "string";
 		}
 
 		if (is_control_variable_valid == true) {
@@ -645,10 +645,10 @@ void QueryValidator::MatchRelation() {
 	else if (relation == "Uses") {
 		MatchUses();
 	}
-	else if (relation == "Call") {
+	else if (relation == "Calls") {
 		MatchCalls();
 	}
-	else if (relation == "Call*") {
+	else if (relation == "Calls*") {
 		MatchCallsStar();
 	}
 	else if (relation == "Next") {

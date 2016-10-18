@@ -27,7 +27,7 @@ public:
 	list<int> getExecutedAfterStar(int n);
 
 private:
-	unordered_map<int, Node> nodeTable;
+	unordered_map<int, Node*> nodeTable;
 	stack<Node*> stack;
 	Node *ptr;
 	int** matrix;

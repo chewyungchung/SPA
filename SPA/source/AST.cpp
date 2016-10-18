@@ -30,6 +30,7 @@ bool AST::isSubExprExist(string subExpr) {
 list<int> AST::getAssignWithExpression(string expr)
 {
 	list<int> output;
+	expr = makeExpr(expr);
 	for (auto pair : ASTTable) {
 		if (pair.second == expr) {
 			output.push_back(pair.first);
@@ -41,6 +42,7 @@ list<int> AST::getAssignWithExpression(string expr)
 list<int> AST::getAssignWithSubExpression(string subExpr)
 {
 	list<int> output;
+	subExpr = makeExpr(subExpr);
 	for (auto pair : ASTTable) {
 		if (pair.second.find(subExpr) != string::npos) {
 			output.push_back(pair.first);
@@ -106,7 +108,7 @@ string AST::makeExpr(string infix) {
 		return NULL;
 	}
 
-	return postfix.str();
+	return " " + postfix.str() + " ";
 }
 
 bool AST::isOperator(char currentChar) {

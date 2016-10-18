@@ -36,12 +36,15 @@ void CallsGraph::initializeCallsGraph(int vertexCount)
 
 void CallsGraph::addCallsGraphEdge(int i, int j)
 {
-	adjM[i][j] == 1;
+	adjM[i][j] = 1;
 }
 
 bool CallsGraph::hasArcCallsGraph(int i, int j)
 {
-	return adjM[i][j] == 1;
+	if (adjM[i][j] == 1) {
+		return true;
+	}
+	return false;
 }
 
 bool CallsGraph::isCallsGraphCyclic()
