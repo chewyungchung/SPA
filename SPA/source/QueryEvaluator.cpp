@@ -9,8 +9,6 @@ QueryEvaluator::QueryEvaluator(QueryTable input_query, PKB pkb) {
 }
 
 list<string> QueryEvaluator::Evaluate() {
-	// Check if the QueryTable given by validator is NULL. Return NULL if 1
-	//vector<vector<ResultTable>> empty_table;
 	list<string> final_results;
 
 	if (input_query_.IsNullQuery() == true) {
@@ -18,14 +16,23 @@ list<string> QueryEvaluator::Evaluate() {
 	}
 
 	if (ProcessNoSynGroup() == false) {
+		if (IsBooleanSelected() == true) {
+			final_results.push_back("false");
+		}
 		return final_results;
 	} 
 
 	if (ProcessNonConnectedGroups() == false) {
+		if (IsBooleanSelected() == true) {
+			final_results.push_back("false");
+		}
 		return final_results;
 	}
 
 	if (ProcessConnectedGroups() == false) {
+		if (IsBooleanSelected() == true) {
+			final_results.push_back("false");
+		}
 		return final_results;
 	}
 
@@ -1130,7 +1137,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 		}
 		if (arg2_type == ARGTYPE_CONSTANT) {
 			int arg2_stmt_num = stoi(arg2);
-			if (!pkb_.isValidStmt(arg2_stmt_num) == false) {
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
 				return temp_result;
 			}
 			if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) == true) {
@@ -1536,7 +1543,7 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 			vector<string> temp_row_data;
 
 			for (auto &arg2_procedure : procedure_list) {
-				list<string> arg2_caller = pkb_.getCaller(arg2);
+				list<string> arg2_caller = pkb_.getCaller(arg2_procedure);
 				if (arg2_caller.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg2_procedure);
@@ -1598,7 +1605,7 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 			temp_result = ResultTable(arg1, arg2);
 
 			for (auto &arg1_procedure : procedure_list) {
-				list<string> arg1_callee_list = pkb_.getCallee(arg1);
+				list<string> arg1_callee_list = pkb_.getCallee(arg1_procedure);
 				if (arg1_callee_list.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &arg1_callee : arg1_callee_list) {
@@ -1658,6 +1665,7 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 			list<string> arg1_callee_star_list = pkb_.getCalleeStar(arg1);
 			if (arg1_callee_star_list.empty() == false) {
 				for (auto &arg1_callee_star : arg1_callee_star_list) {
+					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg1_callee_star);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
@@ -1694,7 +1702,7 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 			vector<string> temp_row_data;
 
 			for (auto &arg2_procedure : procedure_list) {
-				list<string> arg2_caller_star = pkb_.getCallerStar(arg2);
+				list<string> arg2_caller_star = pkb_.getCallerStar(arg2_procedure);
 				if (arg2_caller_star.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg2_procedure);
@@ -1720,6 +1728,7 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 			list<string> arg2_caller_star_list = pkb_.getCallerStar(arg2);
 			if (arg2_caller_star_list.empty() == false) {
 				for (auto &arg2_caller_star : arg2_caller_star_list) {
+					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg2_caller_star);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
@@ -1730,7 +1739,7 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
 			for (auto &arg1_procedure : procedure_list) {
-				list<string> arg1_callee_star = pkb_.getCalleeStar(arg1);
+				list<string> arg1_callee_star = pkb_.getCalleeStar(arg1_procedure);
 				if (arg1_callee_star.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					temp_row_data.push_back(arg1_procedure);
@@ -1751,11 +1760,12 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 			temp_result = ResultTable(arg1, arg2);
 
 			for (auto &arg1_procedure : procedure_list) {
-				list<string> arg1_caller_star_list = pkb_.getCallerStar(arg1);
-				if (arg1_caller_star_list.empty() == false) {
-					for (auto &arg1_caller_star : arg1_caller_star_list) {
+				list<string> arg1_callee_star_list = pkb_.getCalleeStar(arg1_procedure);
+				if (arg1_callee_star_list.empty() == false) {
+					for (auto &arg1_callee_star : arg1_callee_star_list) {
+						temp_result.SetIsQueryTrue(true);
 						temp_row_data.push_back(arg1_procedure);
-						temp_row_data.push_back(arg1_caller_star);
+						temp_row_data.push_back(arg1_callee_star);
 						temp_result.InsertRow(temp_row_data);
 						temp_row_data.clear();
 					}
@@ -1792,18 +1802,25 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 		if (pkb_.isValidVar(arg1) == false) {
 			return temp_result;
 		}
+		list<int> arg1_modified_by = pkb_.getModifiedBy(arg1);
+		if (arg1_modified_by.empty() == true) {
+			return temp_result;
+		}
+
 		if (arg2_type == ARGTYPE_ANY) {
-			list<int> arg1_modified_by = pkb_.getModifiedBy(arg1);
 			if (arg1_modified_by.empty() == true) {
 				return temp_result;
 			}
-			// If arg1ModifiedBy (made up of assign stmts in iteration1) is non empty, add them all to pattern results
-			temp_result.SetIsQueryTrue(true);
 
-			for (auto &pattern_assign_syn_stmt_num : arg1_modified_by) {
-				temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
-				temp_result.InsertRow(temp_row_data);
-				temp_row_data.clear();
+			for (auto &assign_stmt : all_assign_statements) {
+				for (auto &arg1_modified_by_stmt_num : arg1_modified_by) {
+					if (assign_stmt == arg1_modified_by_stmt_num) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_modified_by_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
 			}
 
 			return temp_result;
@@ -1811,11 +1828,15 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 		else if (arg2_type == ARGTYPE_EXPR) {
 			list<int> assign_with_expression = pkb_.getAssignWithExpression(arg2);
 			if (assign_with_expression.empty() == false) {
-				temp_result.SetIsQueryTrue(true);
-				for (auto &pattern_assign_syn_stmt_num : assign_with_expression) {
-					temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
-					temp_result.InsertRow(temp_row_data);
-					temp_row_data.clear();
+				for (auto &arg1_modified_by_stmt_num : arg1_modified_by) {
+					for (auto &pattern_assign_syn_stmt_num : assign_with_expression) {
+						if (arg1_modified_by_stmt_num == pattern_assign_syn_stmt_num) {
+							temp_result.SetIsQueryTrue(true);
+							temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
+							temp_result.InsertRow(temp_row_data);
+							temp_row_data.clear();
+						}
+					}
 				}
 			}
 
@@ -1824,11 +1845,15 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 		else if (arg2_type == ARGTYPE_SUB_EXPR) {
 			list<int> assign_with_sub_expression = pkb_.getAssignWithSubExpression(arg2);
 			if (assign_with_sub_expression.empty() == false) {
-				temp_result.SetIsQueryTrue(true);
-				for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
-					temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
-					temp_result.InsertRow(temp_row_data);
-					temp_row_data.clear();
+				for (auto &arg1_modified_by_stmt_num : arg1_modified_by) {
+					for (auto &pattern_assign_syn_stmt_num : assign_with_sub_expression) {
+						if (arg1_modified_by_stmt_num == pattern_assign_syn_stmt_num) {
+							temp_result.SetIsQueryTrue(true);
+							temp_row_data.push_back(to_string(pattern_assign_syn_stmt_num));
+							temp_result.InsertRow(temp_row_data);
+							temp_row_data.clear();
+						}
+					}
 				}
 			}
 
@@ -1905,8 +1930,6 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 						temp_row_data.clear();
 					}
 				}
-
-				return temp_result;
 			}
 			return temp_result;
 		}
@@ -2286,6 +2309,14 @@ bool QueryEvaluator::ProcessNonConnectedGroups()
 	}
 
 	return true;
+}
+
+bool QueryEvaluator::IsBooleanSelected()
+{
+	if (input_query_.GetSelectClause().GetArgType().at(0) == "BOOLEAN") {
+		return true;
+	}
+	return false;
 }
 
 ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
