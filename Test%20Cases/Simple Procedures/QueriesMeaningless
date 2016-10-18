@@ -1,0 +1,45 @@
+1 - comments
+assign a;
+Select a
+1, 2, 3, 5, 7, 8, 10, 12, 14, 17, 19, 20, 22, 23, 24, 25, 26, 27, 28, 30, 31, 33, 34, 35, 36, 37, 39, 40, 41, 42, 43, 47, 49, 51, 52, 53, 54, 55, 56, 57, 59, 60, 61, 65, 67, 71, 72, 74, 75
+5000
+2 - line 12 is assignment, then line 12 is selected
+assign a; 
+Select a with a.stmt#=12
+12
+5000
+3 - same as 12, but return all call stmt
+call c; assign a;
+Select c with a.stmt#=12
+4, 6, 9, 11, 15, 21, 32, 38, 45, 48, 50, 58, 63, 64, 68, 70, 73
+5000
+4 - return true if line 12 is assignment
+assign a; 
+Select BOOLEAN with a.stmt#=12
+true
+5000
+5 - Second call third then return all while statement in the program
+stmt s; while w;
+Select w such that Calls("Alpha","Bravo")
+16, 18, 44, 46, 66
+5000
+6 - if got proc call another proc then retun true
+stmt s; while w;
+Select BOOLEAN such that Calls(_,_)
+true
+5000
+7 - same as previous, but now return all assignment
+stmt s; while w;
+Select a such that Calls(_,_)
+1, 2, 3, 5, 7, 8, 10, 12, 14, 17, 19, 20, 22, 23, 24, 25, 26, 27, 28, 30, 31, 33, 34, 35, 36, 37, 39, 40, 41, 42, 43, 47, 49, 51, 52, 53, 54, 55, 56, 57, 59, 60, 61, 65, 67, 71, 72, 74, 75
+5000
+8 - same as previous, but now return all assignment
+assign a1; assign a;
+Select a1 with a.stmt#=12
+1, 2, 3, 5, 7, 8, 10, 12, 14, 17, 19, 20, 22, 23, 24, 25, 26, 27, 28, 30, 31, 33, 34, 35, 36, 37, 39, 40, 41, 42, 43, 47, 49, 51, 52, 53, 54, 55, 56, 57, 59, 60, 61, 65, 67, 71, 72, 74, 75
+5000
+9 - select variable where var = proc
+variable v; procedure p;
+Select v with v.varName = p.procName
+Alpha, Charlie, Echo, Foxtrot, Golf, Bravo
+5000
