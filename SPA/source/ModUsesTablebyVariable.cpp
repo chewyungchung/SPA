@@ -100,14 +100,14 @@ list<int> ModUsesTablebyVariable::getModifiedBy(string varName)
 list<int> ModUsesTablebyVariable::getUsedBy(string varName)
 {
 	unordered_map<string, list<int>>::iterator it = varUsesTable.find(varName);
-
+	list<int> empty;
 	if (it != varUsesTable.end())
 	{
 		return varUsesTable.at(varName);
 	}
 	else
 	{
-		return list<int>();
+		return empty;
 	}
 }
 
