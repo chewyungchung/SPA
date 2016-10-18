@@ -8,7 +8,7 @@ class DesignExtractor
 {
 public:
 	DesignExtractor();
-	DesignExtractor(PKB pkb, int numProcs);
+	DesignExtractor(PKB& pkb, int numProcs);
 	~DesignExtractor();
 
 	void buildCallsGraph(int vertexCount);
@@ -16,7 +16,7 @@ public:
 	void updateAllCallStmtModUses();
 
 private:
-	PKB _pkb;
+	PKB* _pkb;
 	int vertexCount;
 
 	void revDFSAndUpdate(int v);
