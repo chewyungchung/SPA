@@ -119,7 +119,6 @@ void CFG::buildCFGMatrix()
 		}
 	}
 
-<<<<<<< HEAD
 	for (int i = 1; i < size; i++) {
 		for (int j : getExecutedBefore(i)) {
 			if (isNextStar(i, j)) {
@@ -128,7 +127,6 @@ void CFG::buildCFGMatrix()
 			}
 		}
 	}
-=======
 	//cout << "PRINTING FLOYD YO!!!!!!!!!!!!!!!!!1" << endl;
 	//// Print matrix to see
 	//for (int i = 0; i < size; i++) {
@@ -142,7 +140,6 @@ void CFG::buildCFGMatrix()
 	//	cout << endl;
 	//}
 	//cout << endl;
->>>>>>> 01b7bdf27adab17cc488ff139f62f0d2aa4bcbd2
 }
 
 bool CFG::isNext(int n1, int n2) {
