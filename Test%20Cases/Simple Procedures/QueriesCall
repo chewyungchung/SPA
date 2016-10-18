@@ -51,7 +51,7 @@ Procedures, Alpha, Bravo, Charlie, Delta, Echo, Foxtrot, Golf
 11 - no "k"
 procedure p;
 Select p such that Calls* (p,"k")
-
+none
 5000
 12 - Select procedure such that Delta call procedure
 procedure p;
@@ -72,4 +72,9 @@ true
 
 Select BOOLEAN such that Calls ("Echo", _)
 true
+5000
+16 - all procedures
+procedure p, q;
+Select p with Calls (p, q)
+Procedures, Alpha, Bravo, Charlie, Delta, Echo, Foxtrot, Golf
 5000
