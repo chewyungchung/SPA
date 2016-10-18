@@ -1444,16 +1444,34 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 				return temp_result;
 			}
 
-			temp_result = ResultTable(arg1, arg2);
+			if (arg1 == arg2) {
+				temp_result = ResultTable(arg1);
+			}
+			else {
+				temp_result = ResultTable(arg1, arg2);
+			}
 			
-			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-					if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num)) {
+			// Corner case N*(n,n)
+			if (arg1 == arg2) {
+				for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+					if (pkb_.isNextStar(arg1_stmt_num, arg1_stmt_num) == true) {
 						temp_result.SetIsQueryTrue(true);
 						temp_row_data.push_back(to_string(arg1_stmt_num));
-						temp_row_data.push_back(to_string(arg2_stmt_num));
 						temp_result.InsertRow(temp_row_data);
 						temp_row_data.clear();
+					}
+				}
+			}
+			else {
+				for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+					for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+						if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num)) {
+							temp_result.SetIsQueryTrue(true);
+							temp_row_data.push_back(to_string(arg1_stmt_num));
+							temp_row_data.push_back(to_string(arg2_stmt_num));
+							temp_result.InsertRow(temp_row_data);
+							temp_row_data.clear();
+						}
 					}
 				}
 			}
