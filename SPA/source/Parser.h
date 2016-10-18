@@ -72,6 +72,9 @@ private:
 	void parseCallStmt();
 	void parseAssignStmt();
 	void parseAssignRHS();
+	void parseExpression();
+	void parseTerm();
+	void parseFactor();
 	bool isConstant(string s);
 	void addAllParentsOfCurrStmt(int stmtLine);
 	void addAllParentsOfUsedVariable(string v);

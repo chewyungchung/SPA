@@ -70,7 +70,7 @@ void Parser::parseProgram()
 	_de.updateAllCallStmtModUses();
 
 	// build CFG matrix
-	_pkb.buildCFGMatrix();
+    //_pkb.buildCFGMatrix();
 }
 
 void Parser::parseProcedure()
@@ -293,7 +293,8 @@ void Parser::parseAssignStmt()
 	match(LHS);
 	match(EQUAL_FLAG);
 	currRHS = "";
-	parseAssignRHS();
+	parseExpression();
+	//parseAssignRHS();
 	// Check brackets are correct
 	if (!bracketStack.empty())
 	{
@@ -308,6 +309,7 @@ void Parser::parseAssignRHS()
 	string RHS = next_token;
 	currRHS += RHS;
 	currRHS += " ";
+
 	if (isConstant(RHS))
 	{
 		int RHSConstant = stoi(RHS);
@@ -333,6 +335,8 @@ void Parser::parseAssignRHS()
 	else if (next_token == LEFT_PARENTHESIS)
 	{
 		bracketStack.push(next_token);
+		currRHS += next_token;
+		currRHS += " ";
 		match(next_token);
 		parseAssignRHS();
 	}
@@ -341,6 +345,8 @@ void Parser::parseAssignRHS()
 		if (!bracketStack.empty())
 		{
 			bracketStack.pop();
+			currRHS += next_token;
+			currRHS += " ";
 			match(next_token);
 			parseAssignRHS();
 		}
@@ -353,6 +359,59 @@ void Parser::parseAssignRHS()
 	else
 	{
 		return;
+	}
+}
+
+void Parser::parseExpression()
+{
+	if (next_token == PLUS_FLAG || next_token == MINUS_FLAG) {
+		currRHS += next_token;
+		match(next_token);
+	}
+	parseTerm();
+	while (next_token == PLUS_FLAG || next_token == MINUS_FLAG) {
+		currRHS += next_token;
+		match(next_token);
+		parseTerm();
+	}
+}
+
+void Parser::parseTerm()
+{
+	parseFactor();
+	while (next_token == TIMES_FLAG) {
+		currRHS += TIMES_FLAG;
+		match(TIMES_FLAG);
+		parseFactor();
+	}
+
+}
+
+void Parser::parseFactor()
+{
+	if (isConstant(next_token) == true) {
+		// INT
+		currRHS += next_token;
+		int RHSConstant = stoi(next_token);
+		_pkb.addConstant(RHSConstant, stmtLine);
+		match(next_token);
+	}
+	else if (next_token == LEFT_PARENTHESIS) {
+		// (
+		currRHS += LEFT_PARENTHESIS;
+		match(LEFT_PARENTHESIS);
+		parseExpression();
+		currRHS += RIGHT_PARENTHESIS;
+		match(RIGHT_PARENTHESIS);
+	}
+	else {
+		// IDENT
+		currRHS += next_token;
+		_pkb.addUses(next_token, stmtLine);
+		_pkb.addUses(stmtLine, next_token);
+		addAllParentsOfUsedVariable(next_token);
+		_pkb.addProcUses(procName, next_token);
+		match(next_token);
 	}
 }
 
@@ -371,7 +430,7 @@ void Parser::addAllParentsOfCurrStmt(int stmtLine)
 	while (parentStack.top() != NO_PARENT_FLAG)
 	{
 		temp = parentStack.top();
-		_pkb.addParentStar(stmtLine, temp);
+		_pkb.addParentStar(temp, stmtLine);
 		parentStack.pop();
 		tempStack.push(temp);
 	}
