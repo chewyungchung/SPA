@@ -108,6 +108,15 @@ void CFG::buildCFGMatrix()
 			}
 		}
 	}
+
+	for (int i = 1; i < size; i++) {
+		for (int j : getExecutedBefore(i)) {
+			if (isNextStar(i, j)) {
+				matrix[i][i] = 2;
+				break;
+			}
+		}
+	}
 }
 
 bool CFG::isNext(int n1, int n2) {
