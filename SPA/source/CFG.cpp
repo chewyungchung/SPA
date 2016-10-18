@@ -118,10 +118,27 @@ void CFG::buildCFGMatrix()
 			}
 		}
 	}
+
+	//cout << "PRINTING FLOYD YO!!!!!!!!!!!!!!!!!1" << endl;
+	//// Print matrix to see
+	//for (int i = 0; i < size; i++) {
+	//	cout << "   ";
+	//	for (int j = 0; j < size; j++) {
+	//		std::cout << matrix[i][j];
+	//		if (j != size) {
+	//			cout << " ";
+	//		}
+	//	}
+	//	cout << endl;
+	//}
+	//cout << endl;
 }
 
 bool CFG::isNext(int n1, int n2) {
-	return matrix[n1][n2] == 1;
+	if ((matrix[n1][n2] == 1) == true) {
+		return true;
+	}
+	return false;
 }
 
 bool CFG::isNextStar(int n1, int n2) {
