@@ -67,7 +67,12 @@ list<string> CallsTable::getCaller(string callee)
 
 bool CallsTable::isCallExist()
 {
-	return callsTable.empty();
+	if (callsTable.empty() == false) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 bool CallsTable::isCall(string caller, string callee)
