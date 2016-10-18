@@ -1,0 +1,74 @@
+1 - normal pattern
+assign a; variable v; 
+Select a pattern a (v, "7") 
+1, 12
+5000
+2 - select all variable
+assign a; variable v; 
+Select v pattern a (v, _) 
+Alpha, b, Charlie, d, Echo, Foxtrot, Golf, z, y, x, w, u, t, s, r, q, g, p, o, n, m, l, k, j, i, h, Z, a, X, f, c, e, last
+5000
+3 - normal pattern
+assign a; variable v; 
+Select a pattern a (v, _"Alpha"_) 
+2, 8, 10, 65
+5000
+4 - find assignments with expression (n-k) on the RHS
+assign a; variable v; 
+Select a pattern a (v,_"(n-k)"_) 
+51
+5000
+5 - find assignments with expression (s-b9) on the RHS
+assign a; variable v; 
+Select a pattern a (v,_"(s-b9)"_) 
+52
+5000
+6 - find assignments with expression (s+m) on the RHS
+assign a; variable v; 
+Select a pattern a (v,_"(s+m)"_) 
+51
+5000
+7 - find assignments with expression s+m on the RHS (without bracket) see 6
+assign a; variable v; 
+Select a pattern a (v,_"s+m"_) 
+none
+5000
+8 - select all while stmt
+while w; 
+Select w pattern w (_, _) 
+16, 18, 44, 46, 66
+5000
+9 - select var of while stmt
+while w; variable v; 
+Select v pattern w (v, _) 
+Charlie, d, Bravo, K
+5000
+10 - select assign
+assign a; 
+Select a pattern a (_, _"nO-Np"_) 
+55
+5000
+11 - select assign
+assign a; 
+Select a pattern a (_, _"t"_) 
+72
+5000
+12 - select if stmt with Bravo variable
+if ifstat; 
+Select ifstat pattern ifstat ("Bravo", _, _) 
+69
+5000
+13 - select if pattern
+if ifstat; 
+Select ifstat pattern ifstat (_, _, _) 
+13, 29, 62, 69
+5000
+14 - find assignments with expression (n-k) on the RHS
+assign a; variable v; 
+Select a pattern a (_,_"(v*(2+q)*e)+b*9"_) 
+57
+5000
+15 - select variable of if stmt
+if ifstat; variable v; 
+Select v pattern ifstat (v, _, _) 
+Alpha, b, Bravo
