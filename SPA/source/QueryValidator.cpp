@@ -15,20 +15,16 @@ QueryTable QueryValidator::Parse() {
 		MatchDeclaration();
 		MatchSelect();
 	}
-	catch (QueryException& e) { 
-		// Catch exception by reference. Internet recommendation
-		// Output error message onto console. Purely debug for now
+	catch (QueryException& e) {
 		cout << e.what() << endl;
-		// Return a null pointer to indicate that an invalid query has been sent in
 		return QueryTable(true);
 	}
-
-	//query_table_.optimize();
+	// query_table_.Optimize();
 	return query_table_;
 }
 
 QueryToken QueryValidator::GetToken() {
-	return tokenizer_.tokenize();
+	return tokenizer_.Tokenize();
 }
 
 void QueryValidator::Match(string token) {
@@ -48,32 +44,32 @@ void QueryValidator::Match(int token_type) {
 		throw(QueryException("Invalid query: Unexpected token type'" + to_string(next_token_.GetTokenType()) + "; Expected tokenType '" + to_string(token_type)));
 	}
 }
-	
+
 void QueryValidator::MatchDeclaration() {
 	next_token_ = GetToken();
-	// If the first token is not "Select", that means there are Declarations
 	if (next_token_.GetTokenName() != "Select") {
-		// Check if the next token are any of the accepted design entities
 		// Iteration 1: 'stmt' | 'assign' | 'while' | 'variable' | 'constant' | 'prog_line'
 		// Iteration 2: 'calls' | 'if' | 'procedure'
 		for (vector<string>::const_iterator it = DESIGN_ENTITIES.begin(); it != DESIGN_ENTITIES.end();) {
 			if (next_token_.GetTokenName() == *it) {
 				Match(*it);
 				MatchDeclarationVar(*it);
-				// Reset the iterator to the start of the design entities list
 				it = DESIGN_ENTITIES.begin();
 			}
 			else {
-				// Forward the iterator until end of list
 				it++;
 			}
 		}
 	}
 }
 
-// TODO: Check if synonym are KEYWORDS. Reject when they are.
 void QueryValidator::MatchDeclarationVar(string entity) {
 	string synonym = next_token_.GetTokenName();
+
+	// If declared variable name is a keyword, reject
+	if (find(DESIGN_ENTITIES.begin(), DESIGN_ENTITIES.end(), synonym) != DESIGN_ENTITIES.end()) {
+		throw(QueryException("Invalid Query : Declared synonym cannot be a design_entity keyword!"));
+	}
 
 	// Make sure synonym is IDENT, else invalid synonym name
 	if (next_token_.GetTokenType() != IDENT) {
@@ -89,15 +85,14 @@ void QueryValidator::MatchDeclarationVar(string entity) {
 	syn_to_entity_map_[synonym] = entity;
 	Match(synonym);
 
-	// Check if next token is end of declaration for this entity type
-	// If not, get more
-	if (next_token_.GetTokenName() != ";") {
-		Match(",");
+	// Check if next token is end of declaration for this entity type. If not, get more
+	if (next_token_.GetTokenType() != SEMICOLON) {
+		Match(COMMA);
 		MatchDeclarationVar(entity);
 	}
 	else {
 		// End declaration for this entity type
-		Match(";");
+		Match(SEMICOLON);
 	}
 	query_table_.SetSynEntityMap(syn_to_entity_map_);
 }
@@ -133,19 +128,21 @@ void QueryValidator::MatchResultClause() {
 
 void QueryValidator::MatchTupleResult()
 {
-	if (next_token_.GetTokenName() == "<") {
-		Match("<");
+	if (next_token_.GetTokenType() == OPEN_ANGLE_BRACKET) {
+		Match(OPEN_ANGLE_BRACKET);
 		MatchResultClauseElement(true);
-		Match(">");
+		Match(CLOSE_ANGLE_BRACKET);
 	}
 	else {
 		MatchResultClauseElement(false);
 	}
+
+	Clause select_clause("select", select_arg_, select_arg_type_);
+	query_table_.SetSelectClause(select_clause);
 }
 
 void QueryValidator::MatchResultClauseElement(bool is_tuple)
 {
-	vector<string> select_arg, select_arg_type;
 	string result_syn, result_syn_type;
 
 	if (next_token_.GetTokenType() == IDENT) {
@@ -155,34 +152,44 @@ void QueryValidator::MatchResultClauseElement(bool is_tuple)
 			throw(QueryException("Invalid Query : Unexpected synonym '" + result_syn + "' in Select clause"));
 		}
 
-		select_arg.push_back(result_syn);
-		if (result_syn_type == "constant") {
-			select_arg_type.push_back("value");
-		} else{
-			select_arg_type.push_back(result_syn_type);
-		}
 		Match(result_syn);
-	}
 
-	if (next_token_.GetTokenName() == ".") {
-		string attribute_type = next_token_.GetTokenName();
-		if (IsAttributeMatchSynType(result_syn_type, attribute_type) == true) {
-			// To be completed in iteration 3
+		// Match tuple element here
+		if (next_token_.GetTokenType() == DOT) {
+			Match(DOT);
+			string attribute_type = next_token_.GetTokenName();
+			Match(attribute_type);
+			if (IsAttributeMatchSynType(result_syn_type, attribute_type) == false) {
+				throw(QueryException("Invalid Query : Unexpected attribute for synonym '" + attribute_type + "' in Select clause"));
+			}
+			else {
+				if (result_syn_type == "call") {
+					if (GetWithTypeByAttrName(attribute_type) == "name") {
+						// Name
+						result_syn_type = "call_name";
+					}
+					else {
+						// Number
+						result_syn_type = "call_number";
+					}
+				}
+			}
+		}
+
+		select_arg_.push_back(result_syn);
+		if (result_syn_type == "constant") {
+			select_arg_type_.push_back("value");
 		}
 		else {
-			throw(QueryException("Invalid Query : Unexpected attribute '" + result_syn + "." + attribute_type + "' in Select clause"));
+			select_arg_type_.push_back(result_syn_type);
 		}
 	}
 
-	if ((is_tuple == true) && (next_token_.GetTokenName() == ",")) {
-		Match(",");
+	if ((is_tuple == true) && (next_token_.GetTokenType() == COMMA)) {
+		Match(COMMA);
 		MatchResultClauseElement(true);
 	}
-
-	Clause select_clause("select", select_arg, select_arg_type);
-	query_table_.SetSelectClause(select_clause);
 }
-
 
 void QueryValidator::MatchClause() {
 	if (next_token_.GetTokenName() == "such") {
@@ -250,11 +257,761 @@ void QueryValidator::MatchWith() {
 	}
 }
 
+void QueryValidator::MatchRelation() {
+	string relation = next_token_.GetTokenName();
+	next_token_ = GetToken();
+	if (next_token_.GetTokenType() == STAR) {
+		relation += "*";
+		next_token_ = GetToken();
+	}
+	if (relation == "Follows") {
+		MatchFollow();
+	}
+	else if (relation == "Follows*") {
+		MatchFollowStar();
+	}
+	else if (relation == "Parent") {
+		MatchParent();
+	}
+	else if (relation == "Parent*") {
+		MatchParentStar();
+	}
+	else if (relation == "Modifies") {
+		MatchModifies();
+	}
+	else if (relation == "Uses") {
+		MatchUses();
+	}
+	else if (relation == "Calls") {
+		MatchCalls();
+	}
+	else if (relation == "Calls*") {
+		MatchCallsStar();
+	}
+	else if (relation == "Next") {
+		MatchNext();
+	}
+	else if (relation == "Next*") {
+		MatchNextStar();
+	}
+	else {
+		// If its none of the above relation, ERROR!!!!!!!!!!!!!
+		throw(QueryException("Invalid Query : Unexpected relation '" + next_token_.GetTokenName() + "'; Expecting 'Follow'|'Follow*'|'Parent'|'Parent*'|'Modifies'|'Uses'"));
+	}
+}
+
+void QueryValidator::MatchFollow() {
+	// Check if arguments, num of arguments are valid
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchStmtRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchStmtRef();
+	Match(CLOSE_BRACKET);
+	// Validate arg1 and arg2
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("follows", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("follows", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == INTEGER) {
+		is_arg1_valid = rel_table_.IsArg1Valid("follows", "constant");
+		arg1_type = "constant";
+	}
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("follows", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("follows", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == INTEGER) {
+		is_arg2_valid = rel_table_.IsArg2Valid("follows", "constant");
+		arg2_type = "constant";
+	}
+
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> followsArg({ arg1.second,arg2.second });
+		vector<string> followsArgType({ arg1_type,arg2_type });
+		Clause followsRelation("follows", followsArg, followsArgType, GetClausePriority("follows"));
+		query_table_.AddSuchThatClause(followsRelation);
+
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for follows"));
+	}
+
+}
+
+void QueryValidator::MatchFollowStar() {
+	// Check if arguments, num of arguments are valid
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchStmtRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchStmtRef();
+	Match(CLOSE_BRACKET);
+
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("follows*", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("follows*", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == INTEGER) {
+		is_arg1_valid = rel_table_.IsArg1Valid("follows*", "constant");
+		arg1_type = "constant";
+	}
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("follows*", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("follows*", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == INTEGER) {
+		is_arg2_valid = rel_table_.IsArg2Valid("follows*", "constant");
+		arg2_type = "constant";
+	}
+
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> followsStarArg({ arg1.second,arg2.second });
+		vector<string> followsStarArgType({ arg1_type,arg2_type });
+		Clause followsStarRel("follows*", followsStarArg, followsStarArgType, GetClausePriority("follows*"));
+		query_table_.AddSuchThatClause(followsStarRel);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for follows*"));
+	}
+}
+
+void QueryValidator::MatchParent() {
+	// Check if arguments, num of arguments are valid
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchStmtRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchStmtRef();
+	Match(CLOSE_BRACKET);
+
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("parent", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("parent", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == INTEGER) {
+		is_arg1_valid = rel_table_.IsArg1Valid("parent", "constant");
+		arg1_type = "constant";
+	}
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("parent", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("parent", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == INTEGER) {
+		is_arg2_valid = rel_table_.IsArg2Valid("parent", "constant");
+		arg2_type = "constant";
+	}
+
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> parentArg({ arg1.second,arg2.second });
+		vector<string> parentArgType({ arg1_type,arg2_type });
+		Clause parentRel("parent", parentArg, parentArgType, GetClausePriority("parent"));
+		query_table_.AddSuchThatClause(parentRel);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for parent"));
+	}
+}
+
+void QueryValidator::MatchParentStar() {
+	// Check if arguments, num of arguments are valid
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchStmtRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchStmtRef();
+	Match(CLOSE_BRACKET);
+
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("parent*", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("parent*", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == INTEGER) {
+		is_arg1_valid = rel_table_.IsArg1Valid("parent*", "constant");
+		arg1_type = "constant";
+	}
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("parent*", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("parent*", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == INTEGER) {
+		is_arg2_valid = rel_table_.IsArg2Valid("parent*", "constant");
+		arg2_type = "constant";
+	}
+
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> parentStarArg({ arg1.second,arg2.second });
+		vector<string> parentStarArgType({ arg1_type,arg2_type });
+		Clause parentStarRel("parent*", parentStarArg, parentStarArgType, GetClausePriority("parent*"));
+		query_table_.AddSuchThatClause(parentStarRel);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for parent*"));
+	}
+}
+void QueryValidator::MatchModifies() {
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchEntRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchEntRef();
+	Match(CLOSE_BRACKET);
+
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("modifies", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("modifies", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == INTEGER) {
+		is_arg1_valid = rel_table_.IsArg1Valid("modifies", "constant");
+		arg1_type = "constant";
+	}
+	else if (arg1.first == STRING) {
+		is_arg1_valid = rel_table_.IsArg1Valid("modifies", "string");
+		arg1_type = "string";
+	}
+
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("modifies", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("modifies", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == STRING) {
+		is_arg2_valid = rel_table_.IsArg2Valid("modifies", "string");
+		arg2_type = "string";
+	}
+
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> modifiesArg({ arg1.second,arg2.second });
+		vector<string> modifiesArgType({ arg1_type,arg2_type });
+		Clause modifiesRel("modifies", modifiesArg, modifiesArgType, GetClausePriority("modifies"));
+		query_table_.AddSuchThatClause(modifiesRel);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for modifies"));
+	}
+}
+
+void QueryValidator::MatchUses() {
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchEntRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchEntRef();
+	Match(CLOSE_BRACKET);
+
+	// Validate arg1 and arg2
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("uses", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("uses", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == INTEGER) {
+		is_arg1_valid = rel_table_.IsArg1Valid("uses", "constant");
+		arg1_type = "constant";
+	}
+	else if (arg1.first == STRING) {
+		is_arg1_valid = rel_table_.IsArg1Valid("uses", "string");
+		arg1_type = "string";
+	}
+
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("uses", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("uses", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == STRING) {
+		is_arg2_valid = rel_table_.IsArg2Valid("uses", "string");
+		arg2_type = "string";
+	}
+
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> usesArg({ arg1.second,arg2.second });
+		vector<string> usesArgType({ arg1_type,arg2_type });
+		Clause usesRel("uses", usesArg, usesArgType, GetClausePriority("uses"));
+		query_table_.AddSuchThatClause(usesRel);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for uses"));
+	}
+}
+
+void QueryValidator::MatchCalls() {
+	// Calls:"Calls""("entRef", "entRef")" 
+	// Check if arguments, num of arguments are valid
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchEntRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchEntRef();
+	Match(CLOSE_BRACKET);
+
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("calls", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("calls", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == STRING) {
+		is_arg1_valid = rel_table_.IsArg1Valid("calls", "string");
+		arg1_type = "string";
+	}
+	/* call rel does not accept int as parameter
+	else if (arg1.first == INTEGER) {
+		is_arg1_valid = rel_table_.IsArg1Valid("calls", "constant");
+		arg1_type = "constant";
+	}
+	*/
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("calls", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("calls", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == STRING) {
+		is_arg2_valid = rel_table_.IsArg2Valid("calls", "string");
+		arg2_type = "string";
+	}
+	/* call rel does not accept int as parameter
+	else if (arg2.first == INTEGER) {
+		is_arg2_valid = rel_table_.IsArg2Valid("calls", "constant");
+		arg2_type = "constant";
+	}
+	*/
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> callsArg({ arg1.second,arg2.second });
+		vector<string> callsArgType({ arg1_type,arg2_type });
+		Clause callsRel("calls", callsArg, callsArgType, GetClausePriority("call"));
+		query_table_.AddSuchThatClause(callsRel);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for calls"));
+	}
+}
+
+void QueryValidator::MatchCallsStar() {
+	// Check if arguments, num of arguments are valid
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchEntRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchEntRef();
+	Match(CLOSE_BRACKET);
+
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("calls*", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("calls*", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == STRING) {
+		is_arg1_valid = rel_table_.IsArg1Valid("calls*", "string");
+		arg1_type = "string";
+	}
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("calls*", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("calls*", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == STRING) {
+		is_arg2_valid = rel_table_.IsArg2Valid("calls*", "string");
+		arg2_type = "string";
+	}
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> callsStarArg({ arg1.second,arg2.second });
+		vector<string> callsStarArgType({ arg1_type,arg2_type });
+		Clause callsStarRel("calls*", callsStarArg, callsStarArgType,GetClausePriority("call*"));
+		query_table_.AddSuchThatClause(callsStarRel);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for calls*"));
+	}
+}
+
+void QueryValidator::MatchNext() {
+	// Check if arguments, num of arguments are valid
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchStmtRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchStmtRef();
+	Match(CLOSE_BRACKET);
+
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("next", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("next", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == INTEGER) {
+		is_arg1_valid = rel_table_.IsArg1Valid("next", "constant");
+		arg1_type = "constant";
+	}
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("next", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("next", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == INTEGER) {
+		is_arg2_valid = rel_table_.IsArg2Valid("next", "constant");
+		arg2_type = "constant";
+	}
+
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> nextArg({ arg1.second,arg2.second });
+		vector<string> nextArgType({ arg1_type,arg2_type });
+		Clause nextRel("next", nextArg, nextArgType,GetClausePriority("next"));
+		query_table_.AddSuchThatClause(nextRel);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for next"));
+	}
+}
+
+void QueryValidator::MatchNextStar() {
+	// Check if arguments, num of arguments are valid
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchStmtRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchStmtRef();
+	Match(CLOSE_BRACKET);
+
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("next*", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("next*", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == INTEGER) {
+		is_arg1_valid = rel_table_.IsArg1Valid("next*", "constant");
+		arg1_type = "constant";
+	}
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("next*", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("next*", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == INTEGER) {
+		is_arg2_valid = rel_table_.IsArg2Valid("next*", "constant");
+		arg2_type = "constant";
+	}
+
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> nextStarArg({ arg1.second,arg2.second });
+		vector<string> nextStarArgType({ arg1_type,arg2_type });
+		Clause nextStarRel("next*", nextStarArg, nextStarArgType,GetClausePriority("next*"));
+		query_table_.AddSuchThatClause(nextStarRel);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for nextStar"));
+	}
+}
+void QueryValidator::MatchPatternAssign()
+{
+	string assign_syn = next_token_.GetTokenName();
+	string assign_var_ref_syn, assign_var_ref_type, expression_type;
+	pair<int, string> assign_var_ref;
+	bool is_sub_expr = false;
+	bool is_any = false;
+	bool is_assign_var_ref_valid = false;
+
+	if (syn_to_entity_map_[assign_syn] == "assign") {
+		Match(assign_syn);
+		Match(OPEN_BRACKET);
+		assign_var_ref = MatchVarRef();
+		Match(COMMA);
+		if (next_token_.GetTokenType() == UNDERSCORE) {
+			Match(UNDERSCORE);
+			is_any = true;
+			expression_string_ = "_";
+			if (next_token_.GetTokenType() == DOUBLE_QUOTE) {
+				is_sub_expr = true;
+				is_any = false;
+				Match(DOUBLE_QUOTE);
+				expression_string_ = "";
+				MatchExpr();
+				Match(DOUBLE_QUOTE);
+				Match(UNDERSCORE);
+			}
+		}
+		else if (next_token_.GetTokenType() == DOUBLE_QUOTE) {
+			Match(DOUBLE_QUOTE);
+			expression_string_ = "";
+			MatchExpr();
+			Match(DOUBLE_QUOTE);
+		}
+		Match(CLOSE_BRACKET);
+
+		if (assign_var_ref.first == IDENT) {
+			if (syn_to_entity_map_[assign_var_ref.second] != "") {
+				assign_var_ref_type = syn_to_entity_map_[assign_var_ref.second];
+				is_assign_var_ref_valid = rel_table_.IsArg1Valid("patternAssign", assign_var_ref_type);
+			}
+		}
+		else if (assign_var_ref.first == UNDERSCORE) {
+			is_assign_var_ref_valid = true;
+			assign_var_ref_type = "any";
+		}
+		else if (assign_var_ref.first == STRING) {
+			is_assign_var_ref_valid = true;
+			assign_var_ref_type = "string";
+		}
+
+		if (is_assign_var_ref_valid == true) {
+			if (is_sub_expr == true) {
+				expression_type = "sub_expr";
+			}
+			else if (is_any == true) {
+				expression_type = "any";
+			}
+			else {
+				expression_type = "expr";
+			}
+			vector<string> assign_arg = { assign_syn, assign_var_ref.second , expression_string_ };
+			vector<string> assign_arg_type = { "assign", assign_var_ref_type, expression_type };
+			Clause pattern_assign_clause("pattern", assign_arg, assign_arg_type, GetClausePriority("pattern"));
+			query_table_.AddPatternClause(pattern_assign_clause);
+		}
+		else {
+			throw(QueryException("Invalid Query : Unexpected varRef for pattern-assign '" + assign_var_ref_type + "'"));
+		}
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected valid assign synonym"));
+	}
+}
+
+void QueryValidator::MatchPatternWhile() {
+	// while : synonym (varRef ,"_")
+	// varRef : synonym | "_" | "IDENT"
+	string while_syn = next_token_.GetTokenName();
+	string while_control_var_type;
+	bool is_control_variable_valid = false;
+	pair<int, string> while_control_variable;
+	if (syn_to_entity_map_[while_syn] == "while") {
+		Match(while_syn);
+		Match(OPEN_BRACKET);
+		while_control_variable = MatchVarRef();
+		Match(COMMA);
+		Match(UNDERSCORE);
+		Match(CLOSE_BRACKET);
+
+		if (while_control_variable.first == IDENT) {
+			if (syn_to_entity_map_[while_control_variable.second] != "") {
+				while_control_var_type = syn_to_entity_map_[while_control_variable.second];
+				is_control_variable_valid = rel_table_.IsArg1Valid("patternWhile", while_control_var_type);
+			}
+		}
+		else if (while_control_variable.first == UNDERSCORE) {
+			is_control_variable_valid = true;
+			while_control_var_type = "any";
+		}
+		else if (while_control_variable.first == STRING) {
+			is_control_variable_valid = true;
+			while_control_var_type = "string";
+		}
+
+		if (is_control_variable_valid == true) {
+			vector<string> while_arg = { while_syn, while_control_variable.second };
+			vector<string> while_arg_type = { "while", while_control_var_type };
+			Clause pattern_while_clause("pattern", while_arg, while_arg_type, GetClausePriority("pattern"));
+			query_table_.AddPatternClause(pattern_while_clause);
+		}
+		else {
+			throw(QueryException("Invalid Query : Unexpected control variable for pattern-while '" + while_control_var_type + "'"));
+		}
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected valid while synonym"));
+	}
+}
+
+void QueryValidator::MatchPatternIf() {
+	// if : synonym (varRef, "_", "_")
+	// varRef : synonym | "_" | "IDENT"
+	string if_syn = next_token_.GetTokenName();
+	string if_control_var_type;
+	bool is_control_variable_valid = false;
+	pair<int, string> if_control_variable;
+	if (syn_to_entity_map_[if_syn] == "if") {
+		Match(if_syn);
+		Match(OPEN_BRACKET);
+		if_control_variable = MatchVarRef();
+		Match(COMMA);
+		Match(UNDERSCORE);
+		Match(COMMA);
+		Match(UNDERSCORE);
+		Match(CLOSE_BRACKET);
+
+		if (if_control_variable.first == IDENT) {
+			if (syn_to_entity_map_[if_control_variable.second] != "") {
+				if_control_var_type = syn_to_entity_map_[if_control_variable.second];
+				is_control_variable_valid = rel_table_.IsArg1Valid("patternIf", if_control_var_type);
+			}
+		}
+		else if (if_control_variable.first == UNDERSCORE) {
+			is_control_variable_valid = true;
+			if_control_var_type = "any";
+		}
+		else if (if_control_variable.first == STRING) {
+			is_control_variable_valid = true;
+			if_control_var_type = "string";
+		}
+
+		if (is_control_variable_valid == true) {
+			vector<string> if_arg = { if_syn, if_control_variable.second };
+			vector<string> if_arg_type = { "if", if_control_var_type };
+			Clause pattern_if_clause("pattern", if_arg, if_arg_type, GetClausePriority("pattern"));
+			query_table_.AddPatternClause(pattern_if_clause);
+		}
+		else {
+			throw(QueryException("Invalid Query : Unexpected control variable for pattern-if '" + if_control_var_type + "'"));
+		}
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected valid if synonym"));
+	}
+}
+
 void QueryValidator::MatchAttrCompare()
 {
 	vector<string> with_arg, with_arg_type;
 	Ref left_ref = MatchRef();
-	Match("=");
+	Match(EQUAL);
 	Ref right_ref = MatchRef();
 
 	if (IsRefCompatible(left_ref, right_ref) == true) {
@@ -269,7 +1026,6 @@ void QueryValidator::MatchAttrCompare()
 		throw(QueryException("Invalid Query : MisMatched Ref '" + left_ref.value + "' and '" + right_ref.value + "' in Pattern clause"));
 	}
 }
-
 QueryValidator::Ref QueryValidator::MatchRef()
 {
 	// ref : attrRef | synonyn | IDENT | INTEGER
@@ -297,7 +1053,7 @@ QueryValidator::Ref QueryValidator::MatchRef()
 				return with_ref;
 			}
 		}
-		Match(".");
+		Match(DOT);
 		if (next_token_.GetTokenType() == IDENT || next_token_.GetTokenType() == HASH_IDENT) {
 			string attrName = next_token_.GetTokenName();
 			int attrType = next_token_.GetTokenType();
@@ -319,7 +1075,7 @@ QueryValidator::Ref QueryValidator::MatchRef()
 					return with_ref;
 				}
 			}
-			
+
 			if (IsAttributeMatchSynType(with_syn_type, attrName) == true) {
 				with_ref.arg_type = syn_to_entity_map_[with_syn];
 				if (with_syn_type == "constant") {
@@ -339,13 +1095,13 @@ QueryValidator::Ref QueryValidator::MatchRef()
 			throw(QueryException("Invalid Query : Unexpected attibute '" + next_token_.GetTokenName() + "' in with clause"));
 		}
 	}
-	else if (next_token_.GetTokenName() == "\"") {
+	else if (next_token_.GetTokenType() == DOUBLE_QUOTE) {
 		// '"' IDENT '"'
-		Match("\"");
+		Match(DOUBLE_QUOTE);
 		argument = next_token_.GetTokenName();
 		token_type = STRING;
 		Match(argument);
-		Match("\"");
+		Match(DOUBLE_QUOTE);
 		Ref with_ref;
 		with_ref.value = argument;
 		with_ref.arg_type = "string";
@@ -368,6 +1124,142 @@ QueryValidator::Ref QueryValidator::MatchRef()
 	}
 }
 
+pair<int, string> QueryValidator::MatchStmtRef() {
+	// stmtRef : synonym | ‘_’ | INTEGER
+	int tokenType;
+	string argument;
+	if (next_token_.GetTokenType() == IDENT) {
+		argument = next_token_.GetTokenName();
+		tokenType = next_token_.GetTokenType();
+		Match(argument);
+	}
+	else if (next_token_.GetTokenName() == "_") {
+		argument = "_";
+		tokenType = next_token_.GetTokenType();
+		Match(UNDERSCORE);
+	}
+	else if (next_token_.GetTokenType() == INTEGER) {
+		argument = next_token_.GetTokenName();
+		tokenType = next_token_.GetTokenType();
+		Match(argument);
+	}
+	else {
+		// Invalid Query
+		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected stmtRef token"));
+	}
+	return pair<int, string>(tokenType, argument);
+}
+
+pair<int, string> QueryValidator::MatchEntRef() {
+	// entRef : synonym | ‘_’ | ‘"’ IDENT ‘"’ | INTEGER
+	string argument;
+	int tokenType;
+	if (next_token_.GetTokenType() == IDENT) {
+		// synonym
+		argument = next_token_.GetTokenName();
+		tokenType = next_token_.GetTokenType();
+		Match(argument);
+	}
+	else if (next_token_.GetTokenName() == "_") {
+		// '_'
+		argument = "_";
+		tokenType = next_token_.GetTokenType();
+		Match(argument);
+	}
+	else if (next_token_.GetTokenName() == "\"") {
+		// '"' IDENT '"'
+		Match(DOUBLE_QUOTE);
+		argument = next_token_.GetTokenName();
+		tokenType = STRING;
+		Match(argument);
+		Match(DOUBLE_QUOTE);
+	}
+	else if (next_token_.GetTokenType() == INTEGER) {
+		argument = next_token_.GetTokenName();
+		tokenType = next_token_.GetTokenType();
+		Match(argument);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected entRef token"));
+	}
+
+	return pair<int, string>(tokenType, argument);
+}
+
+pair<int, string> QueryValidator::MatchVarRef()
+{
+	// entRef : synonym | ‘_’ | ‘"’ IDENT ‘"’
+	string argument;
+	int tokenType;
+	if (next_token_.GetTokenType() == IDENT) {
+		// synonym
+		argument = next_token_.GetTokenName();
+		tokenType = next_token_.GetTokenType();
+		Match(argument);
+	}
+	else if (next_token_.GetTokenName() == "_") {
+		// '_'
+		argument = "_";
+		tokenType = next_token_.GetTokenType();
+		Match(argument);
+	}
+	else if (next_token_.GetTokenName() == "\"") {
+		// '"' IDENT '"'
+		Match(DOUBLE_QUOTE);
+		argument = next_token_.GetTokenName();
+		tokenType = STRING;
+		Match(argument);
+		Match(DOUBLE_QUOTE);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected entRef token"));
+	}
+
+	return pair<int, string>(tokenType, argument);
+}
+
+void QueryValidator::MatchExpr() {
+	if (next_token_.GetTokenType() == PLUS || next_token_.GetTokenType() == MINUS) {
+		expression_string_ += next_token_.GetTokenName();
+		Match(next_token_.GetTokenName());
+	}
+	MatchTerm();
+	while (next_token_.GetTokenType() == PLUS || next_token_.GetTokenType() == MINUS) {
+		expression_string_ += next_token_.GetTokenName();
+		Match(next_token_.GetTokenName());
+		MatchTerm();
+	}
+}
+
+void QueryValidator::MatchTerm() {
+	MatchFactor();
+	while (next_token_.GetTokenType() == STAR) {
+		expression_string_ += next_token_.GetTokenName();
+		Match(next_token_.GetTokenName());
+		MatchFactor();
+	}
+}
+
+void QueryValidator::MatchFactor() {
+	if (next_token_.GetTokenType() == IDENT) {
+		expression_string_ += next_token_.GetTokenName();
+		Match(next_token_.GetTokenName());
+	}
+	else if (next_token_.GetTokenType() == INTEGER) {
+		expression_string_ += next_token_.GetTokenName();
+		Match(next_token_.GetTokenName());
+	}
+	else if (next_token_.GetTokenType() == OPEN_BRACKET) {
+		expression_string_ += next_token_.GetTokenName();
+		Match(OPEN_BRACKET);
+		MatchExpr();
+		expression_string_ += next_token_.GetTokenName();
+		Match(CLOSE_BRACKET);
+	}
+	else {
+		throw(QueryException("Invalid expression!"));
+	}
+}
 bool QueryValidator::IsAttributeMatchSynType(string synType, string attrName) {
 	if (((synType == "procedure") || (synType == "call")) && (attrName == "procName")) {
 		return true;
@@ -451,895 +1343,4 @@ int QueryValidator::GetClausePriority(string relation)
 	else {
 		return -1;
 	}
-}
-
-void QueryValidator::MatchPatternAssign()
-{
-	string assign_syn = next_token_.GetTokenName();
-	string assign_var_ref_syn, assign_var_ref_type, expression_type;
-	pair<int, string> assign_var_ref;
-	bool is_sub_expr = false;
-	bool is_any = false;
-	bool is_assign_var_ref_valid = false;
-
-	if (syn_to_entity_map_[assign_syn] == "assign") {
-		Match(assign_syn);
-		Match("(");
-		assign_var_ref = MatchVarRef();
-		Match(",");
-		if (next_token_.GetTokenType() == UNDERSCORE) {
-			Match("_");
-			is_any = true;
-			expression_string_ = "_";
-			if (next_token_.GetTokenType() == DOUBLE_QUOTE) {
-				is_sub_expr = true;
-				is_any = false;
-				Match("\"");
-				expression_string_ = "";
-				MatchExpr();
-				Match("\"");
-				Match("_");
-			}
-		}
-		else if (next_token_.GetTokenType() == DOUBLE_QUOTE) {
-			Match("\"");
-			expression_string_ = "";
-			MatchExpr();
-			Match("\"");
-		}
-		Match(")");
-
-		if (assign_var_ref.first == IDENT) {
-			if (syn_to_entity_map_[assign_var_ref.second] != "") {
-				assign_var_ref_type = syn_to_entity_map_[assign_var_ref.second];
-				is_assign_var_ref_valid = rel_table_.IsArg1Valid("patternAssign", assign_var_ref_type);
-			}
-		}
-		else if (assign_var_ref.first == UNDERSCORE) {
-			is_assign_var_ref_valid = true;
-			assign_var_ref_type = "any";
-		}
-		else if (assign_var_ref.first == STRING) {
-			is_assign_var_ref_valid = true;
-			assign_var_ref_type = "string";
-		}
-
-		if (is_assign_var_ref_valid == true) {
-			if (is_sub_expr == true) {
-				expression_type = "sub_expr";
-			} 
-			else if (is_any == true) {
-				expression_type = "any";
-			}
-			else {
-				expression_type = "expr";
-			}
-			vector<string> assign_arg = { assign_syn, assign_var_ref.second , expression_string_ };
-			vector<string> assign_arg_type = { "assign", assign_var_ref_type, expression_type };
-			Clause pattern_assign_clause("pattern", assign_arg, assign_arg_type,GetClausePriority("pattern"));
-			query_table_.AddPatternClause(pattern_assign_clause);
-		}
-		else {
-			throw(QueryException("Invalid Query : Unexpected varRef for pattern-assign '" + assign_var_ref_type + "'"));
-		}
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected valid assign synonym"));
-	}
-}
-
-void QueryValidator::MatchPatternWhile() {
-	// while : synonym (varRef ,"_")
-	// varRef : synonym | "_" | "IDENT"
-	string while_syn = next_token_.GetTokenName();
-	string while_control_var_type;
-	bool is_control_variable_valid = false;
-	pair<int, string> while_control_variable;
-	if (syn_to_entity_map_[while_syn] == "while") {
-		Match(while_syn);
-		Match("(");
-		while_control_variable = MatchVarRef();
-		Match(",");
-		Match("_");
-		Match(")");
-
-		if (while_control_variable.first == IDENT) {
-			if (syn_to_entity_map_[while_control_variable.second] != "") {
-				while_control_var_type = syn_to_entity_map_[while_control_variable.second];
-				is_control_variable_valid = rel_table_.IsArg1Valid("patternWhile", while_control_var_type);
-			}
-		}
-		else if (while_control_variable.first == UNDERSCORE) {
-			is_control_variable_valid = true;
-			while_control_var_type = "any";
-		}
-		else if (while_control_variable.first == STRING) {
-			is_control_variable_valid = true;
-			while_control_var_type = "string";
-		}
-
-		if (is_control_variable_valid == true) {
-			vector<string> while_arg = { while_syn, while_control_variable.second };
-			vector<string> while_arg_type = { "while", while_control_var_type };
-			Clause pattern_while_clause("pattern", while_arg, while_arg_type, GetClausePriority("pattern"));
-			query_table_.AddPatternClause(pattern_while_clause);
-		}
-		else {
-			throw(QueryException("Invalid Query : Unexpected control variable for pattern-while '" + while_control_var_type + "'"));
-		}
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected valid while synonym"));
-	}
-}
-
-void QueryValidator::MatchPatternIf() {
-	// if : synonym (varRef, "_", "_")
-	// varRef : synonym | "_" | "IDENT"
-	string if_syn = next_token_.GetTokenName();
-	string if_control_var_type;
-	bool is_control_variable_valid = false;
-	pair<int, string> if_control_variable;
-	if (syn_to_entity_map_[if_syn] == "if") {
-		Match(if_syn);
-		Match("(");
-		if_control_variable = MatchVarRef();
-		Match(",");
-		Match("_");
-		Match(",");
-		Match("_");
-		Match(")");
-
-		if (if_control_variable.first == IDENT) {
-			if (syn_to_entity_map_[if_control_variable.second] != "") {
-				if_control_var_type = syn_to_entity_map_[if_control_variable.second];
-				is_control_variable_valid = rel_table_.IsArg1Valid("patternIf", if_control_var_type);
-			}
-		}
-		else if (if_control_variable.first == UNDERSCORE) {
-			is_control_variable_valid = true;
-			if_control_var_type = "any";
-		}
-		else if (if_control_variable.first == STRING) {
-			is_control_variable_valid = true;
-			if_control_var_type = "string";
-		}
-
-		if (is_control_variable_valid == true) {
-			vector<string> if_arg = { if_syn, if_control_variable.second };
-			vector<string> if_arg_type = { "if", if_control_var_type };
-			Clause pattern_if_clause("pattern", if_arg, if_arg_type, GetClausePriority("pattern"));
-			query_table_.AddPatternClause(pattern_if_clause);
-		}
-		else {
-			throw(QueryException("Invalid Query : Unexpected control variable for pattern-if '" + if_control_var_type + "'"));
-		}
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected valid if synonym"));
-	}
-}
-
-void QueryValidator::MatchRelation() {
-	string relation = next_token_.GetTokenName();
-	next_token_ = GetToken();
-	if (next_token_.GetTokenType() == STAR) {
-		relation += "*";
-		next_token_ = GetToken();
-	}
-	if (relation == "Follows") {
-		MatchFollow();
-	}
-	else if (relation == "Follows*") {
-		MatchFollowStar();
-	}
-	else if (relation == "Parent") {
-		MatchParent();
-	}
-	else if (relation == "Parent*") {
-		MatchParentStar();
-	}
-	else if (relation == "Modifies") {
-		MatchModifies();
-	}
-	else if (relation == "Uses") {
-		MatchUses();
-	}
-	else if (relation == "Calls") {
-		MatchCalls();
-	}
-	else if (relation == "Calls*") {
-		MatchCallsStar();
-	}
-	else if (relation == "Next") {
-		MatchNext();
-	}
-	else if (relation == "Next*") {
-		MatchNextStar();
-	}
-	else {
-		// If its none of the above relation, ERROR!!!!!!!!!!!!!
-		throw(QueryException("Invalid Query : Unexpected relation '" + next_token_.GetTokenName() + "'; Expecting 'Follow'|'Follow*'|'Parent'|'Parent*'|'Modifies'|'Uses'"));
-	}
-}
-
-void QueryValidator::MatchFollow() {
-	// Check if arguments, num of arguments are valid
-	Match("(");
-	pair<int, string> arg1 = MatchStmtRef();
-	Match(",");
-	pair<int, string> arg2 = MatchStmtRef();
-	Match(")");
-	// Validate arg1 and arg2
-	bool is_arg1_valid = false;
-	bool is_arg2_valid = false;
-	string arg1_type, arg2_type;
-
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			is_arg1_valid = rel_table_.IsArg1Valid("follows", syn_to_entity_map_[arg1.second]);
-			arg1_type = syn_to_entity_map_[arg1.second];
-		}
-	}
-	else if (arg1.first == UNDERSCORE) {
-		is_arg1_valid = rel_table_.IsArg1Valid("follows", "_");
-		arg1_type = "any";
-	}
-	else if (arg1.first == INTEGER) {
-		is_arg1_valid = rel_table_.IsArg1Valid("follows", "constant");
-		arg1_type = "constant";
-	}
-	if (arg2.first == IDENT) {
-		if (syn_to_entity_map_[arg2.second] != "") {
-			is_arg2_valid = rel_table_.IsArg2Valid("follows", syn_to_entity_map_[arg2.second]);
-			arg2_type = syn_to_entity_map_[arg2.second];
-		}
-	}
-	else if (arg2.first == UNDERSCORE) {
-		is_arg2_valid = rel_table_.IsArg2Valid("follows", "_");
-		arg2_type = "any";
-	}
-	else if (arg2.first == INTEGER) {
-		is_arg2_valid = rel_table_.IsArg2Valid("follows", "constant");
-		arg2_type = "constant";
-	}
-
-	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> followsArg({ arg1.second,arg2.second });
-		vector<string> followsArgType ({ arg1_type,arg2_type });
-		Clause followsRelation("follows", followsArg, followsArgType, GetClausePriority("follows"));
-		query_table_.AddSuchThatClause(followsRelation);
-
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected arguments for follows"));
-	}
-
-}
-
-void QueryValidator::MatchFollowStar() {
-	// Check if arguments, num of arguments are valid
-	Match("(");
-	pair<int, string> arg1 = MatchStmtRef();
-	Match(",");
-	pair<int, string> arg2 = MatchStmtRef();
-	Match(")");
-	
-	bool is_arg1_valid = false;
-	bool is_arg2_valid = false;
-	string arg1_type, arg2_type;
-
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			is_arg1_valid = rel_table_.IsArg1Valid("follows*", syn_to_entity_map_[arg1.second]);
-			arg1_type = syn_to_entity_map_[arg1.second];
-		}
-	}
-	else if (arg1.first == UNDERSCORE) {
-		is_arg1_valid = rel_table_.IsArg1Valid("follows*", "_");
-		arg1_type = "any";
-	}
-	else if (arg1.first == INTEGER) {
-		is_arg1_valid = rel_table_.IsArg1Valid("follows*", "constant");
-		arg1_type = "constant";
-	}
-	if (arg2.first == IDENT) {
-		if (syn_to_entity_map_[arg2.second] != "") {
-			is_arg2_valid = rel_table_.IsArg2Valid("follows*", syn_to_entity_map_[arg2.second]);
-			arg2_type = syn_to_entity_map_[arg2.second];
-		}
-	}
-	else if (arg2.first == UNDERSCORE) {
-		is_arg2_valid = rel_table_.IsArg2Valid("follows*", "_");
-		arg2_type = "any";
-	}
-	else if (arg2.first == INTEGER) {
-		is_arg2_valid = rel_table_.IsArg2Valid("follows*", "constant");
-		arg2_type = "constant";
-	}
-
-	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> followsStarArg({ arg1.second,arg2.second });
-		vector<string> followsStarArgType({ arg1_type,arg2_type });
-		Clause followsStarRel("follows*", followsStarArg, followsStarArgType, GetClausePriority("follows*"));
-		query_table_.AddSuchThatClause(followsStarRel);
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected arguments for follows*"));
-	}
-}
-
-void QueryValidator::MatchParent() {
-	// Check if arguments, num of arguments are valid
-	Match("(");
-	pair<int, string> arg1 = MatchStmtRef();
-	Match(",");
-	pair<int, string> arg2 = MatchStmtRef();
-	Match(")");
-	
-	bool is_arg1_valid = false;
-	bool is_arg2_valid = false;
-	string arg1_type, arg2_type;
-
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			is_arg1_valid = rel_table_.IsArg1Valid("parent", syn_to_entity_map_[arg1.second]);
-			arg1_type = syn_to_entity_map_[arg1.second];
-		}
-	}
-	else if (arg1.first == UNDERSCORE) {
-		is_arg1_valid = rel_table_.IsArg1Valid("parent", "_");
-		arg1_type = "any";
-	}
-	else if (arg1.first == INTEGER) {
-		is_arg1_valid = rel_table_.IsArg1Valid("parent", "constant");
-		arg1_type = "constant";
-	}
-	if (arg2.first == IDENT) {
-		if (syn_to_entity_map_[arg2.second] != "") {
-			is_arg2_valid = rel_table_.IsArg2Valid("parent", syn_to_entity_map_[arg2.second]);
-			arg2_type = syn_to_entity_map_[arg2.second];
-		}
-	}
-	else if (arg2.first == UNDERSCORE) {
-		is_arg2_valid = rel_table_.IsArg2Valid("parent", "_");
-		arg2_type = "any";
-	}
-	else if (arg2.first == INTEGER) {
-		is_arg2_valid = rel_table_.IsArg2Valid("parent", "constant");
-		arg2_type = "constant";
-	}
-
-	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> parentArg({ arg1.second,arg2.second });
-		vector<string> parentArgType({ arg1_type,arg2_type });
-		Clause parentRel("parent", parentArg, parentArgType, GetClausePriority("parent"));
-		query_table_.AddSuchThatClause(parentRel);
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected arguments for parent"));
-	}
-}
-
-void QueryValidator::MatchParentStar() {
-	// Check if arguments, num of arguments are valid
-	Match("(");
-	pair<int, string> arg1 = MatchStmtRef();
-	Match(",");
-	pair<int, string> arg2 = MatchStmtRef();
-	Match(")");
-	
-	bool is_arg1_valid = false;
-	bool is_arg2_valid = false;
-	string arg1_type, arg2_type;
-
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			is_arg1_valid = rel_table_.IsArg1Valid("parent*", syn_to_entity_map_[arg1.second]);
-			arg1_type = syn_to_entity_map_[arg1.second];
-		}
-	}
-	else if (arg1.first == UNDERSCORE) {
-		is_arg1_valid = rel_table_.IsArg1Valid("parent*", "_");
-		arg1_type = "any";
-	}
-	else if (arg1.first == INTEGER) {
-		is_arg1_valid = rel_table_.IsArg1Valid("parent*", "constant");
-		arg1_type = "constant";
-	}
-	if (arg2.first == IDENT) {
-		if (syn_to_entity_map_[arg2.second] != "") {
-			is_arg2_valid = rel_table_.IsArg2Valid("parent*", syn_to_entity_map_[arg2.second]);
-			arg2_type = syn_to_entity_map_[arg2.second];
-		}
-	}
-	else if (arg2.first == UNDERSCORE) {
-		is_arg2_valid = rel_table_.IsArg2Valid("parent*", "_");
-		arg2_type = "any";
-	}
-	else if (arg2.first == INTEGER) {
-		is_arg2_valid = rel_table_.IsArg2Valid("parent*", "constant");
-		arg2_type = "constant";
-	}
-
-	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> parentStarArg({ arg1.second,arg2.second });
-		vector<string> parentStarArgType({ arg1_type,arg2_type });
-		Clause parentStarRel("parent*", parentStarArg, parentStarArgType, GetClausePriority("parent*"));
-		query_table_.AddSuchThatClause(parentStarRel);
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected arguments for parent*"));
-	}
-}
-
-void QueryValidator::MatchModifies() {
-	Match("(");
-	pair<int,string> arg1 = MatchEntRef();
-	Match(",");
-	pair<int, string> arg2 = MatchEntRef();
-	Match(")");
-	
-	bool is_arg1_valid = false;
-	bool is_arg2_valid = false;
-	string arg1_type, arg2_type;
-
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			is_arg1_valid = rel_table_.IsArg1Valid("modifies", syn_to_entity_map_[arg1.second]);
-			arg1_type = syn_to_entity_map_[arg1.second];
-		}
-	}
-	else if (arg1.first == UNDERSCORE) {
-		is_arg1_valid = rel_table_.IsArg1Valid("modifies", "_");
-		arg1_type = "any";
-	}
-	else if (arg1.first == INTEGER) {
-		is_arg1_valid = rel_table_.IsArg1Valid("modifies", "constant");
-		arg1_type = "constant";
-	}
-	else if (arg1.first == STRING) {
-		is_arg1_valid = rel_table_.IsArg1Valid("modifies", "string");
-		arg1_type = "string";
-	}
-
-	if (arg2.first == IDENT) {
-		if (syn_to_entity_map_[arg2.second] != "") {
-			is_arg2_valid = rel_table_.IsArg2Valid("modifies", syn_to_entity_map_[arg2.second]);
-			arg2_type = syn_to_entity_map_[arg2.second];
-		}
-	}
-	else if (arg2.first == UNDERSCORE) {
-		is_arg2_valid = rel_table_.IsArg2Valid("modifies", "_");
-		arg2_type = "any";
-	}
-	else if (arg2.first == STRING) {
-		is_arg2_valid = rel_table_.IsArg2Valid("modifies", "string");
-		arg2_type = "string";
-	}
-
-	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> modifiesArg({ arg1.second,arg2.second });
-		vector<string> modifiesArgType({ arg1_type,arg2_type });
-		Clause modifiesRel("modifies", modifiesArg, modifiesArgType, GetClausePriority("modifies"));
-		query_table_.AddSuchThatClause(modifiesRel);
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected arguments for modifies"));
-	}
-}
-
-void QueryValidator::MatchUses() {
-	Match("(");
-	pair<int,string> arg1 = MatchEntRef();
-	Match(",");
-	pair<int,string> arg2 = MatchEntRef();
-	Match(")");
-
-	// Validate arg1 and arg2
-	bool is_arg1_valid = false;
-	bool is_arg2_valid = false;
-	string arg1_type, arg2_type;
-
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			is_arg1_valid = rel_table_.IsArg1Valid("uses", syn_to_entity_map_[arg1.second]);
-			arg1_type = syn_to_entity_map_[arg1.second];
-		}
-	}
-	else if (arg1.first == UNDERSCORE) {
-		is_arg1_valid = rel_table_.IsArg1Valid("uses", "_");
-		arg1_type = "any";
-	}
-	else if (arg1.first == INTEGER) {
-		is_arg1_valid = rel_table_.IsArg1Valid("uses", "constant");
-		arg1_type = "constant";
-	}
-	else if (arg1.first == STRING) {
-		is_arg1_valid = rel_table_.IsArg1Valid("uses", "string");
-		arg1_type = "string";
-	}
-
-	if (arg2.first == IDENT) {
-		if (syn_to_entity_map_[arg2.second] != "") {
-			is_arg2_valid = rel_table_.IsArg2Valid("uses", syn_to_entity_map_[arg2.second]);
-			arg2_type = syn_to_entity_map_[arg2.second];
-		}
-	}
-	else if (arg2.first == UNDERSCORE) {
-		is_arg2_valid = rel_table_.IsArg2Valid("uses", "_");
-		arg2_type = "any";
-	}
-	else if (arg2.first == STRING) {
-		is_arg2_valid = rel_table_.IsArg2Valid("uses", "string");
-		arg2_type = "string";
-	}
-
-	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> usesArg({ arg1.second,arg2.second });
-		vector<string> usesArgType({ arg1_type,arg2_type });
-		Clause usesRel("uses", usesArg, usesArgType, GetClausePriority("uses"));
-		query_table_.AddSuchThatClause(usesRel);
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected arguments for uses"));
-	}
-}
-
-void QueryValidator::MatchCalls() {
-	// Calls:"Calls""("entRef", "entRef")" 
-	// Check if arguments, num of arguments are valid
-	Match("(");
-	pair<int, string> arg1 = MatchEntRef();
-	Match(",");
-	pair<int, string> arg2 = MatchEntRef();
-	Match(")");
-
-	bool is_arg1_valid = false;
-	bool is_arg2_valid = false;
-	string arg1_type, arg2_type;
-
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			is_arg1_valid = rel_table_.IsArg1Valid("calls", syn_to_entity_map_[arg1.second]);
-			arg1_type = syn_to_entity_map_[arg1.second];
-		}
-	}
-	else if (arg1.first == UNDERSCORE) {
-		is_arg1_valid = rel_table_.IsArg1Valid("calls", "_");
-		arg1_type = "any";
-	}
-	else if (arg1.first == STRING) {
-		is_arg1_valid = rel_table_.IsArg1Valid("calls", "string");
-		arg1_type = "string";
-	}
-	/* call rel does not accept int as parameter
-	else if (arg1.first == INTEGER) {
-		is_arg1_valid = rel_table_.IsArg1Valid("calls", "constant");
-		arg1_type = "constant";
-	}
-	*/
-	if (arg2.first == IDENT) {
-		if (syn_to_entity_map_[arg2.second] != "") {
-			is_arg2_valid = rel_table_.IsArg2Valid("calls", syn_to_entity_map_[arg2.second]);
-			arg2_type = syn_to_entity_map_[arg2.second];
-		}
-	}
-	else if (arg2.first == UNDERSCORE) {
-		is_arg2_valid = rel_table_.IsArg2Valid("calls", "_");
-		arg2_type = "any";
-	}
-	else if (arg2.first == STRING) {
-		is_arg2_valid = rel_table_.IsArg2Valid("calls", "string");
-		arg2_type = "string";
-	}
-	/* call rel does not accept int as parameter
-	else if (arg2.first == INTEGER) {
-		is_arg2_valid = rel_table_.IsArg2Valid("calls", "constant");
-		arg2_type = "constant";
-	}
-	*/
-	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> callsArg({ arg1.second,arg2.second });
-		vector<string> callsArgType({ arg1_type,arg2_type });
-		Clause callsRel("calls", callsArg, callsArgType,GetClausePriority("call"));
-		query_table_.AddSuchThatClause(callsRel);
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected arguments for calls"));
-	}
-}
-
-void QueryValidator::MatchCallsStar() {
-	// Check if arguments, num of arguments are valid
-	Match("(");
-	pair<int, string> arg1 = MatchEntRef();
-	Match(",");
-	pair<int, string> arg2 = MatchEntRef();
-	Match(")");
-
-	bool is_arg1_valid = false;
-	bool is_arg2_valid = false;
-	string arg1_type, arg2_type;
-
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			is_arg1_valid = rel_table_.IsArg1Valid("calls*", syn_to_entity_map_[arg1.second]);
-			arg1_type = syn_to_entity_map_[arg1.second];
-		}
-	}
-	else if (arg1.first == UNDERSCORE) {
-		is_arg1_valid = rel_table_.IsArg1Valid("calls*", "_");
-		arg1_type = "any";
-	}
-	else if (arg1.first == STRING) {
-		is_arg1_valid = rel_table_.IsArg1Valid("calls*", "string");
-		arg1_type = "string";
-	}
-	if (arg2.first == IDENT) {
-		if (syn_to_entity_map_[arg2.second] != "") {
-			is_arg2_valid = rel_table_.IsArg2Valid("calls*", syn_to_entity_map_[arg2.second]);
-			arg2_type = syn_to_entity_map_[arg2.second];
-		}
-	}
-	else if (arg2.first == UNDERSCORE) {
-		is_arg2_valid = rel_table_.IsArg2Valid("calls*", "_");
-		arg2_type = "any";
-	}
-	else if (arg2.first == STRING) {
-		is_arg2_valid = rel_table_.IsArg2Valid("calls*", "string");
-		arg2_type = "string";
-	}
-	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> callsStarArg({ arg1.second,arg2.second });
-		vector<string> callsStarArgType({ arg1_type,arg2_type });
-		Clause callsStarRel("calls*", callsStarArg, callsStarArgType,GetClausePriority("call*"));
-		query_table_.AddSuchThatClause(callsStarRel);
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected arguments for calls*"));
-	}
-}
-
-void QueryValidator::MatchNext() {
-	// Check if arguments, num of arguments are valid
-	Match("(");
-	pair<int, string> arg1 = MatchStmtRef();
-	Match(",");
-	pair<int, string> arg2 = MatchStmtRef();
-	Match(")");
-
-	bool is_arg1_valid = false;
-	bool is_arg2_valid = false;
-	string arg1_type, arg2_type;
-
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			is_arg1_valid = rel_table_.IsArg1Valid("next", syn_to_entity_map_[arg1.second]);
-			arg1_type = syn_to_entity_map_[arg1.second];
-		}
-	}
-	else if (arg1.first == UNDERSCORE) {
-		is_arg1_valid = rel_table_.IsArg1Valid("next", "_");
-		arg1_type = "any";
-	}
-	else if (arg1.first == INTEGER) {
-		is_arg1_valid = rel_table_.IsArg1Valid("next", "constant");
-		arg1_type = "constant";
-	}
-	if (arg2.first == IDENT) {
-		if (syn_to_entity_map_[arg2.second] != "") {
-			is_arg2_valid = rel_table_.IsArg2Valid("next", syn_to_entity_map_[arg2.second]);
-			arg2_type = syn_to_entity_map_[arg2.second];
-		}
-	}
-	else if (arg2.first == UNDERSCORE) {
-		is_arg2_valid = rel_table_.IsArg2Valid("next", "_");
-		arg2_type = "any";
-	}
-	else if (arg2.first == INTEGER) {
-		is_arg2_valid = rel_table_.IsArg2Valid("next", "constant");
-		arg2_type = "constant";
-	}
-
-	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> nextArg({ arg1.second,arg2.second });
-		vector<string> nextArgType({ arg1_type,arg2_type });
-		Clause nextRel("next", nextArg, nextArgType,GetClausePriority("next"));
-		query_table_.AddSuchThatClause(nextRel);
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected arguments for next"));
-	}
-}
-
-void QueryValidator::MatchNextStar() {
-	// Check if arguments, num of arguments are valid
-	Match("(");
-	pair<int, string> arg1 = MatchStmtRef();
-	Match(",");
-	pair<int, string> arg2 = MatchStmtRef();
-	Match(")");
-
-	bool is_arg1_valid = false;
-	bool is_arg2_valid = false;
-	string arg1_type, arg2_type;
-
-	if (arg1.first == IDENT) {
-		if (syn_to_entity_map_[arg1.second] != "") {
-			is_arg1_valid = rel_table_.IsArg1Valid("next*", syn_to_entity_map_[arg1.second]);
-			arg1_type = syn_to_entity_map_[arg1.second];
-		}
-	}
-	else if (arg1.first == UNDERSCORE) {
-		is_arg1_valid = rel_table_.IsArg1Valid("next*", "_");
-		arg1_type = "any";
-	}
-	else if (arg1.first == INTEGER) {
-		is_arg1_valid = rel_table_.IsArg1Valid("next*", "constant");
-		arg1_type = "constant";
-	}
-	if (arg2.first == IDENT) {
-		if (syn_to_entity_map_[arg2.second] != "") {
-			is_arg2_valid = rel_table_.IsArg2Valid("next*", syn_to_entity_map_[arg2.second]);
-			arg2_type = syn_to_entity_map_[arg2.second];
-		}
-	}
-	else if (arg2.first == UNDERSCORE) {
-		is_arg2_valid = rel_table_.IsArg2Valid("next*", "_");
-		arg2_type = "any";
-	}
-	else if (arg2.first == INTEGER) {
-		is_arg2_valid = rel_table_.IsArg2Valid("next*", "constant");
-		arg2_type = "constant";
-	}
-
-	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> nextStarArg({ arg1.second,arg2.second });
-		vector<string> nextStarArgType({ arg1_type,arg2_type });
-		Clause nextStarRel("next*", nextStarArg, nextStarArgType,GetClausePriority("next*"));
-		query_table_.AddSuchThatClause(nextStarRel);
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected arguments for nextStar"));
-	}
-}
-
-void QueryValidator::MatchExpr() {
-	if (next_token_.GetTokenType() == PLUS || next_token_.GetTokenType() == MINUS) {
-		expression_string_ += next_token_.GetTokenName();
-		Match(next_token_.GetTokenName());
-	}
-	MatchTerm();
-	while (next_token_.GetTokenType() == PLUS || next_token_.GetTokenType() == MINUS) {
-		expression_string_ += next_token_.GetTokenName();
-		Match(next_token_.GetTokenName());
-		MatchTerm();
-	}
-}
-
-void QueryValidator::MatchTerm() {
-	MatchFactor();
-	while (next_token_.GetTokenType() == STAR) {
-		expression_string_ += next_token_.GetTokenName();
-		Match(next_token_.GetTokenName());
-		MatchFactor();
-	}
-}
-
-void QueryValidator::MatchFactor() {
-	if (next_token_.GetTokenType() == IDENT) {
-		expression_string_ += next_token_.GetTokenName();
-		Match(next_token_.GetTokenName());
-	}
-	else if (next_token_.GetTokenType() == INTEGER) {
-		expression_string_ += next_token_.GetTokenName();
-		Match(next_token_.GetTokenName());
-	}
-	else if (next_token_.GetTokenType() == OPEN_BRACKET) {
-		expression_string_ += next_token_.GetTokenName();
-		Match("(");
-		MatchExpr();
-		expression_string_ += next_token_.GetTokenName();
-		Match(")");
-	}
-	else {
-		throw(QueryException("Invalid expression!"));
-	}
-}
-
-
-pair<int,string> QueryValidator::MatchStmtRef() {
-	// stmtRef : synonym | ‘_’ | INTEGER
-	int tokenType;
-	string argument;
-	if (next_token_.GetTokenType() == IDENT) {
-		argument = next_token_.GetTokenName();
-		tokenType = next_token_.GetTokenType();
-		Match(argument);
-	}
-	else if (next_token_.GetTokenName() == "_") {
-		argument = "_";
-		tokenType = next_token_.GetTokenType();
-		Match(UNDERSCORE);
-	}
-	else if (next_token_.GetTokenType() == INTEGER) {
-		argument = next_token_.GetTokenName();
-		tokenType = next_token_.GetTokenType();
-		Match(argument);
-	}
-	else {
-		// Invalid Query
-		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected stmtRef token"));
-	}
-	return pair<int, string>(tokenType, argument);
-}
-
-pair<int,string> QueryValidator::MatchEntRef() {
-	// entRef : synonym | ‘_’ | ‘"’ IDENT ‘"’ | INTEGER
-	string argument;
-	int tokenType;
-	if (next_token_.GetTokenType() == IDENT) {
-		// synonym
-		argument = next_token_.GetTokenName();
-		tokenType = next_token_.GetTokenType();
-		Match(argument);
-	}
-	else if (next_token_.GetTokenName() == "_") {
-		// '_'
-		argument = "_";
-		tokenType = next_token_.GetTokenType();
-		Match(argument);
-	}
-	else if (next_token_.GetTokenName() == "\"") {
-		// '"' IDENT '"'
-		Match("\"");
-		argument = next_token_.GetTokenName();
-		tokenType = STRING;
-		Match(argument);
-		// Some funny thing here
-		Match("\"");
-	}
-	else if (next_token_.GetTokenType() == INTEGER) {
-		argument = next_token_.GetTokenName();
-		tokenType = next_token_.GetTokenType();
-		Match(argument);
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected entRef token"));
-	}
-	
-	return pair<int,string>(tokenType, argument);
-}
-
-pair<int, string> QueryValidator::MatchVarRef()
-{
-	// entRef : synonym | ‘_’ | ‘"’ IDENT ‘"’
-	string argument;
-	int tokenType;
-	if (next_token_.GetTokenType() == IDENT) {
-		// synonym
-		argument = next_token_.GetTokenName();
-		tokenType = next_token_.GetTokenType();
-		Match(argument);
-	}
-	else if (next_token_.GetTokenName() == "_") {
-		// '_'
-		argument = "_";
-		tokenType = next_token_.GetTokenType();
-		Match(argument);
-	}
-	else if (next_token_.GetTokenName() == "\"") {
-		// '"' IDENT '"'
-		Match("\"");
-		argument = next_token_.GetTokenName();
-		tokenType = STRING;
-		Match(argument);
-		Match("\"");
-	}
-	else {
-		throw(QueryException("Invalid Query : Unexpected token '" + next_token_.GetTokenName() + "'; Expected entRef token"));
-	}
-
-	return pair<int, string>(tokenType, argument);
 }

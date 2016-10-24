@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <vector>
 #include <chrono>
@@ -36,11 +37,12 @@ public:
 	QueryValidator(string query_string);
 	QueryTable Parse();
 	
+private:
 	QueryToken GetToken();
 	void Match(string token);
 	void Match(int token_type);
 	void MatchDeclaration();
-	void MatchDeclarationVar(string token); 
+	void MatchDeclarationVar(string token);
 	void MatchSelect();
 	void MatchResultClause();
 	void MatchTupleResult();
@@ -50,10 +52,6 @@ public:
 	void MatchPatternClause();
 	void MatchPattern();
 	void MatchWith();
-	void MatchAttrCompare();
-	void MatchPatternAssign();
-	void MatchPatternWhile();
-	void MatchPatternIf();
 	void MatchRelation();
 	void MatchFollow();
 	void MatchFollowStar();
@@ -65,25 +63,25 @@ public:
 	void MatchCallsStar();
 	void MatchNext();
 	void MatchNextStar();
-
-	// Expression
+	void MatchPatternAssign();
+	void MatchPatternWhile();
+	void MatchPatternIf();
+	void MatchAttrCompare();
+	QueryValidator::Ref MatchRef();
+	pair<int, string> MatchStmtRef();
+	pair<int, string> MatchEntRef();
+	pair<int, string> MatchVarRef();
 	void MatchExpr();
 	void MatchTerm();
 	void MatchFactor();
-
-	pair<int,string> MatchStmtRef();
-	pair<int,string> MatchEntRef();
-	pair<int, string> MatchVarRef();
-	QueryValidator::Ref MatchRef();
 	bool IsAttributeMatchSynType(string synType, string attrName);
 	bool IsRefCompatible(Ref left_ref, Ref right_ref);
 	string GetWithTypeByAttrName(string attrName);
 	int GetClausePriority(string relation);
-	
-private:
+
 	QueryTable query_table_;
-	QueryToken next_token_;
 	QueryTokenizer tokenizer_;
+	QueryToken next_token_;
 	RelationTable rel_table_;
 	unordered_map<string, string> syn_to_entity_map_;
 	string query_string_;
@@ -92,4 +90,7 @@ private:
 	vector<Clause> such_that_clauses_;
 	vector<Clause> with_clauses_;
 	vector<Clause> pattern_clauses_;
+
+	vector<string> select_arg_;
+	vector<string> select_arg_type_;
 };
