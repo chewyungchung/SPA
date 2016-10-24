@@ -17,17 +17,21 @@ public:
 	list<string> GetResults();
 
 private:
-	void ProcessConnectedResults();
-	void ProcessNonConnectedResults();
-	void PopulateFinalResultList(ResultTable& final_table, string selected_syn);
-	ResultTable InnerJoin(ResultTable table_one, ResultTable table_two);
-	ResultTable CartesianProduct(ResultTable intermediate_set_one, ResultTable intermediate_set_two);
-	bool HasFalseResult(vector<vector<ResultTable>>& results);
 	bool IsBooleanSelected();
 	bool IsResultsEmpty();
-	int GetNumOfCommonColumn(vector<string> table_one_columns, vector<string> table_two_columns);
+	void ProcessNonConnectedResults();
+	void ProcessConnectedResults();
+	bool HasFalseResult(vector<vector<ResultTable>>& results);
+	void InnerJoinGroups(vector<ResultTable>& joined_tables, bool is_joining_connected_groups);
+	void CartesianProductGroups(vector<ResultTable>& joined_tables, ResultTable& final_table);
+	ResultTable InnerJoin(ResultTable table_one, ResultTable table_two);
+	ResultTable CartesianProduct(ResultTable table_one, ResultTable table_two);
 	string GetCommonColumn(vector<string> table_one_columns, vector<string> table_two_columns);
+	int GetNumOfCommonColumn(vector<string> table_one_columns, vector<string> table_two_columns);
 	string GetOtherColumn(vector<string> table_two_columns, string common_column);
+	void MergeRows(vector<string>& row_one, vector<string>& row_two);
+	string GetRowInString(vector<string>& row);
+	void PopulateFinalResultList(ResultTable& final_table);
 
 	vector<vector<ResultTable>> connected_group_intermediate_results_;
 	vector<vector<ResultTable>> non_connected_group_intermediate_results_;
