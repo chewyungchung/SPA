@@ -1,11 +1,6 @@
 #include "Relation.h"
-#include <vector>
-#include <string>
-
-using namespace std;
 
 Relation::Relation() {
-
 }
 
 Relation::Relation(int num_of_arg, vector<string> arg1_type, vector<string> arg2_type) {

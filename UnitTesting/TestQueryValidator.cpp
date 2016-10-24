@@ -47,6 +47,10 @@ namespace UnitTesting {
 			query_parser = QueryValidator(query_string);
 			query_tree = query_parser.Parse();
 
+			query_string = "stmt s; constant c; call call1,call2; Select <s.stmt#,c.value,call1.procName,call2.stmt#> such that Follows(s,call1) and Follows*(call1,2)";
+			query_parser = QueryValidator(query_string);
+			query_tree = query_parser.Parse();
+
 			query_tree.Optimize();
 
 			cout << "All is well" << endl;

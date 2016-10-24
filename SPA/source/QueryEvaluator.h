@@ -7,7 +7,6 @@
 #include <chrono>
 #include <thread>
 
-#include "Parser.h"
 #include "PKB.h"
 #include "QueryValidator.h"
 #include "QueryResultProjector.h"
@@ -61,7 +60,6 @@ public:
 private:
 	vector<vector<ResultTable>> connected_group_intermediate_result_;
 	vector<vector<ResultTable>> non_connected_group_intermediate_result_;
-	vector<string> _result;
 	QueryTable input_query_;
 	PKB pkb_;
 

@@ -55,6 +55,8 @@ private:
 	void PopulateNoSynClauses();
 	void PopulateOneSynClauses();
 	void PopulateTwoSynClauses();
+	void PopulateQueueWithSyn(priority_queue<Clause, vector<Clause>, ClauseComparator>& sorted_clauses, vector<Clause>& unprocessed_clauses, vector<Clause>& syn_clauses, queue<string>& processing_queue, string processing_syn, bool is_two_syn);
+	void PopulateCurrentGroup(priority_queue<Clause, vector<Clause>, ClauseComparator>& sorted_clauses, vector<Clause>& current_group);
 	void PopulateNonConnectedGroup();
 	void EvaluateWithConstantClauses();
 	void GroupClauses();
@@ -62,7 +64,6 @@ private:
 	void GroupNonConnectedClauses();
 	set<string> ExtractSynonymsFromSet();
 	int GetNumOfSynInClause(Clause clause);
-	void ReplaceWithClauses(); // Not used yet
 
 	// Getters - Private
 	string GetSecondSynonym(Clause clause, string select_syn);

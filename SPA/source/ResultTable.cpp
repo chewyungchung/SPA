@@ -20,15 +20,6 @@ ResultTable::ResultTable(string synonym_one, string synonym_two)
 	next_column_index = 2;
 }
 
-int ResultTable::GetSynonymColumnIndex(string synonym) {
-	if (synonym_to_column_map_.count(synonym) > 0) {
-		return synonym_to_column_map_[synonym];
-	}
-	else {
-		return -1;
-	}
-}
-
 int ResultTable::GetTableHeight() {
 	return table_height_;
 }
@@ -38,6 +29,14 @@ int ResultTable::GetColumnCount()
 	return column_names_.size();
 }
 
+int ResultTable::GetSynonymColumnIndex(string synonym) {
+	if (synonym_to_column_map_.count(synonym) > 0) {
+		return synonym_to_column_map_[synonym];
+	}
+	else {
+		return -1;
+	}
+}
 vector<string> ResultTable::GetRow(int row_index)
 {
 	vector<string> empty;
@@ -65,6 +64,16 @@ string ResultTable::GetValue(string synonym, int row_index)
 	return row_data_.at(row_index).at(synonym_to_column_map_[synonym]);
 }
 
+bool ResultTable::IsQueryTrue()
+{
+	return is_query_true_;
+}
+
+void ResultTable::SetIsQueryTrue(bool is_query_true)
+{
+	is_query_true_ = is_query_true;
+}
+
 void ResultTable::InsertNewColumn(string synonym) {
 	if (synonym_to_column_map_.count(synonym) == 0) {
 		column_names_.push_back(synonym);
@@ -74,14 +83,16 @@ void ResultTable::InsertNewColumn(string synonym) {
 	}
 }
 
-void ResultTable::SetIsQueryTrue(bool is_query_true)
+void ResultTable::InsertColumns(vector<string> columns)
 {
-	is_query_true_ = is_query_true;
-}
-
-bool ResultTable::IsQueryTrue()
-{
-	return is_query_true_;
+	for (auto &column_name : columns) {
+		if (synonym_to_column_map_.count(column_name) == 0) {
+			column_names_.push_back(column_name);
+			synonym_to_column_map_[column_name] = next_column_index;
+			++next_column_index;
+			++row_width_;
+		}
+	}
 }
 
 void ResultTable::InsertRow(vector<string> row_data)

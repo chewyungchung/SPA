@@ -1,12 +1,4 @@
-#pragma once
-
-#include<stdio.h>
-#include <iostream>
-#include <string>
-#include <vector>
 #include "Clause.h"
-
-using namespace std;
 
 /*
 * Establish relation, store arg and argtype of clauses
@@ -37,7 +29,6 @@ string Clause::GetRelation()
 {
 	return relation_;
 }
-
 vector<string> Clause::GetArg()
 {
 	return arg_;
@@ -48,24 +39,22 @@ vector<string> Clause::GetArgType()
 	return arg_type_;
 }
 
-void Clause::SetArg(int index, string arg)
+int Clause::GetPriority()
 {
-	if (index < 0 || index > 1) return;
-	arg_.at(index) = arg;
+	return priority_;
 }
-
-void Clause::SetArgType(int index, string arg_type)
-{
-	if (index < 0 || index > 1) return;
-	arg_type_.at(index) = arg_type;
-}
-
 
 bool Clause::IsClauseNull() {
 	return is_null_;
 }
 
-int Clause::GetPriority()
+void Clause::SetArg(int index, string arg)
 {
-	return priority_;
+	if (index < 0 || index > 1) return;
+	arg_.at(index) = arg;
+}
+void Clause::SetArgType(int index, string arg_type)
+{
+	if (index < 0 || index > 1) return;
+	arg_type_.at(index) = arg_type;
 }
