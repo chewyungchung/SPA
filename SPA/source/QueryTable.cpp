@@ -37,6 +37,21 @@ void QueryTable::CategorizeClauses()
 	PopulateTwoSynClauses();
 }
 
+void QueryTable::BuildAllClause()
+{
+	for (auto &with_clause : with_clauses_) {
+		all_clauses_.push_back(with_clause);
+	}
+
+	for (auto &pattern_clause : pattern_clauses_) {
+		all_clauses_.push_back(pattern_clause);
+	}
+
+	for (auto &such_that_clause : such_that_clauses_) {
+		all_clauses_.push_back(such_that_clause);
+	}
+}
+
 void QueryTable::PopulateWithConstantClauses()
 {
 	for (auto &clause : all_clauses_) {
@@ -44,6 +59,19 @@ void QueryTable::PopulateWithConstantClauses()
 			with_constant_clauses_.push_back(clause);
 		}
 	}
+}
+
+bool QueryTable::IsConstantWithClause(Clause with_clause)
+{
+	string clause_relation = with_clause.GetRelation();
+	string left_ref_arg_type = with_clause.GetArgType().at(0);
+	string right_ref_arg_type = with_clause.GetArgType().at(1);
+	if (clause_relation == "with"
+		&& (left_ref_arg_type == "string" && right_ref_arg_type == "string")
+		|| (left_ref_arg_type == "number" && right_ref_arg_type == "number")) {
+		return true;
+	}
+	return false;
 }
 
 void QueryTable::PopulateNoSynClauses()
@@ -83,31 +111,27 @@ void QueryTable::PopulateTwoSynClauses()
 	}
 }
 
-void QueryTable::PopulateNonConnectedGroup()
-{
-	priority_queue<Clause, vector<Clause>, ClauseComparator> one_syn_queue;
-	priority_queue<Clause, vector<Clause>, ClauseComparator> two_syn_queue;
-	
-	if (one_syn_clauses_.empty() == false) {
-		for (auto &one_syn_clause : one_syn_clauses_) {
-			one_syn_queue.push(one_syn_clause);
-		}
+int QueryTable::GetNumOfSynInClause(Clause clause) {
+	vector<string> clause_arg = clause.GetArg();
+	vector<string> clause_arg_type = clause.GetArgType();
+	if ((clause_arg_type.at(0) == "string" || clause_arg_type.at(0) == "constant" || clause_arg_type.at(0) == "any" || clause_arg_type.at(0) == "number") &&
+		(clause_arg_type.at(1) == "string" || clause_arg_type.at(1) == "constant" || clause_arg_type.at(1) == "any" || clause_arg_type.at(1) == "number")) {
+		return 0;
 	}
-
-	if (two_syn_clauses_.empty() == false) {
-		for (auto &two_syn_clause : two_syn_clauses_) {
-			two_syn_queue.push(two_syn_clause);
-		}
+	else if (IsSynonym(clause_arg.at(0)) && IsSynonym(clause_arg.at(1))) {
+		return 2;
 	}
-
-	while (one_syn_queue.empty() == false) {
-		non_connected_group_.push_back(one_syn_queue.top());
-		one_syn_queue.pop();
+	else {
+		return 1;
 	}
+}
 
-	while (two_syn_queue.empty() == false) {
-		non_connected_group_.push_back(two_syn_queue.top());
-		two_syn_queue.pop();
+bool QueryTable::IsSynonym(string key) {
+	if (syn_entity_map_.count(key) == 0) {
+		return false;
+	}
+	else {
+		return true;
 	}
 }
 
@@ -129,148 +153,6 @@ void QueryTable::EvaluateWithConstantClauses()
 	}
 }
 
-// TODO: with clauses with "string" == " string" and number == number
-void QueryTable::ReplaceWithClauses() {
-	// three possible scenarios
-	// 1. what about weird with clauses that QV accepts? e.g. 2 = 2; meaningless, will evaluate to T/F
-	// 2. withClause: one arg is a synonym while the other is a string or int (constant)
-	// 3. withClause: both arg are synonyms e.g. with s.stmtNum = c.value (also an exception)
-	// (exceptions include: call.procName =  v.varName)
-	vector<Clause> unoptimized_with_clauses;
-	for (auto with_clause : with_clauses_) {
-		if (HasSelectedSynonym(with_clause) == true) {
-			unoptimized_with_clauses.push_back(with_clause);
-			continue;
-		}
-		string syn = "", toBeReplaced = "", toBeReplacedArgType = "";
-		bool isReplaced = false;
-		bool terminateFlag = true;
-		string with_clause_arg1 = with_clause.GetArg().at(0);
-		string with_clause_arg2 = with_clause.GetArg().at(1);
-		string with_clause_arg1_type = with_clause.GetArgType().at(0);
-		string with_clause_arg2_type = with_clause.GetArgType().at(1);
-
-		if (IsConstantWithClause(with_clause) == true) {
-			// add into the list of with clauses with only constants and evaluate them group for T/F evaluation in QE
-			with_constant_clauses_.push_back(with_clause);
-		}
-		else if (GetNumOfSynInClause(with_clause) == 1) {
-			// check if syn is found in suchThatClause and withClause
-			// if yes, replace syn in suchThat clause with constant/integer
-			if (IsSynonym(with_clause_arg1) == true) {
-				syn = with_clause_arg1;
-				toBeReplaced = with_clause_arg2;
-				if (with_clause_arg2_type == "number") {
-					toBeReplacedArgType = "constant";
-				}
-				else {
-					toBeReplacedArgType = "string";
-				}
-			}
-			else if (IsSynonym(with_clause_arg2)) {
-				syn = with_clause_arg2;
-				toBeReplaced = with_clause_arg1;
-				if (with_clause_arg1_type == "number") {
-					toBeReplacedArgType = "constant";
-				}
-				else {
-					toBeReplacedArgType = "string";
-				}
-			}
-
-			// Modify by reference so that changes take place
-			for (auto &such_that_clause : such_that_clauses_) {
-				if (GetNumOfSynInClause(such_that_clause) != 0 && such_that_clause.GetArg().at(0) == syn) {
-					//common synonym is found, replace it with the constant/string in withClause
-					//such_that_clause.GetArg().at(0) = toBeReplaced;
-					such_that_clause.SetArg(0, toBeReplaced);
-					such_that_clause.SetArgType(0, toBeReplacedArgType);
-					isReplaced = true;
-				}
-				else if (GetNumOfSynInClause(such_that_clause) != 0 && such_that_clause.GetArg().at(1) == syn) {
-					//such_that_clause.GetArg().at(1) = toBeReplaced;
-					such_that_clause.SetArg(1, toBeReplaced);
-					such_that_clause.SetArgType(1, toBeReplacedArgType);
-					isReplaced = true;
-				}
-			}
-			if (isReplaced == false) {
-				// Keep the unoptimized for grouping later
-				unoptimized_with_clauses.push_back(with_clause);
-			}
-			//if (isReplaced) {
-			//	// Will there be problems? The clause that got erased might not be the one that was replaced
-			//	with_clauses_.erase(with_clauses_.begin());
-			//}
-		}
-		// for clauses with two synonyms, we will process cases & replace when the stmtType of
-		// one synonym is "stmt" while the other is one those under the vector of strings <stmtTypes>
-		else {
-			vector<string> stmtTypes = { "assign", "call_number", "while", "if" };
-
-			if (with_clause_arg1_type == "stmt" &&
-				find(stmtTypes.begin(), stmtTypes.end(), with_clause_arg2_type) != stmtTypes.end()) {
-				syn = with_clause_arg1;
-				toBeReplaced = with_clause_arg2;
-				toBeReplacedArgType = with_clause_arg2_type;
-				terminateFlag = false;
-			}
-			else if (with_clause_arg2_type == "stmt" &&
-				find(stmtTypes.begin(), stmtTypes.end(), with_clause_arg1_type) != stmtTypes.end()) {
-				syn = with_clause_arg2;
-				toBeReplaced = with_clause_arg1;
-				toBeReplacedArgType = with_clause_arg1_type;
-				terminateFlag = false;
-			}
-			else if (with_clause_arg1_type == with_clause_arg2_type) {
-				syn = with_clause_arg1;
-				toBeReplaced = with_clause_arg2;
-				toBeReplacedArgType = with_clause_arg2_type;
-				terminateFlag = false;
-			}
-
-			if (terminateFlag == false) {
-				// Modify by reference so that changes take place
-				for (auto &such_that_clause : such_that_clauses_) {
-					if (GetNumOfSynInClause(such_that_clause) != 0 && such_that_clause.GetArg().at(0) == syn) {
-						//common synonym is found, replace it with the constant/string in withClause
-						//such_that_clause.GetArg().at(0) = toBeReplaced;
-						such_that_clause.SetArg(0, toBeReplaced);
-						such_that_clause.SetArgType(0, toBeReplacedArgType);
-						isReplaced = true;
-					}
-					else if (GetNumOfSynInClause(such_that_clause) != 0 && such_that_clause.GetArg().at(1) == syn) {
-						//such_that_clause.GetArg().at(1) = toBeReplaced;
-						such_that_clause.SetArg(1, toBeReplaced);
-						such_that_clause.SetArgType(1, toBeReplacedArgType);
-						isReplaced = true;
-					}
-				}
-			}
-
-			if (isReplaced == false) {
-				unoptimized_with_clauses.push_back(with_clause);
-			}
-		}
-	}
-	with_clauses_ = unoptimized_with_clauses;
-}
-
-int QueryTable::GetNumOfSynInClause(Clause clause) {
-	vector<string> clause_arg = clause.GetArg();
-	vector<string> clause_arg_type = clause.GetArgType();
-	if ((clause_arg_type.at(0) == "string" || clause_arg_type.at(0) == "constant" || clause_arg_type.at(0) == "any" || clause_arg_type.at(0) == "number") &&
-		(clause_arg_type.at(1) == "string" || clause_arg_type.at(1) == "constant" || clause_arg_type.at(1) == "any" || clause_arg_type.at(1) == "number")) {
-		return 0;
-	}
-	else if (IsSynonym(clause_arg.at(0)) && IsSynonym(clause_arg.at(1))) {
-		return 2;
-	}
-	else {
-		return 1;
-	}
-}
-
 void QueryTable::GroupClauses() {
 	if (IsNullQuery() == true) {
 		return;
@@ -281,105 +163,94 @@ void QueryTable::GroupClauses() {
 
 void QueryTable::GroupConnectedClauses()
 {
-	queue<string> processing_synonyms;
-	unordered_map<string, bool> is_syn_processed_map;
-	bool is_selected_syn_used = false;
-	string selected_syn;
-
 	if (IsSynSelected(select_clause_) == false) {
 		PopulateNonConnectedGroup();
 		return;
 	}
 
-	for (auto &selected_synonym : select_clause_.GetArg()) {
-		processing_synonyms.push(selected_synonym);
-		selected_syn = selected_synonym;
-	}
-
+	queue<string> selected_arg;
+	queue<string> processing_synonyms;
 	priority_queue<Clause, vector<Clause>, ClauseComparator> one_syn_queue;
 	priority_queue<Clause, vector<Clause>, ClauseComparator> two_syn_queue;
 	vector<Clause> unprocessed_one_syn_clauses;
 	vector<Clause> unprocessed_two_syn_clauses;
 	vector<Clause> current_group;
+	unordered_map<string, bool> is_syn_processed_map;
+	bool is_selected_syn_used = false;
+	string selected_syn;
 
-	while (processing_synonyms.empty() == false) {
-		unprocessed_one_syn_clauses.clear();
-		unprocessed_two_syn_clauses.clear();
+	for (auto &selected_synonym : select_clause_.GetArg()) {
+		selected_arg.push(selected_synonym);
+	}
 
-		string current_processing_syn = processing_synonyms.front();
-		if (is_syn_processed_map[current_processing_syn] == true) {
+	while (selected_arg.empty() == false) {
+		processing_synonyms.push(selected_arg.front());
+		selected_arg.pop();
+		while (processing_synonyms.empty() == false) {
+			string current_processing_syn = processing_synonyms.front();
 			processing_synonyms.pop();
-			continue;
-		}
-
-		for (auto &one_syn_clause : one_syn_clauses_) {
-			if (IsSynFound(one_syn_clause, current_processing_syn) == true) {
-				one_syn_queue.push(one_syn_clause);
-				if (current_processing_syn == selected_syn) {
-					is_selected_syn_used = true;
+			if (is_syn_processed_map[current_processing_syn] == false) {
+				PopulateQueueWithSyn(one_syn_queue, unprocessed_one_syn_clauses, one_syn_clauses_, processing_synonyms, current_processing_syn, false);
+				PopulateQueueWithSyn(two_syn_queue, unprocessed_two_syn_clauses, two_syn_clauses_, processing_synonyms, current_processing_syn, true);
+				if (one_syn_queue.empty() == false || two_syn_queue.empty() == false) {
+					is_syn_processed_map[current_processing_syn] = true;
 				}
+				PopulateCurrentGroup(one_syn_queue, current_group);
+				PopulateCurrentGroup(two_syn_queue, current_group);
+				one_syn_clauses_ = unprocessed_one_syn_clauses;
+				two_syn_clauses_ = unprocessed_two_syn_clauses;
+				unprocessed_one_syn_clauses.clear();
+				unprocessed_two_syn_clauses.clear();
 			}
 			else {
-				unprocessed_one_syn_clauses.push_back(one_syn_clause);
+				continue;
 			}
-		}
 
-		for (auto &two_syn_clause : two_syn_clauses_) {
-			if (IsSynFound(two_syn_clause, current_processing_syn)) {
-				two_syn_queue.push(two_syn_clause);
-				string new_synonym_in_clause = GetSecondSynonym(two_syn_clause, current_processing_syn);
-				processing_synonyms.push(new_synonym_in_clause);
-				if (current_processing_syn == selected_syn) {
-					is_selected_syn_used = true;
-				}
-			}
-			else {
-				unprocessed_two_syn_clauses.push_back(two_syn_clause);
-			}
 		}
+		if (current_group.empty() == false) {
+			connected_groups_.push_back(current_group);
+			current_group.clear();
+		}
+	}
 
-		if (is_selected_syn_used == false) {
-			vector<string> substitute_arg = { select_clause_.GetArg().at(0) };
-			vector<string> substitute_arg_type = { select_clause_.GetArgType().at(0) };
+	for (unsigned i = 0; i < select_clause_.GetArg().size(); ++i) {
+		if (is_syn_processed_map[select_clause_.GetArg().at(i)] == false) {
+			vector<string> substitute_arg = { select_clause_.GetArg().at(i) };
+			vector<string> substitute_arg_type = { select_clause_.GetArgType().at(i) };
 			Clause substitute_clause("substitute", substitute_arg, substitute_arg_type);
 			current_group.push_back(substitute_clause);
-			is_selected_syn_used = true;
+			connected_groups_.push_back(current_group);
+			current_group.clear();
 		}
-
-		while (one_syn_queue.empty() == false) {
-			current_group.push_back(one_syn_queue.top());
-			one_syn_queue.pop();
-		}
-
-		while (two_syn_queue.empty() == false) {
-			current_group.push_back(two_syn_queue.top());
-			two_syn_queue.pop();
-		}
-
-		one_syn_clauses_ = unprocessed_one_syn_clauses;
-		two_syn_clauses_ = unprocessed_two_syn_clauses;
-		is_syn_processed_map[current_processing_syn] = true;
-		processing_synonyms.pop();
 	}
+}
 
-	// All the non-connected clauses
-	one_syn_clauses_ = unprocessed_one_syn_clauses;
-	two_syn_clauses_ = unprocessed_two_syn_clauses;
+void QueryTable::PopulateNonConnectedGroup()
+{
+	priority_queue<Clause, vector<Clause>, ClauseComparator> one_syn_queue;
+	priority_queue<Clause, vector<Clause>, ClauseComparator> two_syn_queue;
 
-	/*if (unprocessed_one_syn_clauses.empty() == false) {
-		for (auto &unprocessed_one_syn_clause : unprocessed_one_syn_clauses) {
-			non_connected_group_.push_back(unprocessed_one_syn_clause);
+	if (one_syn_clauses_.empty() == false) {
+		for (auto &one_syn_clause : one_syn_clauses_) {
+			one_syn_queue.push(one_syn_clause);
 		}
 	}
 
-	if (unprocessed_two_syn_clauses.empty() == false) {
-		for (auto &unprocessed_two_syn_clause : unprocessed_two_syn_clauses) {
-			non_connected_group_.push_back(unprocessed_two_syn_clause);
+	if (two_syn_clauses_.empty() == false) {
+		for (auto &two_syn_clause : two_syn_clauses_) {
+			two_syn_queue.push(two_syn_clause);
 		}
-	}*/
+	}
 
-	// Support for iteration 2. Need to update for iteration 3.
-	connected_groups_.push_back(current_group);
+	while (one_syn_queue.empty() == false) {
+		non_connected_group_.push_back(one_syn_queue.top());
+		one_syn_queue.pop();
+	}
+
+	while (two_syn_queue.empty() == false) {
+		non_connected_group_.push_back(two_syn_queue.top());
+		two_syn_queue.pop();
+	}
 }
 
 void QueryTable::GroupNonConnectedClauses()
@@ -455,14 +326,57 @@ void QueryTable::GroupNonConnectedClauses()
 			is_syn_processed_map[processing_syn] = true;
 			processing_synonyms.pop();
 		}
-		
+
 		if (current_non_connected_group.empty() == false) {
 			non_connected_groups_.push_back(current_non_connected_group);
 			one_syn_clauses_ = unprocessed_one_syn_clauses;
 			two_syn_clauses_ = unprocessed_two_syn_clauses;
 		}
 	}
+}
 
+void QueryTable::PopulateQueueWithSyn(priority_queue<Clause, vector<Clause>, ClauseComparator>& sorted_clauses,
+	vector<Clause>& unprocessed_clauses, vector<Clause>& syn_clauses, 
+	queue<string>& processing_queue, string processing_syn, bool is_two_syn)
+{
+	for (auto &clause : syn_clauses) {
+		if (IsSynFound(clause, processing_syn) == true) {
+			sorted_clauses.push(clause);
+			if (is_two_syn == true) {
+				string new_synonym_in_clause = GetSecondSynonym(clause, processing_syn);
+				processing_queue.push(new_synonym_in_clause);
+			}
+		}
+		else {
+			unprocessed_clauses.push_back(clause);
+		}
+	}
+}
+
+bool QueryTable::IsSynFound(Clause clause, string synonym) {
+	string clause_arg1 = clause.GetArg().at(0);
+	string clause_arg2 = clause.GetArg().at(1);
+	string clause_arg1_type = clause.GetArgType().at(0);
+	string clause_arg2_type = clause.GetArgType().at(1);
+	string select_arg_type = syn_entity_map_[synonym];
+
+	if (select_arg_type == "constant") {
+		select_arg_type = "value";
+	}
+
+	if ((clause_arg1 == synonym && clause_arg1_type == select_arg_type)
+		|| (clause_arg2 == synonym && clause_arg2_type == select_arg_type)) {
+		return true;
+	}
+	return false;
+}
+
+void QueryTable::PopulateCurrentGroup(priority_queue<Clause, vector<Clause>, ClauseComparator>& sorted_clauses, vector<Clause>& current_group)
+{
+	while (sorted_clauses.empty() == false) {
+		current_group.push_back(sorted_clauses.top());
+		sorted_clauses.pop();
+	}
 }
 
 set<string> QueryTable::ExtractSynonymsFromSet()
@@ -490,33 +404,6 @@ set<string> QueryTable::ExtractSynonymsFromSet()
 		}
 	}
 	return synonym_set;
-}
-
-bool QueryTable::IsSynonym(string key) {
-	if (syn_entity_map_.count(key) == 0) {
-		return false;
-	}
-	else {
-		return true;
-	}
-}
-
-bool QueryTable::IsSynFound(Clause clause, string synonym) {
-	string clause_arg1 = clause.GetArg().at(0);
-	string clause_arg2 = clause.GetArg().at(1);
-	string clause_arg1_type = clause.GetArgType().at(0);
-	string clause_arg2_type = clause.GetArgType().at(1);
-	string select_arg_type = syn_entity_map_[synonym];
-
-	if (select_arg_type == "constant") {
-		select_arg_type = "value";
-	}
-
-	if ((clause_arg1 == synonym && clause_arg1_type == select_arg_type)
-		|| (clause_arg2 == synonym && clause_arg2_type == select_arg_type)) {
-		return true;
-	}
-	return false;
 }
 
 bool QueryTable::IsSynSelected(Clause select_clause)
@@ -607,19 +494,6 @@ void QueryTable::AddPatternClause(Clause pattern_clause)
 	pattern_clauses_.push_back(pattern_clause);
 }
 
-bool QueryTable::IsConstantWithClause(Clause with_clause)
-{
-	string clause_relation = with_clause.GetRelation();
-	string left_ref_arg_type = with_clause.GetArgType().at(0);
-	string right_ref_arg_type = with_clause.GetArgType().at(1);
-	if (clause_relation == "with"
-		&& (left_ref_arg_type == "string" && right_ref_arg_type == "string")
-		|| (left_ref_arg_type == "number" && right_ref_arg_type == "number")) {
-		return true;
-	}
-	return false;
-}
-
 bool QueryTable::HasSelectedSynonym(Clause clause)
 {
 	// Consider the case where: Select s1 with "s1"="s1"
@@ -650,20 +524,5 @@ string QueryTable::GetSecondSynonym(Clause clause, string select_syn)
 	}
 	else {
 		return clause_arg1;
-	}
-}
-
-void QueryTable::BuildAllClause()
-{
-	for (auto &with_clause : with_clauses_) {
-		all_clauses_.push_back(with_clause);
-	}
-
-	for (auto &pattern_clause : pattern_clauses_) {
-		all_clauses_.push_back(pattern_clause);
-	}
-
-	for (auto &such_that_clause : such_that_clauses_) {
-		all_clauses_.push_back(such_that_clause);
 	}
 }
