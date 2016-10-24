@@ -5,166 +5,178 @@ QueryTokenizer::QueryTokenizer() {
 }
 
 QueryTokenizer::QueryTokenizer(string queryString) {
-	_queryString = queryString;
-	_nextChar = ' ';
-	_token = "";
-	_charType = ERROR;
-	getNextChar();
+	query_string_ = queryString;
+	next_char_ = ' ';
+	token_ = "";
+	char_type_ = ERROR;
+	GetNextChar();
 }
 
-QueryToken QueryTokenizer::tokenize() {
-	_token = "";
-	bool isUnderscore = false;
+QueryToken QueryTokenizer::Tokenize() {
+	token_ = "";
+	bool is_underscore = false;
 	bool is_hash_present = false;
 	// Skip all the tab + space
-	while (_charType == WHITESPACE || _charType == TAB) {
-		getNextChar();
+	while (char_type_ == WHITESPACE || char_type_ == TAB) {
+		GetNextChar();
 	}
 
-	if (_charType == ENDL) {
-		return QueryToken(ENDL, _token);
+	if (char_type_ == ENDL) {
+		return QueryToken(ENDL, token_);
 	}
-	if (_charType == ERROR) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(ERROR, _token);
+	if (char_type_ == ERROR) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(ERROR, token_);
 	}
 
-	if (_charType == LETTER) {
-		addNextChar();
-		getNextChar();
-		while (_charType == UNDERSCORE || _charType == LETTER || _charType == DIGIT ||
-				_charType == HASH) {
-			if (_charType == UNDERSCORE) {
-				isUnderscore = true;
+	if (char_type_ == LETTER) {
+		AddNextChar();
+		GetNextChar();
+		while (char_type_ == UNDERSCORE || char_type_ == LETTER || char_type_ == DIGIT ||
+				char_type_ == HASH) {
+			if (char_type_ == UNDERSCORE) {
+				is_underscore = true;
 			}
-			if (_charType == HASH) {
+			if (char_type_ == HASH) {
 				is_hash_present = true;
 			}
-			addNextChar();
-			getNextChar();
+			AddNextChar();
+			GetNextChar();
 		}
-		if (isUnderscore) {
-			if (_token == "prog_line") {
-				return QueryToken(PROG_LINE, _token);
+		if (is_underscore == true) {
+			if (token_ == "prog_line") {
+				return QueryToken(PROG_LINE, token_);
 			}
 			else {
-				return QueryToken(ERROR, _token);
+				return QueryToken(ERROR, token_);
 			}
 		}
 		if (is_hash_present == true) {
-			return QueryToken(HASH_IDENT, _token);
+			return QueryToken(HASH_IDENT, token_);
 		}
-		return QueryToken(IDENT, _token);
+		return QueryToken(IDENT, token_);
 	}
-	else if (_charType == DIGIT) {
-		addNextChar();
-		getNextChar();
-		while (_charType == DIGIT) {
-			addNextChar();
-			getNextChar();
+	else if (char_type_ == DIGIT) {
+		AddNextChar();
+		GetNextChar();
+		while (char_type_ == DIGIT) {
+			AddNextChar();
+			GetNextChar();
 		}
-		return QueryToken(INTEGER, _token);
+		return QueryToken(INTEGER, token_);
 	}
-	else if (_charType == STAR) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(STAR, _token);
+	else if (char_type_ == STAR) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(STAR, token_);
 	}
-	else if (_charType == SEMICOLON) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(SEMICOLON, _token);
+	else if (char_type_ == SEMICOLON) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(SEMICOLON, token_);
 	}
-	else if (_charType == OPEN_BRACKET) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(OPEN_BRACKET, _token);
+	else if (char_type_ == OPEN_BRACKET) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(OPEN_BRACKET, token_);
 	}
-	else if (_charType == CLOSE_BRACKET) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(CLOSE_BRACKET, _token);
+	else if (char_type_ == CLOSE_BRACKET) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(CLOSE_BRACKET, token_);
 	}
-	else if (_charType == DOUBLE_QUOTE) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(DOUBLE_QUOTE, _token);
+	else if (char_type_ == OPEN_ANGLE_BRACKET) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(OPEN_ANGLE_BRACKET, token_);
 	}
-	else if (_charType == UNDERSCORE) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(UNDERSCORE, _token);
+	else if (char_type_ == CLOSE_ANGLE_BRACKET) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(CLOSE_ANGLE_BRACKET, token_);
 	}
-	else if (_charType == COMMA) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(COMMA, _token);
+	else if (char_type_ == DOUBLE_QUOTE) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(DOUBLE_QUOTE, token_);
 	}
-	else if (_charType == DOT) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(DOT, _token);
+	else if (char_type_ == UNDERSCORE) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(UNDERSCORE, token_);
 	}
-	else if (_charType == EQUAL) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(EQUAL, _token);
+	else if (char_type_ == COMMA) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(COMMA, token_);
 	}
-	else if (_charType == PLUS) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(PLUS, _token);
+	else if (char_type_ == DOT) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(DOT, token_);
 	}
-	else if (_charType == MINUS) {
-		addNextChar();
-		getNextChar();
-		return QueryToken(MINUS, _token);
+	else if (char_type_ == EQUAL) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(EQUAL, token_);
+	}
+	else if (char_type_ == PLUS) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(PLUS, token_);
+	}
+	else if (char_type_ == MINUS) {
+		AddNextChar();
+		GetNextChar();
+		return QueryToken(MINUS, token_);
 	}
 	else {
-		return QueryToken(ERROR, _token);
+		return QueryToken(ERROR, token_);
 	}
 }
 
-void QueryTokenizer::getNextChar() {
+void QueryTokenizer::GetNextChar() {
 	// Process queryString character by character
-	if (_queryString.length() > 0) {
-		_nextChar = _queryString[0];
-		_queryString.erase(0, 1);
+	if (query_string_.length() > 0) {
+		next_char_ = query_string_[0];
+		query_string_.erase(0, 1);
 	}
 	else {
-		_nextChar = '~';
+		next_char_ = '~';
 	}
-	_charType = ENDL;
+	char_type_ = ENDL;
 
 	// If ascii numbers
-	if (_nextChar > 47 && _nextChar < 58) {
-		_charType = DIGIT;
+	if (next_char_ > 47 && next_char_ < 58) {
+		char_type_ = DIGIT;
 	}
 	// If ascii alphabets
-	if ((_nextChar > 64 && _nextChar < 91) || (_nextChar > 96 && _nextChar < 123)) {
-		_charType = LETTER;
+	if ((next_char_ > 64 && next_char_ < 91) || (next_char_ > 96 && next_char_ < 123)) {
+		char_type_ = LETTER;
 	}
-	switch (_nextChar) {
-		case '(': _charType = OPEN_BRACKET; break;
-		case ')': _charType = CLOSE_BRACKET; break;
-		case '\"':_charType = DOUBLE_QUOTE; break;
-		case '_': _charType = UNDERSCORE; break;
-		case ';': _charType = SEMICOLON; break;
-		case '*': _charType = STAR; break;
-		case ' ': _charType = WHITESPACE; break;
-		case '\t':_charType = TAB; break;
-		case ',': _charType = COMMA; break;
-		case '.': _charType = DOT; break;
-		case '#': _charType = HASH; break;
-		case '=': _charType = EQUAL; break;
-		case '+': _charType = PLUS; break;
-		case '-': _charType = MINUS; break;
-		case '~': _charType = ENDL; break;
+	switch (next_char_) {
+		case '(': char_type_ = OPEN_BRACKET; break;
+		case ')': char_type_ = CLOSE_BRACKET; break;
+		case '<': char_type_ = OPEN_ANGLE_BRACKET; break;
+		case '>': char_type_ = CLOSE_ANGLE_BRACKET; break;
+		case '\"':char_type_ = DOUBLE_QUOTE; break;
+		case '_': char_type_ = UNDERSCORE; break;
+		case ';': char_type_ = SEMICOLON; break;
+		case '*': char_type_ = STAR; break;
+		case ' ': char_type_ = WHITESPACE; break;
+		case '\t':char_type_ = TAB; break;
+		case ',': char_type_ = COMMA; break;
+		case '.': char_type_ = DOT; break;
+		case '#': char_type_ = HASH; break;
+		case '=': char_type_ = EQUAL; break;
+		case '+': char_type_ = PLUS; break;
+		case '-': char_type_ = MINUS; break;
+		case '~': char_type_ = ENDL; break;
 		default: break;
 	}
 }
 
-void QueryTokenizer::addNextChar() {
-	_token += _nextChar;
+void QueryTokenizer::AddNextChar() {
+	token_ += next_char_;
 }

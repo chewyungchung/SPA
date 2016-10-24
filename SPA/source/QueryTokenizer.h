@@ -1,5 +1,7 @@
 #pragma once
+
 #include <string>
+
 #include "QueryToken.h"
 
 using namespace std;
@@ -7,6 +9,8 @@ using namespace std;
 enum TOKEN_TYPE {
 	OPEN_BRACKET,
 	CLOSE_BRACKET,
+	OPEN_ANGLE_BRACKET,
+	CLOSE_ANGLE_BRACKET,
 	DOUBLE_QUOTE,
 	UNDERSCORE,
 	SEMICOLON,
@@ -31,19 +35,17 @@ enum TOKEN_TYPE {
 };
 
 class QueryTokenizer{
-
 public:
 	QueryTokenizer();
 	QueryTokenizer(string queryString);
-	QueryToken tokenize();
-
+	QueryToken Tokenize();
 
 private:
-	string _queryString;
-	string _token;
-	char _nextChar;
-	int _charType;
+	void AddNextChar();
+	void GetNextChar();
 
-	void addNextChar();
-	void getNextChar();
+	string query_string_;
+	string token_;
+	char next_char_;
+	int char_type_;
 };
