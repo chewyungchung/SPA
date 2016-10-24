@@ -12,10 +12,13 @@ class RelationTable {
 
 public:
 	RelationTable();
+	
+	/* Getters */
 	bool IsValidRelation(string relation);
 	bool IsArg1Valid(string relation, string arg_type);
 	bool IsArg2Valid(string relation, string arg_type);
 	bool IsCorrectNumArg(string relation, int num_of_arg);
+
 private:
 	unordered_map<string, Relation> relation_table_;
 	
