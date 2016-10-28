@@ -164,7 +164,7 @@ ResultTable QueryResultProjector::InnerJoin(ResultTable table_one, ResultTable t
 	vector<string> table_two_columns = table_two.GetColumnNames();
 	ResultTable joined_table;
 	
-	joined_table.InsertColumns(table_two_columns);
+	joined_table.InsertColumns(table_one_columns);
 
 	if (table_two.GetColumnCount() == 1) {
 		string common_column = GetCommonColumn(table_one_columns, table_two_columns);
