@@ -22,7 +22,8 @@ const vector<string> DESIGN_ENTITIES({
 	"prog_line",
 	"procedure",
 	"if", 
-	"call"
+	"call",
+	"stmtLst"
 });
 
 class QueryValidator{
@@ -63,6 +64,8 @@ private:
 	void MatchCallsStar();
 	void MatchNext();
 	void MatchNextStar();
+	void MatchAffects();
+	void MatchAffectsStar();
 	void MatchPatternAssign();
 	void MatchPatternWhile();
 	void MatchPatternIf();
