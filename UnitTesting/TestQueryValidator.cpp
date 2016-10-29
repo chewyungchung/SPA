@@ -51,6 +51,10 @@ namespace UnitTesting {
 			query_parser = QueryValidator(query_string);
 			query_tree = query_parser.Parse();
 
+			query_string = "call call1,call2; Select <call1,call1.procName>";
+			query_parser = QueryValidator(query_string);
+			query_tree = query_parser.Parse();
+
 			query_tree.Optimize();
 
 			cout << "All is well" << endl;
