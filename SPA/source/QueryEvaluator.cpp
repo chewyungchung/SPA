@@ -215,7 +215,11 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 				if (pkb_.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 					break;
@@ -258,7 +262,11 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 				if (pkb_.getFollowedFrom(arg2_stmt_num) != -1) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -286,7 +294,11 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				if (pkb_.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 					break;
@@ -299,7 +311,11 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				if (pkb_.getFollower(arg1_stmt_num) != -1) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -325,8 +341,16 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) {
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 					if (pkb_.isValidFollows(arg1_stmt_num, arg2_stmt_num) == true) {
 						temp_result.SetIsQueryTrue(true);
-						temp_row_data.push_back(to_string(arg1_stmt_num));
-						temp_row_data.push_back(to_string(arg2_stmt_num));
+						string arg1_argument = to_string(arg1_stmt_num);
+						string arg2_argument = to_string(arg2_stmt_num);
+						if (arg1_type == ARGTYPE_CALLS) {
+							arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+						}
+						if (arg2_type == ARGTYPE_CALLS) {
+							arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+						}
+						temp_row_data.push_back(arg1_argument);
+						temp_row_data.push_back(arg2_argument);
 						temp_result.InsertRow(temp_row_data);
 						temp_row_data.clear();
 						break;
@@ -388,7 +412,11 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 				if (pkb_.isFollowsStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -432,7 +460,11 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 				list<int> arg2_followed_from_star = pkb_.getFollowedFromStar(arg2_stmt_num);
 				if (arg2_followed_from_star.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -460,7 +492,11 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				if (pkb_.isFollowsStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -499,8 +535,16 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 					if (pkb_.isFollowsStar(arg1_stmt_num, arg2_stmt_num)) {
 						temp_result.SetIsQueryTrue(true);
-						temp_row_data.push_back(to_string(arg1_stmt_num));
-						temp_row_data.push_back(to_string(arg2_stmt_num));
+						string arg1_argument = to_string(arg1_stmt_num);
+						string arg2_argument = to_string(arg2_stmt_num);
+						if (arg1_type == ARGTYPE_CALLS) {
+							arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+						}
+						if (arg2_type == ARGTYPE_CALLS) {
+							arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+						}
+						temp_row_data.push_back(arg1_argument);
+						temp_row_data.push_back(arg2_argument);
 						temp_result.InsertRow(temp_row_data);
 						temp_row_data.clear();
 					}
@@ -564,7 +608,11 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 				if (pkb_.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -607,7 +655,11 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 				if (pkb_.getParentOf(arg2_stmt_num) != -1) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -636,7 +688,11 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				if (pkb_.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 					break;
@@ -650,7 +706,11 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 				list<int> arg1_children = pkb_.getChildrenOf(arg1_stmt_num);
 				if (arg1_children.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -677,8 +737,16 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 					if (pkb_.isParentOf(arg1_stmt_num, arg2_stmt_num) == true) {
 						temp_result.SetIsQueryTrue(true);
-						temp_row_data.push_back(to_string(arg1_stmt_num));
-						temp_row_data.push_back(to_string(arg2_stmt_num));
+						string arg1_argument = to_string(arg1_stmt_num);
+						string arg2_argument = to_string(arg2_stmt_num);
+						if (arg1_type == ARGTYPE_CALLS) {
+							arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+						}
+						if (arg2_type == ARGTYPE_CALLS) {
+							arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+						}
+						temp_row_data.push_back(arg1_argument);
+						temp_row_data.push_back(arg2_argument);
 						temp_result.InsertRow(temp_row_data);
 						temp_row_data.clear();
 					}
@@ -740,7 +808,11 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 				if (pkb_.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -784,7 +856,11 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 				list<int> arg2_parent_star = pkb_.getParentStar(arg2_stmt_num);
 				if (arg2_parent_star.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -812,7 +888,11 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				if (pkb_.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -825,7 +905,11 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 				list<int> arg1_children_star = pkb_.getChildStarOf(arg1_stmt_num);
 				if (arg1_children_star.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -851,8 +935,16 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 					if (pkb_.isParentStar(arg1_stmt_num, arg2_stmt_num) == true) {
 						temp_result.SetIsQueryTrue(true);
-						temp_row_data.push_back(to_string(arg1_stmt_num));
-						temp_row_data.push_back(to_string(arg2_stmt_num));
+						string arg1_argument = to_string(arg1_stmt_num);
+						string arg2_argument = to_string(arg2_stmt_num);
+						if (arg1_type == ARGTYPE_CALLS) {
+							arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+						}
+						if (arg2_type == ARGTYPE_CALLS) {
+							arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+						}
+						temp_row_data.push_back(arg1_argument);
+						temp_row_data.push_back(arg2_argument);
 						temp_result.InsertRow(temp_row_data);
 						temp_row_data.clear();
 					}
@@ -937,7 +1029,11 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				if (pkb_.isModified(arg1_stmt_num, arg2) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -1032,7 +1128,11 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 				if (arg1_modifies_variable.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &arg2_variable : arg1_modifies_variable) {
-						temp_row_data.push_back(to_string(arg1_stmt_num));
+						string arg1_argument = to_string(arg1_stmt_num);
+						if (arg1_type == ARGTYPE_CALLS) {
+							arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+						}
+						temp_row_data.push_back(arg1_argument);
 						temp_row_data.push_back(arg2_variable);
 						temp_result.InsertRow(temp_row_data);
 						temp_row_data.clear();
@@ -1109,7 +1209,11 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 				list<string> arg1_modifies = pkb_.getModifiedBy(arg1_stmt_num);
 				if (arg1_modifies.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -1170,7 +1274,11 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 				if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) != false) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -1214,7 +1322,11 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 				list<int> arg2_executed_before = pkb_.getExecutedBefore(arg2_stmt_num);
 				if (arg2_executed_before.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -1242,7 +1354,11 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -1255,11 +1371,13 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 				list<int> arg1_executed_after = pkb_.getExecutedAfter(arg1_stmt_num);
 				if (arg1_executed_after.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
-					for (auto &arg1_data : arg1_executed_after) {
-						temp_row_data.push_back(to_string(arg1_data));
-						temp_result.InsertRow(temp_row_data);
-						temp_row_data.clear();
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
 					}
+					temp_row_data.push_back(arg1_argument);
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
 				}
 			}
 
@@ -1283,8 +1401,16 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 				for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 					if (pkb_.isNext(arg1_stmt_num, arg2_stmt_num) != false) {
 						temp_result.SetIsQueryTrue(true);
-						temp_row_data.push_back(to_string(arg1_stmt_num));
-						temp_row_data.push_back(to_string(arg2_stmt_num));
+						string arg1_argument = to_string(arg1_stmt_num);
+						string arg2_argument = to_string(arg2_stmt_num);
+						if (arg1_type == ARGTYPE_CALLS) {
+							arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+						}
+						if (arg2_type == ARGTYPE_CALLS) {
+							arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+						}
+						temp_row_data.push_back(arg1_argument);
+						temp_row_data.push_back(arg2_argument);
 						temp_result.InsertRow(temp_row_data);
 						temp_row_data.clear();
 					}
@@ -1344,7 +1470,11 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 				if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -1388,7 +1518,11 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 				list<int> executed_before_star_arg2 = pkb_.getExecutedBeforeStar(arg2_stmt_num);
 				if (executed_before_star_arg2.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
+					string arg2_argument = to_string(arg2_stmt_num);
+					if (arg2_type == ARGTYPE_CALLS) {
+						arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+					}
+					temp_row_data.push_back(arg2_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -1416,7 +1550,11 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 				if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num) == true) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -1429,7 +1567,11 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 				list<int> executed_after_star_arg1 = pkb_.getExecutedAfterStar(arg1_stmt_num);
 				if (executed_after_star_arg1.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
+					string arg1_argument = to_string(arg1_stmt_num);
+					if (arg1_type == ARGTYPE_CALLS) {
+						arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+					}
+					temp_row_data.push_back(arg1_argument);
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
 				}
@@ -1456,7 +1598,11 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 				for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
 					if (pkb_.isNextStar(arg1_stmt_num, arg1_stmt_num) == true) {
 						temp_result.SetIsQueryTrue(true);
-						temp_row_data.push_back(to_string(arg1_stmt_num));
+						string arg1_argument = to_string(arg1_stmt_num);
+						if (arg1_type == ARGTYPE_CALLS) {
+							arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+						}
+						temp_row_data.push_back(arg1_argument);
 						temp_result.InsertRow(temp_row_data);
 						temp_row_data.clear();
 					}
@@ -1467,8 +1613,16 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 					for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
 						if (pkb_.isNextStar(arg1_stmt_num, arg2_stmt_num)) {
 							temp_result.SetIsQueryTrue(true);
-							temp_row_data.push_back(to_string(arg1_stmt_num));
-							temp_row_data.push_back(to_string(arg2_stmt_num));
+							string arg1_argument = to_string(arg1_stmt_num);
+							string arg2_argument = to_string(arg2_stmt_num);
+							if (arg1_type == ARGTYPE_CALLS) {
+								arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+							}
+							if (arg2_type == ARGTYPE_CALLS) {
+								arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+							}
+							temp_row_data.push_back(arg1_argument);
+							temp_row_data.push_back(arg2_argument);
 							temp_result.InsertRow(temp_row_data);
 							temp_row_data.clear();
 						}
@@ -2156,6 +2310,8 @@ ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 
 	bool is_arg1_syn = false;
 	bool is_arg2_syn = false;
+	bool is_arg1_call = false;
+	bool is_arg2_call = false;
 	list<string> arg1_data_list;
 	list<string> arg2_data_list;
 
@@ -2171,6 +2327,7 @@ ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 	}
 	else if (arg1_type == ARGTYPE_CALLS_NAME) {
 		is_arg1_syn = true;
+		is_arg1_call = true;
 		temp_result.InsertNewColumn(arg1);
 		arg1_data_list = pkb_.getCalledProcNamesList();
 	}
@@ -2190,6 +2347,7 @@ ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 	}
 	else if (arg2_type == ARGTYPE_CALLS_NAME) {
 		is_arg2_syn = true;
+		is_arg2_call = true;
 		temp_result.InsertNewColumn(arg2);
 		arg2_data_list = pkb_.getCalledProcNamesList();
 	}
@@ -2198,18 +2356,79 @@ ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 	}
 
 	if ((arg1_data_list.empty() == false) && (arg2_data_list.empty() == false)) {
-		for (auto &arg1_data : arg1_data_list) {
-			for (auto &arg2_data : arg2_data_list) {
-				if (arg1_data == arg2_data) {
-					temp_result.SetIsQueryTrue(true);
-					if (is_arg1_syn == true) {
-						temp_row_data.push_back(arg1_data);
+		if (is_arg1_call == true && is_arg2_call == true) {
+			for (auto &arg1_data : arg1_data_list) {
+				list<int> arg1_call_list = pkb_.getCallByProcName(arg1_data);
+				for (auto &arg2_data : arg2_data_list) {
+					list<int> arg2_call_list = pkb_.getCallByProcName(arg2_data);
+					if (arg1_data == arg2_data) {
+						temp_result.SetIsQueryTrue(true);
+						for (auto &arg1_call : arg1_call_list) {
+							for (auto &arg2_call : arg2_call_list) {
+								string arg1_argument = to_string(arg1_call) + " " + arg1_data;
+								string arg2_argument = to_string(arg2_call) + " " + arg2_data;
+								temp_row_data.push_back(arg1_data);
+								temp_row_data.push_back(arg2_data);
+								temp_result.InsertRow(temp_row_data);
+								temp_row_data.clear();
+							}
+						}
 					}
-					if (is_arg2_syn == true) {
-						temp_row_data.push_back(arg2_data);
+				}
+			}
+		}
+		else if (is_arg1_call == true) {
+			for (auto &arg1_data : arg1_data_list) {
+				list<int> arg1_call_list = pkb_.getCallByProcName(arg1_data);
+				for (auto &arg2_data : arg2_data_list) {
+					if (arg1_data == arg2_data) {
+						temp_result.SetIsQueryTrue(true);
+						for (auto &arg1_call : arg1_call_list) {
+							string arg1_argument = to_string(arg1_call) + " " + arg1_data;
+							temp_row_data.push_back(arg1_argument);
+							if (is_arg2_syn == true) {
+								temp_row_data.push_back(arg2_data);
+							}
+							temp_result.InsertRow(temp_row_data);
+							temp_row_data.clear();
+						}
 					}
-					temp_result.InsertRow(temp_row_data);
-					temp_row_data.clear();
+				}
+			}
+		}
+		else if (is_arg2_call == true) {
+			for (auto &arg1_data : arg1_data_list) {
+				for (auto &arg2_data : arg2_data_list) {
+					list<int> arg2_call_list = pkb_.getCallByProcName(arg2_data);
+					if (arg1_data == arg2_data) {
+						temp_result.SetIsQueryTrue(true);
+						for (auto &arg2_call : arg2_call_list) {
+							if (is_arg1_syn == true) {
+								temp_row_data.push_back(arg1_data);
+							}
+							string arg2_argument = to_string(arg2_call) + " " + arg2_data;
+							temp_row_data.push_back(arg2_argument);
+							temp_result.InsertRow(temp_row_data);
+							temp_row_data.clear();
+						}
+					}
+				}
+			}
+		}
+		else {
+			for (auto &arg1_data : arg1_data_list) {
+				for (auto &arg2_data : arg2_data_list) {
+					if (arg1_data == arg2_data) {
+						temp_result.SetIsQueryTrue(true);
+						if (is_arg1_syn == true) {
+							temp_row_data.push_back(arg1_data);
+						}
+						if (is_arg2_syn == true) {
+							temp_row_data.push_back(arg2_data);
+						}
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
 				}
 			}
 		}
@@ -2258,10 +2477,18 @@ ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 				if (arg1_stmt_num == arg2_stmt_num) {
 					temp_result.SetIsQueryTrue(true);
 					if (is_arg1_syn == true) {
-						temp_row_data.push_back(to_string(arg1_stmt_num));
+						string arg1_argument = to_string(arg1_stmt_num);
+						if (arg1_type == ARGTYPE_CALLS_NUMBER) {
+							arg1_argument += " " + pkb_.getProcNameByCallStmt(arg1_stmt_num);
+						}
+						temp_row_data.push_back(arg1_argument);
 					}
 					if (is_arg2_syn == true) {
-						temp_row_data.push_back(to_string(arg2_stmt_num));
+						string arg2_argument = to_string(arg2_stmt_num);
+						if (arg2_type == ARGTYPE_CALLS_NUMBER) {
+							arg2_argument += " " + pkb_.getProcNameByCallStmt(arg2_stmt_num);
+						}
+						temp_row_data.push_back(arg2_argument);
 					}
 					temp_result.InsertRow(temp_row_data);
 					temp_row_data.clear();
