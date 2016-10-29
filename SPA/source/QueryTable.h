@@ -21,6 +21,25 @@ public:
 		}
 	};
 
+	struct GroupComparator {
+		bool operator() (vector<Clause>& lhs, vector<Clause>& rhs) {
+			int lhs_priority = 0;
+			int rhs_priority = 0;
+			for (auto &clause : lhs) {
+				lhs_priority += clause.GetPriority();
+			}
+			for (auto &clause : rhs) {
+				rhs_priority += clause.GetPriority();
+			}
+			if (lhs_priority != rhs_priority) {
+				return lhs_priority < rhs_priority;
+			}
+			else {
+				return lhs.size() < rhs.size();	
+			}
+		}
+	};
+
 	// Constructors
 	QueryTable();
 	QueryTable(bool is_null);
@@ -64,6 +83,7 @@ private:
 	void GroupNonConnectedClauses();
 	set<string> ExtractSynonymsFromSet();
 	int GetNumOfSynInClause(Clause clause);
+	void SortGroups();
 
 	// Getters - Private
 	string GetSecondSynonym(Clause clause, string select_syn);

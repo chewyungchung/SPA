@@ -22,6 +22,7 @@ void QueryTable::Optimize() {
 	CategorizeClauses();
 	EvaluateWithConstantClauses();
 	GroupClauses();
+	SortGroups();
 }
 
 void QueryTable::CategorizeClauses()
@@ -126,6 +127,12 @@ int QueryTable::GetNumOfSynInClause(Clause clause) {
 	}
 }
 
+void QueryTable::SortGroups()
+{
+	sort(connected_groups_.begin(), connected_groups_.end(), GroupComparator());
+	sort(non_connected_groups_.begin(), non_connected_groups_.end(), GroupComparator());
+}
+
 bool QueryTable::IsSynonym(string key) {
 	if (syn_entity_map_.count(key) == 0) {
 		return false;
@@ -217,7 +224,7 @@ void QueryTable::GroupConnectedClauses()
 		if (is_syn_processed_map[select_clause_.GetArg().at(i)] == false) {
 			vector<string> substitute_arg = { select_clause_.GetArg().at(i) };
 			vector<string> substitute_arg_type = { select_clause_.GetArgType().at(i) };
-			Clause substitute_clause("substitute", substitute_arg, substitute_arg_type);
+			Clause substitute_clause("substitute", substitute_arg, substitute_arg_type, 1);
 			current_group.push_back(substitute_clause);
 			connected_groups_.push_back(current_group);
 			current_group.clear();
