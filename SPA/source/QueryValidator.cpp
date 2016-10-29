@@ -1439,10 +1439,10 @@ int QueryValidator::GetClausePriority(string relation)
 		return 2;
 	}
 	else if (relation == "affects") {
-		return 3;
+		return 20;
 	}
 	else if (relation == "affects*") {
-		return 3;
+		return 40;
 	}
 	else if (relation == "modifies") {
 		return 2;
