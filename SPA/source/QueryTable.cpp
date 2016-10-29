@@ -360,12 +360,11 @@ bool QueryTable::IsSynFound(Clause clause, string synonym) {
 	string clause_arg2_type = clause.GetArgType().at(1);
 	string select_arg_type = syn_entity_map_[synonym];
 
-	if (select_arg_type == "constant") {
+	/*if (select_arg_type == "constant") {
 		select_arg_type = "value";
-	}
+	}*/
 
-	if ((clause_arg1 == synonym && clause_arg1_type == select_arg_type)
-		|| (clause_arg2 == synonym && clause_arg2_type == select_arg_type)) {
+	if (clause_arg1 == synonym || (clause_arg2 == synonym)) {
 		return true;
 	}
 	return false;
