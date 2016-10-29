@@ -81,19 +81,12 @@ RelationTable::RelationTable() {
 	arg1_type.clear();
 	arg2_type.clear();
 
-	// With Type - Name 
-	arg1_type = { "procedure", "call", "variable", "prog_line", "string" };
-	arg2_type = { "procedure", "call", "variable", "prog_line", "string" };
-	Relation withName(2, arg1_type, arg2_type);
-	relation_table_["withName"] = withName;
-	arg1_type.clear();
-	arg2_type.clear();
-
-	// With Type - Integer 
-	arg1_type = { "stmt", "assign", "while", "if", "call", "prog_line", "constant" };
-	arg2_type = { "stmt", "assign", "while", "if", "call", "prog_line", "constant" };
-	Relation withInt(2, arg1_type, arg2_type);
-	relation_table_["withInt"] = withInt;
+	// Affects & Affects*
+	arg1_type = { "stmt", "assign", "prog_line", "constant", "_" };
+	arg2_type = { "stmt", "assign", "prog_line", "constant", "_" };
+	Relation affects(2, arg1_type, arg2_type);
+	relation_table_["affects"] = affects;
+	relation_table_["affects*"] = affects;
 	arg1_type.clear();
 	arg2_type.clear();
 }

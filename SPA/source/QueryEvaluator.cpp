@@ -1951,6 +1951,363 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 	return temp_result;
 }
 
+ResultTable QueryEvaluator::ProcessAffects(Clause affects_clause)
+{
+	string arg1 = affects_clause.GetArg().at(0);
+	string arg2 = affects_clause.GetArg().at(1);
+	string arg1_type = affects_clause.GetArgType().at(0);
+	string arg2_type = affects_clause.GetArgType().at(1);
+
+	ResultTable temp_result;
+
+	if (arg1_type == ARGTYPE_CONSTANT) {
+		int arg1_stmt_num = stoi(arg1);
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
+		}
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+
+			if (pkb_.isAffects(arg1_stmt_num, arg2_stmt_num) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			list<int> arg1_affectees = pkb_.getAffected(arg1_stmt_num);
+			if (arg1_affectees.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is an assign synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			list<int> arg1_affectees = pkb_.getAffected(arg1_stmt_num);
+			if (arg1_affectees.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &arg1_affectee_stmt_num : arg1_affectees) {
+					temp_row_data.push_back(to_string(arg1_affectee_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+			return temp_result;
+		}
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+
+			list<int> arg2_affectors = pkb_.getAffector(arg2_stmt_num);
+			if (arg2_affectors.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (pkb_.isAffectsEmpty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			list<pair<int, int>> affects_both_syn = pkb_.getAffectsBothSyn();
+			if (affects_both_syn.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &affects_entry : affects_both_syn) {
+					temp_row_data.push_back(to_string(affects_entry.second));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+			return temp_result;
+		}
+	}
+	else {
+		// Argument 1 is a synonym
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
+		}
+
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+
+			list<int> arg2_affector = pkb_.getAffector(arg2_stmt_num);
+			if (arg2_affector.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &arg2_affector_stmt_num : arg2_affector) {
+					temp_row_data.push_back(to_string(arg2_affector_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			list<pair<int, int>> affects_both_syn = pkb_.getAffectsBothSyn();
+			if (affects_both_syn.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &affects_entry : affects_both_syn) {
+					temp_row_data.push_back(to_string(affects_entry.first));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym. Also assign, dont need get list again
+			if (arg1 == arg2) {
+				temp_result = ResultTable(arg1);
+			}
+			else {
+				temp_result = ResultTable(arg1, arg2);
+			}
+
+			list<pair<int, int>> affects_both_syn = pkb_.getAffectsBothSyn();
+			if (affects_both_syn.empty() == false) {
+				for (auto &affects_entry : affects_both_syn) {
+					// Corner: Affects(a,a)
+					if (arg1 == arg2) {
+						if (affects_entry.first == affects_entry.second) {
+							temp_result.SetIsQueryTrue(true);
+							temp_row_data.push_back(to_string(affects_entry.first));
+							temp_result.InsertRow(temp_row_data);
+							temp_row_data.clear();
+						}
+					}
+					else {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(affects_entry.first));
+						temp_row_data.push_back(to_string(affects_entry.second));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+			}
+			return temp_result;
+		}
+	}
+
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessAffectsStar(Clause affects_star_clause)
+{
+	string arg1 = affects_star_clause.GetArg().at(0);
+	string arg2 = affects_star_clause.GetArg().at(1);
+	string arg1_type = affects_star_clause.GetArgType().at(0);
+	string arg2_type = affects_star_clause.GetArgType().at(1);
+
+	ResultTable temp_result;
+
+	if (arg1_type == ARGTYPE_CONSTANT) {
+		int arg1_stmt_num = stoi(arg1);
+		if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+			return temp_result;
+		}
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+
+			if (pkb_.isAffectsStar(arg1_stmt_num, arg2_stmt_num) == true) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			list<int> arg1_affectees_star = pkb_.getAffectedStar(arg1_stmt_num);
+			if (arg1_affectees_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is an assign synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			list<int> arg1_affectees_star = pkb_.getAffectedStar(arg1_stmt_num);
+			if (arg1_affectees_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &arg1_affectee_star_stmt_num : arg1_affectees_star) {
+					temp_row_data.push_back(to_string(arg1_affectee_star_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+			return temp_result;
+		}
+	}
+	else if (arg1_type == ARGTYPE_ANY) {
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+
+			list<int> arg2_affectors_star = pkb_.getAffectorStar(arg2_stmt_num);
+			if (arg2_affectors_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			if (pkb_.isAffectsStarEmpty() == false) {
+				temp_result.SetIsQueryTrue(true);
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym
+			list<int> synonym_stmt_list_arg2 = GetList(arg2_type);
+			if (synonym_stmt_list_arg2.empty() == true) {
+				return temp_result;
+			}
+
+			temp_result = ResultTable(arg2);
+			vector<string> temp_row_data;
+
+			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
+				list<int> arg2_affector_star = pkb_.getAffectorStar(arg2_stmt_num);
+				if (arg2_affector_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg2_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+	}
+	else {
+		// Argument 1 is a synonym
+		list<int> synonym_stmt_list_arg1 = GetList(arg1_type);
+		if (synonym_stmt_list_arg1.empty() == true) {
+			return temp_result;
+		}
+
+		temp_result = ResultTable(arg1);
+		vector<string> temp_row_data;
+
+		if (arg2_type == ARGTYPE_CONSTANT) {
+			int arg2_stmt_num = stoi(arg2);
+			if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+				return temp_result;
+			}
+
+			list<int> arg2_affector_star = pkb_.getAffectorStar(arg2_stmt_num);
+			if (arg2_affector_star.empty() == false) {
+				temp_result.SetIsQueryTrue(true);
+				for (auto &arg2_affector_star_stmt_num : arg2_affector_star) {
+					temp_row_data.push_back(to_string(arg2_affector_star_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+			return temp_result;
+		}
+		else if (arg2_type == ARGTYPE_ANY) {
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				list<int> arg1_affectee_star = pkb_.getAffectedStar(arg1_stmt_num);
+				if (arg1_affectee_star.empty() == false) {
+					temp_result.SetIsQueryTrue(true);
+					temp_row_data.push_back(to_string(arg1_stmt_num));
+					temp_result.InsertRow(temp_row_data);
+					temp_row_data.clear();
+				}
+			}
+
+			return temp_result;
+		}
+		else {
+			// Argument 2 is a synonym. Also assign, dont need get list again
+			if (arg1 == arg2) {
+				temp_result = ResultTable(arg1);
+			}
+			else {
+				temp_result = ResultTable(arg1, arg2);
+			}
+
+			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
+				// Corner: Affects*(a,a)
+				if (arg1 == arg2) {
+					if (pkb_.isAffectsStar(arg1_stmt_num, arg1_stmt_num) == true) {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(arg1_stmt_num));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
+				}
+				else {
+					list<int> arg1_affectee_star = pkb_.getAffectedStar(arg1_stmt_num);
+					if (arg1_affectee_star.empty() == false) {
+						temp_result.SetIsQueryTrue(true);
+						for (auto &arg2_stmt_num : arg1_affectee_star) {
+							temp_row_data.push_back(to_string(arg1_stmt_num));
+							temp_row_data.push_back(to_string(arg2_stmt_num));
+							temp_result.InsertRow(temp_row_data);
+							temp_row_data.clear();
+						}
+					}
+				}
+			}
+
+			return temp_result;
+		}
+	}
+
+	return temp_result;
+}
+
 ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 {
 	string pattern_assign_syn = pattern_assign_clause.GetArg().at(0);

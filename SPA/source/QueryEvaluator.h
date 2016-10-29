@@ -24,6 +24,8 @@ const string REL_NEXT = "next";
 const string REL_NEXT_STAR = "next*";
 const string REL_CALLS = "calls";
 const string REL_CALLS_STAR = "calls*";
+const string REL_AFFECTS = "affects";
+const string REL_AFFECTS_STAR = "affects*";
 const string REL_PATTERN = "pattern";
 const string REL_WITH = "with";
 const string REL_SUBSTITUTE = "substitute";
@@ -76,6 +78,8 @@ private:
 	ResultTable ProcessNextT(Clause next_star_clause);
 	ResultTable ProcessCalls(Clause calls_clause);
 	ResultTable ProcessCallsStar(Clause calls_star_clause);
+	ResultTable ProcessAffects(Clause affects_clause);
+	ResultTable ProcessAffectsStar(Clause affects_star_clause);
 	ResultTable ProcessPattern(Clause pattern_clause);
 	ResultTable ProcessPatternAssign(Clause pattern_assign_clause);
 	ResultTable ProcessPatternWhile(Clause pattern_while_clause);

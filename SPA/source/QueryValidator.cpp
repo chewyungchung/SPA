@@ -294,6 +294,12 @@ void QueryValidator::MatchRelation() {
 	else if (relation == "Next*") {
 		MatchNextStar();
 	}
+	else if (relation == "Affects") {
+		MatchAffects();
+	}
+	else if (relation == "Affects*") {
+		MatchAffectsStar();
+	}
 	else {
 		// If its none of the above relation, ERROR!!!!!!!!!!!!!
 		throw(QueryException("Invalid Query : Unexpected relation '" + next_token_.GetTokenName() + "'; Expecting 'Follow'|'Follow*'|'Parent'|'Parent*'|'Modifies'|'Uses'"));
@@ -840,6 +846,110 @@ void QueryValidator::MatchNextStar() {
 		throw(QueryException("Invalid Query : Unexpected arguments for nextStar"));
 	}
 }
+void QueryValidator::MatchAffects()
+{
+	// Check if arguments, num of arguments are valid
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchStmtRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchStmtRef();
+	Match(CLOSE_BRACKET);
+
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("affects", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("affects", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == INTEGER) {
+		is_arg1_valid = rel_table_.IsArg1Valid("affects", "constant");
+		arg1_type = "constant";
+	}
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("affects", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("affects", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == INTEGER) {
+		is_arg2_valid = rel_table_.IsArg2Valid("affects", "constant");
+		arg2_type = "constant";
+	}
+
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> affectsArg({ arg1.second,arg2.second });
+		vector<string> affectsArgType({ arg1_type,arg2_type });
+		Clause affectsRel("affects", affectsArg, affectsArgType, GetClausePriority("affects"));
+		query_table_.AddSuchThatClause(affectsRel);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for Affects"));
+	}
+}
+void QueryValidator::MatchAffectsStar()
+{
+	// Check if arguments, num of arguments are valid
+	Match(OPEN_BRACKET);
+	pair<int, string> arg1 = MatchStmtRef();
+	Match(COMMA);
+	pair<int, string> arg2 = MatchStmtRef();
+	Match(CLOSE_BRACKET);
+
+	bool is_arg1_valid = false;
+	bool is_arg2_valid = false;
+	string arg1_type, arg2_type;
+
+	if (arg1.first == IDENT) {
+		if (syn_to_entity_map_[arg1.second] != "") {
+			is_arg1_valid = rel_table_.IsArg1Valid("affects*", syn_to_entity_map_[arg1.second]);
+			arg1_type = syn_to_entity_map_[arg1.second];
+		}
+	}
+	else if (arg1.first == UNDERSCORE) {
+		is_arg1_valid = rel_table_.IsArg1Valid("affects*", "_");
+		arg1_type = "any";
+	}
+	else if (arg1.first == INTEGER) {
+		is_arg1_valid = rel_table_.IsArg1Valid("affects*", "constant");
+		arg1_type = "constant";
+	}
+	if (arg2.first == IDENT) {
+		if (syn_to_entity_map_[arg2.second] != "") {
+			is_arg2_valid = rel_table_.IsArg2Valid("affects*", syn_to_entity_map_[arg2.second]);
+			arg2_type = syn_to_entity_map_[arg2.second];
+		}
+	}
+	else if (arg2.first == UNDERSCORE) {
+		is_arg2_valid = rel_table_.IsArg2Valid("affects*", "_");
+		arg2_type = "any";
+	}
+	else if (arg2.first == INTEGER) {
+		is_arg2_valid = rel_table_.IsArg2Valid("affects*", "constant");
+		arg2_type = "constant";
+	}
+
+	if (is_arg1_valid == true && is_arg2_valid == true) {
+		vector<string> affectsStarArg({ arg1.second,arg2.second });
+		vector<string> affectsStarArgType({ arg1_type,arg2_type });
+		Clause affectsStarRel("affects*", affectsStarArg, affectsStarArgType, GetClausePriority("affects*"));
+		query_table_.AddSuchThatClause(affectsStarRel);
+	}
+	else {
+		throw(QueryException("Invalid Query : Unexpected arguments for Affects*"));
+	}
+}
 void QueryValidator::MatchPatternAssign()
 {
 	string assign_syn = next_token_.GetTokenName();
@@ -1327,6 +1437,12 @@ int QueryValidator::GetClausePriority(string relation)
 	}
 	else if (relation == "call*") {
 		return 2;
+	}
+	else if (relation == "affects") {
+		return 20;
+	}
+	else if (relation == "affects*") {
+		return 40;
 	}
 	else if (relation == "modifies") {
 		return 2;
