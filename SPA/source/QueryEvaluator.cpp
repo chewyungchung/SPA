@@ -114,7 +114,7 @@ ResultTable QueryEvaluator::ProcessClauseOptimized(Clause input_clause, ResultTa
 		return ProcessSubstitute(input_clause);
 	}
 	else if (relation == REL_PATTERN) {
-		return ProcessPattern(input_clause);
+		return ProcessPatternOptimized(intermediate_result, input_clause);
 	}
 	else if (relation == REL_WITH) {
 		return ProcessWith(input_clause);
@@ -3534,7 +3534,205 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 }
 
 ResultTable QueryEvaluator::ProcessPatternAssignOptimized(ResultTable & current_result_set, Clause pattern_assign_clause) {
-	return ResultTable();
+	string arg1 = pattern_assign_clause.GetArg().at(0);
+	string arg2 = pattern_assign_clause.GetArg().at(1);
+	string expr = pattern_assign_clause.GetArg().at(2);
+	string arg2_type = pattern_assign_clause.GetArgType().at(1);
+	string expr_type = pattern_assign_clause.GetArgType().at(2);
+	ResultTable joined_table;
+
+	joined_table.InsertColumns(current_result_set.GetColumnNames());
+	int common_syn_count = GetNumOfCommonColumn(current_result_set.GetColumnNames(), pattern_assign_clause.GetArg());
+
+	if (common_syn_count == 1) {
+		string common_column = GetCommonColumn(current_result_set.GetColumnNames(), pattern_assign_clause.GetArg());
+		bool is_common_col_left_arg = IsLeftArg(pattern_assign_clause, common_column);
+		vector<string> common_column_list = current_result_set.GetColumn(common_column);
+
+		if (is_common_col_left_arg == true) {
+			if (arg2_type == ARGTYPE_STRING) {
+				if (pkb_.isValidVar(arg2) == false) {
+					return joined_table;
+				}
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = stoi(common_column_list.at(i));
+					if (expr_type == ARGTYPE_ANY) {
+						if (pkb_.isModified(common_col_stmt_num, arg2) == true) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+					else if (expr_type == ARGTYPE_EXPR) {
+						list<int> assign_with_expr = pkb_.getAssignWithExpression(expr);
+						list<int>::iterator assign_with_expr_it = find(assign_with_expr.begin(), assign_with_expr.end(), common_col_stmt_num);
+						if (assign_with_expr_it != assign_with_expr.end() && pkb_.isModified(common_col_stmt_num, arg2) == true) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+					else {
+						// Sub expr
+						list<int> assign_with_sub_expr = pkb_.getAssignWithSubExpression(expr);
+						list<int>::iterator assign_with_sub_expr_it = find(assign_with_sub_expr.begin(), assign_with_sub_expr.end(), common_col_stmt_num);
+						if (assign_with_sub_expr_it != assign_with_sub_expr.end() && pkb_.isModified(common_col_stmt_num, arg2) == true) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+				}
+			}
+			else if (arg2_type == ARGTYPE_VARIABLE) {
+				joined_table.InsertNewColumn(arg2);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = stoi(common_column_list.at(i));
+					if (expr_type == ARGTYPE_ANY) {
+						list<string> common_col_modified_variables = pkb_.getModifiedBy(common_col_stmt_num);
+						if (common_col_modified_variables.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							for (auto &variable : common_col_modified_variables) {
+								vector<string> temp_row_data = current_result_set.GetRow(i);
+								temp_row_data.push_back(variable);
+								joined_table.InsertRow(temp_row_data);
+							}
+						}
+					}
+					else if (expr_type == ARGTYPE_EXPR) {
+						list<int> assign_with_expr = pkb_.getAssignWithExpression(expr);
+						list<string> common_col_modified_variables = pkb_.getModifiedBy(common_col_stmt_num);
+						list<int>::iterator assign_with_expr_it = find(assign_with_expr.begin(), assign_with_expr.end(), common_col_stmt_num);
+						if (assign_with_expr_it != assign_with_expr.end() && common_col_modified_variables.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							for (auto &variable : common_col_modified_variables) {
+								vector<string> temp_row_data = current_result_set.GetRow(i);
+								temp_row_data.push_back(variable);
+								joined_table.InsertRow(temp_row_data);
+							}
+						}
+					}
+					else {
+						// Sub expr
+						list<int> assign_with_sub_expr = pkb_.getAssignWithSubExpression(expr);
+						list<string> common_col_modified_variables = pkb_.getModifiedBy(common_col_stmt_num);
+						list<int>::iterator assign_with_sub_expr_it = find(assign_with_sub_expr.begin(), assign_with_sub_expr.end(), common_col_stmt_num);
+						if (assign_with_sub_expr_it != assign_with_sub_expr.end() && common_col_modified_variables.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							for (auto &variable : common_col_modified_variables) {
+								vector<string> temp_row_data = current_result_set.GetRow(i);
+								temp_row_data.push_back(variable);
+								joined_table.InsertRow(temp_row_data);
+							}
+						}
+					}
+				}
+			}
+			else {
+				// arg2_type is any ('_'), explicitly is a variable
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = stoi(common_column_list.at(i));
+					if (expr_type == ARGTYPE_ANY) {
+						list<string> common_col_modified_variables = pkb_.getModifiedBy(common_col_stmt_num);
+						if (common_col_modified_variables.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+					else if (expr_type == ARGTYPE_EXPR) {
+						list<int> assign_with_expr = pkb_.getAssignWithExpression(expr);
+						list<string> common_col_modified_variables = pkb_.getModifiedBy(common_col_stmt_num);
+						list<int>::iterator assign_with_expr_it = find(assign_with_expr.begin(), assign_with_expr.end(), common_col_stmt_num);
+						if (assign_with_expr_it != assign_with_expr.end() && common_col_modified_variables.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+					else {
+						// Sub expr
+						list<int> assign_with_sub_expr = pkb_.getAssignWithSubExpression(expr);
+						list<string> common_col_modified_variables = pkb_.getModifiedBy(common_col_stmt_num);
+						list<int>::iterator assign_with_sub_expr_it = find(assign_with_sub_expr.begin(), assign_with_sub_expr.end(), common_col_stmt_num);
+						if (assign_with_sub_expr_it != assign_with_sub_expr.end() && common_col_modified_variables.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+				}
+			}
+		}
+		else {
+			// Is right argument
+			joined_table.InsertNewColumn(arg1);
+			for (unsigned i = 0; i < common_column_list.size(); ++i) {
+				string common_col_variable = common_column_list.at(i);
+				if (expr_type == ARGTYPE_ANY) {
+					list<int> common_col_var_modified_by = pkb_.getModifiedBy(common_col_variable);
+					if (common_col_var_modified_by.empty() == false) {
+						joined_table.SetIsQueryTrue(true);
+						for (auto &common_col_stmt_num : common_col_var_modified_by) {
+							vector<string> temp_row_data = current_result_set.GetRow(i);
+							temp_row_data.push_back(to_string(common_col_stmt_num));
+							joined_table.InsertRow(temp_row_data);
+						}
+					}
+				}
+				else if (expr_type == ARGTYPE_EXPR) {
+					list<int> assign_with_expr = pkb_.getAssignWithExpression(expr);
+					for (auto &assign_with_expr_stmt_num : assign_with_expr) {
+						if (pkb_.isModified(assign_with_expr_stmt_num, common_col_variable) == true) {
+							joined_table.SetIsQueryTrue(true);
+							vector<string> temp_row_data = current_result_set.GetRow(i);
+							temp_row_data.push_back(to_string(assign_with_expr_stmt_num));
+							joined_table.InsertRow(temp_row_data);
+						}
+					}
+				}
+				else {
+					// Sub expr
+					list<int> assign_with_sub_expr = pkb_.getAssignWithSubExpression(expr);
+					for (auto &assign_with_sub_expr_stmt_num : assign_with_sub_expr) {
+						if (pkb_.isModified(assign_with_sub_expr_stmt_num, common_col_variable) == true) {
+							joined_table.SetIsQueryTrue(true);
+							vector<string> temp_row_data = current_result_set.GetRow(i);
+							temp_row_data.push_back(to_string(assign_with_sub_expr_stmt_num));
+							joined_table.InsertRow(temp_row_data);
+						}
+					}
+				}
+			}
+		}
+	}
+	else {
+		// Both syns in clause are in current_result_set
+		for (int i = 0; i < current_result_set.GetTableHeight(); ++i) {
+			int lhs = stoi(current_result_set.GetValue(arg1, i));
+			string rhs = current_result_set.GetValue(arg2, i);
+
+			if (expr_type == ARGTYPE_ANY) {
+				if (pkb_.isModified(lhs, rhs) == true) {
+					joined_table.SetIsQueryTrue(true);
+					joined_table.InsertRow(current_result_set.GetRow(i));
+				}
+			}
+			else if (expr_type == ARGTYPE_EXPR) {
+				list<int> assign_with_expr = pkb_.getAssignWithExpression(expr);
+				list<int>::iterator assign_with_expr_it = find(assign_with_expr.begin(), assign_with_expr.end(), lhs);
+				if (assign_with_expr_it != assign_with_expr.end() && pkb_.isModified(lhs,rhs) == true) {
+					joined_table.SetIsQueryTrue(true);
+					joined_table.InsertRow(current_result_set.GetRow(i));
+				}
+			}
+			else {
+				// Sub expr
+				list<int> assign_with_sub_expr = pkb_.getAssignWithSubExpression(expr);
+				list<int>::iterator assign_with_sub_expr_it = find(assign_with_sub_expr.begin(), assign_with_sub_expr.end(), lhs);
+				if (assign_with_sub_expr_it != assign_with_sub_expr.end() && pkb_.isModified(lhs, rhs) == true) {
+					joined_table.SetIsQueryTrue(true);
+					joined_table.InsertRow(current_result_set.GetRow(i));
+				}
+			}
+		}
+	}
+
+	return joined_table;
 }
 
 ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
