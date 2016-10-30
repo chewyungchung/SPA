@@ -3,6 +3,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -117,6 +118,7 @@ private:
 	bool ProcessNonConnectedGroups();
 	bool ProcessNonConnectedGroupsOptimized();
 	bool IsBooleanSelected();
+	bool IsNumber(string& s);
 
 	list<int> GetList(string arg_type);
 };
