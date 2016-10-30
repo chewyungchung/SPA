@@ -2618,7 +2618,186 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 }
 
 ResultTable QueryEvaluator::ProcessCallsOptimized(ResultTable & current_result_set, Clause calls_clause, bool is_star) {
-	return ResultTable();
+	string arg1 = calls_clause.GetArg().at(0);
+	string arg2 = calls_clause.GetArg().at(1);
+	string arg1_type = calls_clause.GetArgType().at(0);
+	string arg2_type = calls_clause.GetArgType().at(1);
+	ResultTable joined_table;
+	if (arg1 == arg2) {
+		return joined_table;
+	}
+
+	joined_table.InsertColumns(current_result_set.GetColumnNames());
+	int common_syn_count = GetNumOfCommonColumn(current_result_set.GetColumnNames(), calls_clause.GetArg());
+
+	if (common_syn_count == 1) {
+		string common_column = GetCommonColumn(current_result_set.GetColumnNames(), calls_clause.GetArg());
+		bool is_common_col_left_arg = IsLeftArg(calls_clause, common_column);
+		vector<string> common_column_list = current_result_set.GetColumn(common_column);
+
+		if (is_common_col_left_arg == true) {
+			if (arg2_type == ARGTYPE_STRING) {
+				if (pkb_.isProcedureExist(arg2) == false) {
+					return joined_table;
+				}
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					if (is_star == true) {
+						if (pkb_.isCallStar(common_col_entry, arg2) == true) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+					else {
+						if (pkb_.isCall(common_col_entry, arg2) == true) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+				}
+			}
+			else if (arg2_type == ARGTYPE_ANY) {
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					if (is_star == true) {
+						list<string> common_col_callee_star = pkb_.getCalleeStar(common_col_entry);
+						if (common_col_callee_star.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+					else {
+						list<string> common_col_callee = pkb_.getCallee(common_col_entry);
+						if (common_col_callee.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+				}
+			}
+			else {
+				// Arg 2 is a procedure synonym
+				joined_table.InsertNewColumn(arg2);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					if (is_star == true) {
+						list<string> common_col_callee_star = pkb_.getCalleeStar(common_col_entry);
+						if (common_col_callee_star.empty() == false) {
+							for (auto &callee_star_procedure : common_col_callee_star) {
+								joined_table.SetIsQueryTrue(true);
+								vector<string> temp_row_data = current_result_set.GetRow(i);
+								temp_row_data.push_back(callee_star_procedure);
+								joined_table.InsertRow(temp_row_data);
+							}
+						}
+					}
+					else {
+						list<string> common_col_callee = pkb_.getCallee(common_col_entry);
+						if (common_col_callee.empty() == false) {
+							for (auto &callee_procedure : common_col_callee) {
+								joined_table.SetIsQueryTrue(true);
+								vector<string> temp_row_data = current_result_set.GetRow(i);
+								temp_row_data.push_back(callee_procedure);
+								joined_table.InsertRow(temp_row_data);
+							}
+						}
+					}
+				}
+			}
+		}
+		else {
+			// Is right argument
+			if (arg1_type == ARGTYPE_STRING) {
+				if (pkb_.isProcedureExist(arg1) == false) {
+					return joined_table;
+				}
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					if (is_star == true) {
+						if (pkb_.isCallStar(arg1, common_col_entry) == true) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+					else {
+						if (pkb_.isCall(arg1, common_col_entry) == true) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+				}
+			}
+			else if (arg1_type == ARGTYPE_ANY) {
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					if (is_star == true) {
+						list<string> common_col_caller_star = pkb_.getCallerStar(common_col_entry);
+						if (common_col_caller_star.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+					else {
+						list<string> common_col_caller = pkb_.getCaller(common_col_entry);
+						if (common_col_caller.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+				}
+			}
+			else {
+				// Arg 1 is a procedure synonym
+				joined_table.InsertNewColumn(arg1);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					if (is_star == true) {
+						list<string> common_col_caller_star = pkb_.getCallerStar(common_col_entry);
+						if (common_col_caller_star.empty() == false) {
+							for (auto &caller_star_procedure : common_col_caller_star) {
+								joined_table.SetIsQueryTrue(true);
+								vector<string> temp_row_data = current_result_set.GetRow(i);
+								temp_row_data.push_back(caller_star_procedure);
+								joined_table.InsertRow(temp_row_data);
+							}
+						}
+					}
+					else {
+						list<string> common_col_caller = pkb_.getCaller(common_col_entry);
+						if (common_col_caller.empty() == false) {
+							for (auto &caller_procedure : common_col_caller) {
+								joined_table.SetIsQueryTrue(true);
+								vector<string> temp_row_data = current_result_set.GetRow(i);
+								temp_row_data.push_back(caller_procedure);
+								joined_table.InsertRow(temp_row_data);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else {
+		// Both syns in clause are in current_result_set
+		for (int i = 0; i < current_result_set.GetTableHeight(); ++i) {
+			string lhs = current_result_set.GetValue(arg1, i);
+			string rhs = current_result_set.GetValue(arg2, i);
+			if (is_star == true) {
+				if (pkb_.isCallStar(lhs, rhs) == true) {
+					joined_table.SetIsQueryTrue(true);
+					joined_table.InsertRow(current_result_set.GetRow(i));
+				}
+			}
+			else {
+				if (pkb_.isCall(lhs, rhs) == true) {
+					joined_table.SetIsQueryTrue(true);
+					joined_table.InsertRow(current_result_set.GetRow(i));
+				}
+			}
+		}
+	}
+
+	return joined_table;
 }
 
 ResultTable QueryEvaluator::ProcessAffects(Clause affects_clause)
