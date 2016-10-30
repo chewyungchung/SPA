@@ -291,38 +291,60 @@ string QueryResultProjector::GetRowInString(vector<string>& row)
 
 void QueryResultProjector::PopulateFinalResultList(ResultTable& final_table)
 {
-	if (select_clause_.GetArg().size() > 1) {
-		vector<ResultTable> permuted_final_results;
-		for (auto &selected_syn : select_clause_.GetArg()) {
-			ResultTable temp(selected_syn);
-			vector<string> temp_row;
-			set<string> unique_column_entries;
-			for (int i = 0; i < final_table.GetTableHeight(); ++i) {
-				unique_column_entries.insert(final_table.GetValue(selected_syn, i));
+	for (int i = 0; i < final_table.GetTableHeight(); ++i) {
+		string result_string = "";
+		for (unsigned j = 0; j < select_clause_.GetArg().size(); ++j) {
+			if (select_clause_.GetArgType().at(j) == "call" || select_clause_.GetArgType().at(j) == "call_number") {
+				int index_of_space = final_table.GetValue(select_clause_.GetArg().at(j), i).find_first_of(" ");
+				result_string += final_table.GetValue(select_clause_.GetArg().at(j), i).substr(0, index_of_space);
+			}
+			else if (select_clause_.GetArgType().at(j) == "call_name") {
+				int index_of_space = final_table.GetValue(select_clause_.GetArg().at(j), i).find_first_of(" ");
+				result_string += final_table.GetValue(select_clause_.GetArg().at(j), i).substr(index_of_space, string::npos);
+			} 
+			else {
+				result_string += final_table.GetValue(select_clause_.GetArg().at(j), i);
 			}
 
-			for (auto &unique_entry : unique_column_entries) {
-				temp_row.push_back(unique_entry);
-				temp.InsertRow(temp_row);
-				temp_row.clear();
+			if (j != select_clause_.GetArg().size() - 1) {
+				result_string += " ";
 			}
-
-			permuted_final_results.push_back(temp);
 		}
-
-		// Cart product
-		CartesianProductGroups(permuted_final_results, final_table);
-
-		// Ready to get all results
-		for (int i = 0; i < final_table.GetTableHeight(); ++i) {
-			string final_result_string = GetRowInString(final_table.GetRow(i));
-			final_results_.push_back(final_result_string);
-		}
+		final_results_.push_back(result_string);
 	}
-	else {
-		for (int i = 0; i < final_table.GetTableHeight(); ++i) {
-			string selected_syn = select_clause_.GetArg().at(0);
-			final_results_.push_back(final_table.GetValue(selected_syn, i));
-		}
-	}
+
+	//if (select_clause_.GetArg().size() > 1) {
+	//	vector<ResultTable> permuted_final_results;
+	//	for (auto &selected_syn : select_clause_.GetArg()) {
+	//		ResultTable temp(selected_syn);
+	//		vector<string> temp_row;
+	//		set<string> unique_column_entries;
+	//		for (int i = 0; i < final_table.GetTableHeight(); ++i) {
+	//			unique_column_entries.insert(final_table.GetValue(selected_syn, i));
+	//		}
+
+	//		for (auto &unique_entry : unique_column_entries) {
+	//			temp_row.push_back(unique_entry);
+	//			temp.InsertRow(temp_row);
+	//			temp_row.clear();
+	//		}
+
+	//		permuted_final_results.push_back(temp);
+	//	}
+
+	//	// Cart product
+	//	CartesianProductGroups(permuted_final_results, final_table);
+
+	//	// Ready to get all results
+	//	for (int i = 0; i < final_table.GetTableHeight(); ++i) {
+	//		string final_result_string = GetRowInString(final_table.GetRow(i));
+	//		final_results_.push_back(final_result_string);
+	//	}
+	//}
+	//else {
+	//	for (int i = 0; i < final_table.GetTableHeight(); ++i) {
+	//		string selected_syn = select_clause_.GetArg().at(0);
+	//		final_results_.push_back(final_table.GetValue(selected_syn, i));
+	//	}
+	//}
 }
