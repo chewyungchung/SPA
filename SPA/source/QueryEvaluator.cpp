@@ -2618,7 +2618,7 @@ ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
 		if (all_variable_list.empty() == false) {
 			temp_result = ResultTable(pattern_if_syn, arg1);
 			for (auto &arg1_variable : all_variable_list) {
-				list<int> if_with_arg1_control_variable = pkb_.getWhileListWithControlVariable(arg1_variable);
+				list<int> if_with_arg1_control_variable = pkb_.getIfListWithControlVariable(arg1_variable);
 				if (if_with_arg1_control_variable.empty() == false) {
 					temp_result.SetIsQueryTrue(true);
 					for (auto &if_stmt_num : if_with_arg1_control_variable) {
