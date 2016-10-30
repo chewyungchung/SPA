@@ -183,6 +183,7 @@ void QueryTable::GroupConnectedClauses()
 	vector<Clause> unprocessed_two_syn_clauses;
 	vector<Clause> current_group;
 	unordered_map<string, bool> is_syn_processed_map;
+	unordered_map<string, bool> is_syn_in_clause_map;
 	bool is_selected_syn_used = false;
 	string selected_syn;
 
@@ -197,17 +198,19 @@ void QueryTable::GroupConnectedClauses()
 			string current_processing_syn = processing_synonyms.front();
 			processing_synonyms.pop();
 			if (is_syn_processed_map[current_processing_syn] == false) {
-				PopulateQueueWithSyn(one_syn_queue, unprocessed_one_syn_clauses, one_syn_clauses_, processing_synonyms, current_processing_syn, false);
-				PopulateQueueWithSyn(two_syn_queue, unprocessed_two_syn_clauses, two_syn_clauses_, processing_synonyms, current_processing_syn, true);
-				if (one_syn_queue.empty() == false || two_syn_queue.empty() == false) {
+				PopulateQueueWithSyn(one_syn_queue, unprocessed_one_syn_clauses, one_syn_clauses_, processing_synonyms, current_processing_syn, is_syn_in_clause_map, false);
+				PopulateQueueWithSyn(two_syn_queue, unprocessed_two_syn_clauses, two_syn_clauses_, processing_synonyms, current_processing_syn, is_syn_in_clause_map, true);
+				/*if (one_syn_queue.empty() == false || two_syn_queue.empty() == false) {
+					is_syn_in_clause_map[current_processing_syn] = true;
 					is_syn_processed_map[current_processing_syn] = true;
-				}
+				}*/
 				PopulateCurrentGroup(one_syn_queue, current_group);
 				PopulateCurrentGroup(two_syn_queue, current_group);
 				one_syn_clauses_ = unprocessed_one_syn_clauses;
 				two_syn_clauses_ = unprocessed_two_syn_clauses;
 				unprocessed_one_syn_clauses.clear();
 				unprocessed_two_syn_clauses.clear();
+				is_syn_processed_map[current_processing_syn] = true;
 			}
 			else {
 				continue;
@@ -221,7 +224,7 @@ void QueryTable::GroupConnectedClauses()
 	}
 
 	for (unsigned i = 0; i < select_clause_.GetArg().size(); ++i) {
-		if (is_syn_processed_map[select_clause_.GetArg().at(i)] == false) {
+		if (is_syn_in_clause_map[select_clause_.GetArg().at(i)] == false) {
 			vector<string> substitute_arg = { select_clause_.GetArg().at(i) };
 			vector<string> substitute_arg_type = { select_clause_.GetArgType().at(i) };
 			Clause substitute_clause("substitute", substitute_arg, substitute_arg_type, 1);
@@ -344,14 +347,17 @@ void QueryTable::GroupNonConnectedClauses()
 
 void QueryTable::PopulateQueueWithSyn(priority_queue<Clause, vector<Clause>, ClauseComparator>& sorted_clauses,
 	vector<Clause>& unprocessed_clauses, vector<Clause>& syn_clauses, 
-	queue<string>& processing_queue, string processing_syn, bool is_two_syn)
+	queue<string>& processing_queue, string processing_syn, 
+	unordered_map<string,bool>& syn_in_clause_map, bool is_two_syn)
 {
 	for (auto &clause : syn_clauses) {
 		if (IsSynFound(clause, processing_syn) == true) {
 			sorted_clauses.push(clause);
+			syn_in_clause_map[processing_syn] = true;
 			if (is_two_syn == true) {
 				string new_synonym_in_clause = GetSecondSynonym(clause, processing_syn);
 				processing_queue.push(new_synonym_in_clause);
+				syn_in_clause_map[new_synonym_in_clause] = true;
 			}
 		}
 		else {
