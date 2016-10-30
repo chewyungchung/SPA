@@ -17,6 +17,7 @@ public:
 	int GetColumnCount();
 	int GetSynonymColumnIndex(string synonym);
 	vector<string> GetRow(int row_index);
+	vector<string> GetColumn(string column_name);
 	vector<string> GetColumnNames();
 	string GetValue(string synonym, int row_index);
 	bool IsQueryTrue();
