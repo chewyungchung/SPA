@@ -22,27 +22,27 @@ list<string> QueryEvaluator::Evaluate() {
 		return final_results;
 	} 
 
-	if (ProcessNonConnectedGroups() == false) {
+	if (ProcessNonConnectedGroupsOptimized() == false) {
 		if (IsBooleanSelected() == true) {
 			final_results.push_back("false");
 		}
 		return final_results;
 	}
 
-	if (ProcessConnectedGroups() == false) {
+	if (ProcessConnectedGroupsOptimized() == false) {
 		if (IsBooleanSelected() == true) {
 			final_results.push_back("false");
 		}
 		return final_results;
 	}
 
-	QueryResultProjector output_manager(connected_group_intermediate_result_, non_connected_group_intermediate_result_, input_query_.GetSelectClause());
+	QueryResultProjector output_manager(connected_groups_results_, input_query_.GetSelectClause());
+	//QueryResultProjector output_manager(connected_group_intermediate_result_, non_connected_group_intermediate_result_, input_query_.GetSelectClause());
 	final_results = output_manager.GetResults();
 	return final_results;
 }
 
-ResultTable QueryEvaluator::ProcessSubstitute(Clause substitute_clause)
-{
+ResultTable QueryEvaluator::ProcessSubstitute(Clause substitute_clause) {
 	string substitute_arg = substitute_clause.GetArg().at(0);
 	string substitute_arg_type = substitute_clause.GetArgType().at(0);
 	ResultTable temp_result = ResultTable(substitute_arg);
@@ -107,6 +107,23 @@ ResultTable QueryEvaluator::ProcessClause(Clause input_clause)
 	}
 }
 
+ResultTable QueryEvaluator::ProcessClauseOptimized(Clause input_clause, ResultTable & intermediate_result)
+{
+	string relation = input_clause.GetRelation();
+	if (relation == REL_SUBSTITUTE) {
+		return ProcessSubstitute(input_clause);
+	}
+	else if (relation == REL_PATTERN) {
+		return ProcessPattern(input_clause);
+	}
+	else if (relation == REL_WITH) {
+		return ProcessWith(input_clause);
+	}
+	else {
+		return ProcessSuchThatOptimized(input_clause, intermediate_result);
+	}
+}
+
 ResultTable QueryEvaluator::ProcessSuchThat(Clause such_that_clause) {
 	string relation = such_that_clause.GetRelation();
 	ResultTable temp_result;
@@ -147,6 +164,47 @@ ResultTable QueryEvaluator::ProcessSuchThat(Clause such_that_clause) {
 	return temp_result;
 }
 
+ResultTable QueryEvaluator::ProcessSuchThatOptimized(Clause such_that_clause, ResultTable & intermediate_result)
+{
+	string relation = such_that_clause.GetRelation();
+	ResultTable temp_result;
+
+	if (relation == REL_FOLLOWS) {
+		temp_result = ProcessFollowsOptimized(intermediate_result, such_that_clause, false);
+	}
+	else if (relation == REL_FOLLOWS_STAR) {
+		temp_result = ProcessFollowsOptimized(intermediate_result, such_that_clause, true);
+	}
+	else if (relation == REL_PARENT) {
+		temp_result = ProcessParentOptimized(intermediate_result, such_that_clause, false);
+	}
+	else if (relation == REL_PARENT_STAR) {
+		temp_result = ProcessParentOptimized(intermediate_result, such_that_clause, true);
+	}
+	else if (relation == REL_MODIFIES) {
+		temp_result = ProcessModifiesOptimized(intermediate_result, such_that_clause);
+	}
+	else if (relation == REL_USES) {
+		temp_result = ProcessUsesOptimized(intermediate_result, such_that_clause);
+	}
+	else if (relation == REL_NEXT) {
+		temp_result = ProcessNextOptimized(intermediate_result, such_that_clause, false);
+	}
+	else if (relation == REL_NEXT_STAR) {
+		temp_result = ProcessNextOptimized(intermediate_result, such_that_clause, true);
+	}
+	else if (relation == REL_CALLS) {
+		temp_result = ProcessCallsOptimized(intermediate_result, such_that_clause, false);
+	}
+	else if (relation == REL_CALLS_STAR) {
+		temp_result = ProcessCallsOptimized(intermediate_result, such_that_clause, true);
+	}
+	else if (relation == REL_PATTERN) {
+		temp_result = ProcessPatternOptimized(intermediate_result, such_that_clause);
+	}
+	return temp_result;
+}
+
 ResultTable QueryEvaluator::ProcessPattern(Clause pattern_clause) {
 	ResultTable temp_result;
 	string pattern_syn_type = pattern_clause.GetArgType().at(0);
@@ -158,6 +216,22 @@ ResultTable QueryEvaluator::ProcessPattern(Clause pattern_clause) {
 	}
 	else if (pattern_syn_type == ARGTYPE_IF) {
 		temp_result = ProcessPatternIf(pattern_clause);
+	}
+	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessPatternOptimized(ResultTable & intermediate_result, Clause pattern_clause)
+{
+	ResultTable temp_result;
+	string pattern_syn_type = pattern_clause.GetArgType().at(0);
+	if (pattern_syn_type == ARGTYPE_ASSIGN) {
+		temp_result = ProcessPatternAssignOptimized(intermediate_result, pattern_clause);
+	}
+	else if (pattern_syn_type == ARGTYPE_WHILE) {
+		temp_result = ProcessPatternWhileOptimized(intermediate_result, pattern_clause);
+	}
+	else if (pattern_syn_type == ARGTYPE_IF) {
+		temp_result = ProcessPatternIfOptimized(intermediate_result, pattern_clause);
 	}
 	return temp_result;
 }
@@ -556,6 +630,192 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) {
 	}
 
 	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessFollowsOptimized(ResultTable & current_result_set, Clause follow_clause, bool is_star) {
+	string arg1 = follow_clause.GetArg().at(0);
+	string arg2 = follow_clause.GetArg().at(1);
+	string arg1_type = follow_clause.GetArgType().at(0);
+	string arg2_type = follow_clause.GetArgType().at(1);
+	ResultTable joined_table;
+	if (arg1 == arg2) {
+		return joined_table;
+	}
+
+	joined_table.InsertColumns(current_result_set.GetColumnNames());
+	int common_syn_count = GetNumOfCommonColumn(current_result_set.GetColumnNames(), follow_clause.GetArg());
+
+	if (common_syn_count == 1) {
+		string common_column = GetCommonColumn(current_result_set.GetColumnNames(), follow_clause.GetArg());
+		string other_column_type = GetOtherColumnType(follow_clause, common_column);
+		bool is_common_col_left_arg = IsLeftArg(follow_clause, common_column);
+		vector<string> common_column_list = current_result_set.GetColumn(common_column);
+
+		if (is_common_col_left_arg == true) {
+			if (arg2_type == ARGTYPE_CONSTANT) {
+				int arg2_stmt_num = stoi(arg2);
+				if (pkb_.isValidStmt(arg2_stmt_num) == false) {
+					return joined_table;
+				}
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = stoi(common_column_list.at(i));
+					if (is_star == true) {
+						if (pkb_.isFollowsStar(common_col_stmt_num, arg2_stmt_num) == true) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					} 
+					else {
+						if (pkb_.isValidFollows(common_col_stmt_num, arg2_stmt_num) == true) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+							break;
+						}
+					}
+				}
+			}
+			else if (arg2_type == ARGTYPE_ANY) {
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = stoi(common_column_list.at(i));
+					if (is_star == true) {
+						list<int> common_col_followers = pkb_.getFollowerStar(common_col_stmt_num);
+						if (common_col_followers.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+					else {
+						if (pkb_.getFollower(common_col_stmt_num) != -1) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+				}
+			}
+			else {
+				// Arg 2 is a synonym
+				joined_table.InsertNewColumn(arg2);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = stoi(common_column_list.at(i));
+					if (is_star == true) {
+						list<int> common_col_followers = pkb_.getFollowerStar(common_col_stmt_num);
+						if (common_col_followers.empty() == false) {
+							for (auto &follower_stmt_num : common_col_followers) {
+								if (IsCompatibleStmtType(arg2_type, follower_stmt_num) == true) {
+									joined_table.SetIsQueryTrue(true);
+									vector<string> temp_row_data = current_result_set.GetRow(i);
+									temp_row_data.push_back(to_string(follower_stmt_num));
+									joined_table.InsertRow(temp_row_data);
+								}
+							}
+						}
+					}
+					else {
+						int common_col_stmt_follower = pkb_.getFollower(common_col_stmt_num);
+						if (common_col_stmt_follower != -1 && IsCompatibleStmtType(arg2_type, common_col_stmt_follower) == true) {
+							joined_table.SetIsQueryTrue(true);
+							vector<string> temp_row_data = current_result_set.GetRow(i);
+							temp_row_data.push_back(to_string(common_col_stmt_follower));
+							joined_table.InsertRow(temp_row_data);
+						}
+					}
+				}
+			}
+		}
+		else {
+			// Is right argument
+			if (arg1_type == ARGTYPE_CONSTANT) {
+				int arg1_stmt_num = stoi(arg1);
+				if (pkb_.isValidStmt(arg1_stmt_num) == false) {
+					return joined_table;
+				}
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = stoi(common_column_list.at(i));
+					if (is_star == true) {
+						if (pkb_.isFollowsStar(arg1_stmt_num, common_col_stmt_num) == true) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+					else {
+						if (pkb_.isValidFollows(arg1_stmt_num, common_col_stmt_num) == true) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+							break;
+						}
+					}
+				}
+			}
+			else if (arg1_type == ARGTYPE_ANY) {
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = stoi(common_column_list.at(i));
+					if (is_star == true) {
+						list<int> common_col_followed_from_star = pkb_.getFollowedFromStar(common_col_stmt_num);
+						if (common_col_followed_from_star.empty() == false) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+					else {
+						if (pkb_.getFollowedFrom(common_col_stmt_num) != -1) {
+							joined_table.SetIsQueryTrue(true);
+							joined_table.InsertRow(current_result_set.GetRow(i));
+						}
+					}
+				}
+			}
+			else {
+				// Arg 1 is a synonym
+				joined_table.InsertNewColumn(arg1);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = stoi(common_column_list.at(i));
+					if (is_star == true) {
+						list<int> common_col_followed_from_star = pkb_.getFollowedFromStar(common_col_stmt_num);
+						if (common_col_followed_from_star.empty() == false) {
+							for (auto &followed_from_stmt_num : common_col_followed_from_star) {
+								if (IsCompatibleStmtType(arg1_type, followed_from_stmt_num) == true) {
+									joined_table.SetIsQueryTrue(true);
+									vector<string> temp_row_data = current_result_set.GetRow(i);
+									temp_row_data.push_back(to_string(followed_from_stmt_num));
+									joined_table.InsertRow(temp_row_data);
+								}
+							}
+						}
+					}
+					else {
+						int common_col_stmt_followed_from = pkb_.getFollowedFrom(common_col_stmt_num);
+						if (common_col_stmt_followed_from != -1 && IsCompatibleStmtType(arg1_type, common_col_stmt_followed_from) == true) {
+							joined_table.SetIsQueryTrue(true);
+							vector<string> temp_row_data = current_result_set.GetRow(i);
+							temp_row_data.push_back(to_string(common_col_stmt_followed_from));
+							joined_table.InsertRow(temp_row_data);
+						}
+					}
+				}
+			}
+		}
+	}
+	else {
+		// Both syns in clause are in current_result_set
+		for (int i = 0; i < current_result_set.GetTableHeight(); ++i) {
+			int lhs = stoi(current_result_set.GetValue(arg1, i));
+			int rhs = stoi(current_result_set.GetValue(arg2, i));
+			if (is_star == true) {
+				if (pkb_.isFollowsStar(lhs, rhs) == true) {
+					joined_table.SetIsQueryTrue(true);
+					joined_table.InsertRow(current_result_set.GetRow(i));
+				}
+			}
+			else {
+				if (pkb_.isValidFollows(lhs, rhs) == true) {
+					joined_table.SetIsQueryTrue(true);
+					joined_table.InsertRow(current_result_set.GetRow(i));
+				}
+			}
+		}
+	}
+
+	return joined_table;
 }
 
 ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) {
@@ -957,6 +1217,10 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) {
 	return temp_result;
 }
 
+ResultTable QueryEvaluator::ProcessParentOptimized(ResultTable & current_result_set, Clause parent_clause, bool is_star) {
+	return ResultTable();
+}
+
 ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 	string arg1 = modifies_clause.GetArg().at(0);
 	string arg2 = modifies_clause.GetArg().at(1);
@@ -1223,6 +1487,10 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) {
 		}
 	}
 	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessModifiesOptimized(ResultTable & current_result_set, Clause modifies_clause) {
+	return ResultTable();
 }
 
 ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
@@ -1637,6 +1905,10 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 	return temp_result;
 }
 
+ResultTable QueryEvaluator::ProcessNextOptimized(ResultTable & current_result_set, Clause next_clause, bool is_star) {
+	return ResultTable();
+}
+
 ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 {
 	string arg1 = calls_clause.GetArg().at(0);
@@ -1949,6 +2221,10 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 	}
 
 	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessCallsOptimized(ResultTable & current_result_set, Clause calls_clause, bool is_star) {
+	return ResultTable();
 }
 
 ResultTable QueryEvaluator::ProcessAffects(Clause affects_clause)
@@ -2308,6 +2584,10 @@ ResultTable QueryEvaluator::ProcessAffectsStar(Clause affects_star_clause)
 	return temp_result;
 }
 
+ResultTable QueryEvaluator::ProcessAffectsOptimized(ResultTable & current_result_set, Clause affects_clause, bool is_star) {
+	return ResultTable();
+}
+
 ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 {
 	string pattern_assign_syn = pattern_assign_clause.GetArg().at(0);
@@ -2509,6 +2789,10 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 	return temp_result;
 }
 
+ResultTable QueryEvaluator::ProcessPatternAssignOptimized(ResultTable & current_result_set, Clause pattern_assign_clause) {
+	return ResultTable();
+}
+
 ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
 {
 	string pattern_while_syn = pattern_while_clause.GetArg().at(0);
@@ -2573,6 +2857,10 @@ ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
 	return temp_result;
 }
 
+ResultTable QueryEvaluator::ProcessPatternWhileOptimized(ResultTable & current_result_set, Clause pattern_while_clause) {
+	return ResultTable();
+}
+
 ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
 {
 	string pattern_if_syn = pattern_if_clause.GetArg().at(0);
@@ -2635,6 +2923,10 @@ ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
 	}
 
 	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessPatternIfOptimized(ResultTable & current_result_set, Clause pattern_if_clause) {
+	return ResultTable();
 }
 
 ResultTable QueryEvaluator::ProcessWith(Clause with_clause)
@@ -2857,6 +3149,70 @@ ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 	return temp_result;
 }
 
+int QueryEvaluator::GetNumOfCommonColumn(vector<string>& table_columns, vector<string>& clause_columns)
+{
+	int common_count = 0;
+	for (auto &column_name_two : table_columns) {
+		for (auto &column_name_one : clause_columns) {
+			if (column_name_two == column_name_one) {
+				++common_count;
+				break;
+			}
+		}
+	}
+	return common_count;
+}
+
+string QueryEvaluator::GetCommonColumn(vector<string>& table_columns, vector<string>& clause_columns)
+{
+	string common_column = "";
+	for (auto &column_name_two : table_columns) {
+		for (auto &column_name_one : clause_columns) {
+			if (column_name_two == column_name_one) {
+				common_column = column_name_two;
+				break;
+			}
+		}
+	}
+	return common_column;
+}
+
+string QueryEvaluator::GetOtherColumnType(Clause& clause, string common_column)
+{
+	string other_column_type = "";
+
+	for (unsigned i = 0; i < clause.GetArg().size(); ++i) {
+		if (clause.GetArg().at(i) != common_column) {
+			other_column_type = clause.GetArgType().at(i);
+			break;
+		}
+	}
+
+	return other_column_type;
+}
+
+bool QueryEvaluator::IsLeftArg(Clause & clause, string common_column)
+{
+	if (clause.GetArg().at(0) == common_column) {
+		return true;
+	}
+	return false;
+}
+
+bool QueryEvaluator::IsCompatibleStmtType(string arg_type, int stmt_num)
+{
+	string stmt_type = pkb_.getStmtType(stmt_num);
+	if (arg_type == "stmt") {
+		return true;
+	}
+	else {
+		if (arg_type == stmt_type) {
+			return true;
+		}
+	}
+	return false;
+}
+
 bool QueryEvaluator::ProcessNoSynGroup()
 {
 	vector<Clause> non_related_group = input_query_.GetNoSynGroup();
@@ -2892,6 +3248,39 @@ bool QueryEvaluator::ProcessConnectedGroups()
 	return true;
 }
 
+bool QueryEvaluator::ProcessConnectedGroupsOptimized()
+{
+	vector<vector<Clause>> connected_groups = input_query_.GetConnectedGroups();
+	vector<ResultTable> group_intermediate_result;
+	ResultTable temp_result;
+
+	for (auto &group : connected_groups) {
+		temp_result = ResultTable();
+		bool is_first_clause = true;
+		for (auto &connected_clause : group) {
+			if (is_first_clause == true) {
+				is_first_clause = false;
+				temp_result = ProcessClause(connected_clause);
+				if (temp_result.IsQueryTrue() == false) {
+					return false;
+				}
+			}
+			else {
+				temp_result = ProcessClauseOptimized(connected_clause, temp_result);
+				if (temp_result.IsQueryTrue() == false) {
+					return false;
+				}
+			}
+		}
+		if (temp_result.GetTableHeight() == 0) {
+			return false;
+		}
+		connected_groups_results_.push_back(temp_result);
+	}
+
+	return true;
+}
+
 bool QueryEvaluator::ProcessNonConnectedGroups()
 {
 	vector<vector<Clause>> non_connected_groups = input_query_.GetNonConnectedGroups();
@@ -2908,6 +3297,36 @@ bool QueryEvaluator::ProcessNonConnectedGroups()
 		}
 		non_connected_group_intermediate_result_.push_back(group_intermediate_result);
 		group_intermediate_result.clear();
+	}
+
+	return true;
+}
+
+bool QueryEvaluator::ProcessNonConnectedGroupsOptimized() {
+	vector<vector<Clause>> non_connected_groups = input_query_.GetNonConnectedGroups();
+	ResultTable temp_result;
+
+	for (auto &group : non_connected_groups) {
+		temp_result = ResultTable();
+		bool is_first_clause = true;
+		for (auto &non_connected_clause : group) {
+			if (is_first_clause == true) {
+				is_first_clause = false;
+				temp_result = ProcessClause(non_connected_clause);
+				if (temp_result.IsQueryTrue() == false) {
+					return false;
+				}
+			}
+			else {
+				temp_result = ProcessClauseOptimized(non_connected_clause, temp_result);
+				if (temp_result.IsQueryTrue() == false) {
+					return false;
+				}
+			}
+		}
+		if (temp_result.GetTableHeight() == 0) {
+			return false;
+		}
 	}
 
 	return true;
@@ -3177,6 +3596,10 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) {
 	}
 
 	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessUsesOptimized(ResultTable & current_result_set, Clause uses_clause) {
+	return ResultTable();
 }
 
 list<int> QueryEvaluator::GetList(string arg_type) {

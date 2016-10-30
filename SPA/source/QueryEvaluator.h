@@ -62,35 +62,60 @@ public:
 private:
 	vector<vector<ResultTable>> connected_group_intermediate_result_;
 	vector<vector<ResultTable>> non_connected_group_intermediate_result_;
+
+	// Optimized version
+	vector<ResultTable> connected_groups_results_;
+	vector<ResultTable> non_connected_groups_results_;
+
 	QueryTable input_query_;
 	PKB pkb_;
 
 	ResultTable ProcessSubstitute(Clause substitute_clause);
 	ResultTable ProcessClause(Clause input_clause);
+	ResultTable ProcessClauseOptimized(Clause input_clause, ResultTable& intermediate_result);
 	ResultTable ProcessSuchThat(Clause such_that_clause);
+	ResultTable ProcessSuchThatOptimized(Clause such_that_clause, ResultTable& intermediate_result);
 	ResultTable ProcessFollows(Clause follow_clause);
 	ResultTable ProcessFollowsT(Clause follow_star_clause);
+	ResultTable ProcessFollowsOptimized(ResultTable& current_result_set, Clause follow_clause, bool is_star);
 	ResultTable ProcessParent(Clause parent_clause);
 	ResultTable ProcessParentT(Clause parent_star_clause);
+	ResultTable ProcessParentOptimized(ResultTable& current_result_set, Clause parent_clause, bool is_star);
 	ResultTable ProcessUses(Clause uses_clause);
+	ResultTable ProcessUsesOptimized(ResultTable& current_result_set, Clause uses_clause);
 	ResultTable ProcessModifies(Clause modifies_clause);
+	ResultTable ProcessModifiesOptimized(ResultTable& current_result_set, Clause modifies_clause);
 	ResultTable ProcessNext(Clause next_clause);
 	ResultTable ProcessNextT(Clause next_star_clause);
+	ResultTable ProcessNextOptimized(ResultTable& current_result_set, Clause next_clause, bool is_star);
 	ResultTable ProcessCalls(Clause calls_clause);
 	ResultTable ProcessCallsStar(Clause calls_star_clause);
+	ResultTable ProcessCallsOptimized(ResultTable& current_result_set, Clause calls_clause, bool is_star);
 	ResultTable ProcessAffects(Clause affects_clause);
 	ResultTable ProcessAffectsStar(Clause affects_star_clause);
+	ResultTable ProcessAffectsOptimized(ResultTable& current_result_set, Clause affects_clause, bool is_star);
 	ResultTable ProcessPattern(Clause pattern_clause);
+	ResultTable ProcessPatternOptimized(ResultTable& intermediate_result, Clause pattern_clause);
 	ResultTable ProcessPatternAssign(Clause pattern_assign_clause);
+	ResultTable ProcessPatternAssignOptimized(ResultTable& current_result_set, Clause pattern_assign_clause);
 	ResultTable ProcessPatternWhile(Clause pattern_while_clause);
+	ResultTable ProcessPatternWhileOptimized(ResultTable& current_result_set, Clause pattern_while_clause);
 	ResultTable ProcessPatternIf(Clause pattern_if_clause);
+	ResultTable ProcessPatternIfOptimized(ResultTable& current_result_set, Clause pattern_if_clause);
 	ResultTable ProcessWith(Clause with_clause);
 	ResultTable ProcessWithName(Clause with_name_clause);
 	ResultTable ProcessWithNumber(Clause with_number_clause);
 
+	int GetNumOfCommonColumn(vector<string>& table_columns, vector<string>& clause_columns);
+	string GetCommonColumn(vector<string>& table_columns, vector<string>& clause_columns);
+	string GetOtherColumnType(Clause& clause, string common_column);
+	bool IsLeftArg(Clause& clause, string common_column);
+	bool IsCompatibleStmtType(string stmt_type, int stmt_num);
 	bool ProcessNoSynGroup();
 	bool ProcessConnectedGroups();
+	bool ProcessConnectedGroupsOptimized();
 	bool ProcessNonConnectedGroups();
+	bool ProcessNonConnectedGroupsOptimized();
 	bool IsBooleanSelected();
 
 	list<int> GetList(string arg_type);
