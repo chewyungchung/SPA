@@ -506,6 +506,7 @@ bool PKB::IsAffects(int stmt1, int stmt2)
 	while (!search.empty()) {
 		int stmt = search.front();
 		search.pop_front();
+		used.push_back(stmt);
 		Node* n = nodeTable.at(stmt);
 		list<Node*> nextList = n->getNextList();
 		for (Node* next : nextList) {
@@ -516,8 +517,9 @@ bool PKB::IsAffects(int stmt1, int stmt2)
 				}
 			}
 			else if(!isModified(stmtline,var)){
-				if (std::find(search.begin(), search.end(), stmtline) == search.end()) {
+				if (std::find(used.begin(), used.end(), stmtline) == used.end()) {
 					search.push_back(stmtline);
+					used.push_back(stmt);
 				}
 			}
 		}
@@ -538,6 +540,7 @@ list<int> PKB::GetAffected(int stmt)
 	list<int> used;
 	list<int> search;
 	search.push_back(stmt);
+	used.push_back(stmt);
 	while (!search.empty()) {
 		int stmt = search.front();
 		search.pop_front();
@@ -549,8 +552,9 @@ list<int> PKB::GetAffected(int stmt)
 				output.push_back(stmtline);
 			}
 			else if (!isModified(stmtline, var)) {
-				if (std::find(search.begin(), search.end(), stmtline) == search.end()) {
+				if (std::find(used.begin(), used.end(), stmtline) == used.end()) {
 					search.push_back(stmtline);
+					used.push_back(stmt);
 				}
 			}
 		}
@@ -558,9 +562,16 @@ list<int> PKB::GetAffected(int stmt)
 	return output;
 }
 
-list<int> PKB::GetAffector(int assign_stmt)
+list<int> PKB::GetAffector(int stmt)
 {
-	return list<int>();
+	list<int> stmtlist = getExecutedBeforeStar(stmt);
+	list<int> output;
+	for (int i : stmtlist) {
+		if (IsAffects(i, stmt)) {
+			output.push_back(i);
+		}
+	}
+	return output;
 }
 
 list<pair<int, int>> PKB::GetAffectsBothSyn()
