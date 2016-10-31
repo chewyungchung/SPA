@@ -104,8 +104,11 @@ private:
 	ResultTable ProcessPatternIf(Clause pattern_if_clause);
 	ResultTable ProcessPatternIfOptimized(ResultTable& current_result_set, Clause pattern_if_clause);
 	ResultTable ProcessWith(Clause with_clause);
+	ResultTable ProcessWithOptimized(ResultTable& current_result_set, Clause with_clause);
 	ResultTable ProcessWithName(Clause with_name_clause);
+	ResultTable ProcessWithNameOptimized(ResultTable& current_result_set, Clause with_name_clause);
 	ResultTable ProcessWithNumber(Clause with_number_clause);
+	ResultTable ProcessWithNumberOptimized(ResultTable& current_result_set, Clause with_number_clause);
 
 	int GetNumOfCommonColumn(vector<string>& table_columns, vector<string>& clause_columns);
 	string GetCommonColumn(vector<string>& table_columns, vector<string>& clause_columns);

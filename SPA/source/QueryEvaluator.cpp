@@ -4334,6 +4334,24 @@ ResultTable QueryEvaluator::ProcessWith(Clause with_clause)
 	return temp_result;
 }
 
+ResultTable QueryEvaluator::ProcessWithOptimized(ResultTable & current_result_set, Clause with_clause)
+{
+	string arg1_type = with_clause.GetArgType().at(0);
+	string arg2_type = with_clause.GetArgType().at(1);
+
+	ResultTable temp_result;
+
+	if ((arg1_type != ARGTYPE_PROCEDURE && arg1_type != ARGTYPE_CALLS_NAME && arg1_type != ARGTYPE_VARIABLE && arg1_type != ARGTYPE_STRING)
+		&& (arg2_type != ARGTYPE_PROCEDURE && arg2_type != ARGTYPE_CALLS_NAME && arg2_type != ARGTYPE_VARIABLE && arg2_type != ARGTYPE_STRING)) {
+		temp_result = ProcessWithNumberOptimized(current_result_set, with_clause);
+	}
+	else {
+		temp_result = ProcessWithNameOptimized(current_result_set, with_clause);
+	}
+
+	return temp_result;
+}
+
 ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 {
 	string arg1 = with_name_clause.GetArg().at(0);
@@ -4473,6 +4491,19 @@ ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 	return temp_result;
 }
 
+ResultTable QueryEvaluator::ProcessWithNameOptimized(ResultTable & current_result_set, Clause with_name_clause)
+{
+	string arg1 = with_name_clause.GetArg().at(0);
+	string arg2 = with_name_clause.GetArg().at(1);
+	string arg1_type = with_name_clause.GetArgType().at(0);
+	string arg2_type = with_name_clause.GetArgType().at(1);
+
+	ResultTable joined_table;
+	vector<string> temp_row_data;
+
+	return joined_table;
+}
+
 ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 {
 	string arg1 = with_number_clause.GetArg().at(0);
@@ -4534,6 +4565,158 @@ ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 	}
 
 	return temp_result;
+}
+
+ResultTable QueryEvaluator::ProcessWithNumberOptimized(ResultTable & current_result_set, Clause with_number_clause)
+{
+	string arg1 = with_number_clause.GetArg().at(0);
+	string arg2 = with_number_clause.GetArg().at(1);
+	string arg1_type = with_number_clause.GetArgType().at(0);
+	string arg2_type = with_number_clause.GetArgType().at(1);
+	ResultTable joined_table;
+
+	joined_table.InsertColumns(current_result_set.GetColumnNames());
+	int common_syn_count = GetNumOfCommonColumn(current_result_set.GetColumnNames(), with_number_clause.GetArg());
+
+	if (common_syn_count == 1) {
+		string common_column = GetCommonColumn(current_result_set.GetColumnNames(), with_number_clause.GetArg());
+		bool is_common_col_left_arg = IsLeftArg(with_number_clause, common_column);
+		vector<string> common_column_list = current_result_set.GetColumn(common_column);
+
+		if (is_common_col_left_arg == true) {
+			if (arg2_type == ARGTYPE_NUMBER) {
+				int arg2_num = stoi(arg2);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = 0;
+					if (input_query_.GetSynType(common_column) == ARGTYPE_CALLS) {
+						int index_of_space = common_column_list.at(i).find_first_of(" ");
+						common_col_stmt_num = stoi(common_column_list.at(i).substr(0, index_of_space));
+					}
+					else {
+						common_col_stmt_num = stoi(common_column_list.at(i));
+					}
+
+					if (common_col_stmt_num == arg2_num) {
+						joined_table.SetIsQueryTrue(true);
+						joined_table.InsertRow(current_result_set.GetRow(i));
+					}
+				}
+			}
+			else {
+				// Arg 2 is a synonym
+				joined_table.InsertNewColumn(arg2);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = 0;
+					if (input_query_.GetSynType(common_column) == ARGTYPE_CALLS) {
+						int index_of_space = common_column_list.at(i).find_first_of(" ");
+						common_col_stmt_num = stoi(common_column_list.at(i).substr(0, index_of_space));
+					}
+					else {
+						common_col_stmt_num = stoi(common_column_list.at(i));
+					}
+					list<int> arg2_type_list = GetList(arg2_type);
+					if (arg2_type_list.empty() == false) {
+						for (auto &arg2_num : arg2_type_list) {
+							if (common_col_stmt_num == arg2_num) {
+								joined_table.SetIsQueryTrue(true);
+								string argument = "";
+								if (arg2_type == ARGTYPE_CALLS_NUMBER) {
+									argument = to_string(arg2_num) + " " + pkb_.getProcNameByCallStmt(arg2_num);
+								}
+								else {
+									argument = to_string(arg2_num);
+								}
+								vector<string> temp_row_data = current_result_set.GetRow(i);
+								temp_row_data.push_back(argument);
+								joined_table.InsertRow(temp_row_data);
+							}
+						}
+					}
+				}
+			}
+		}
+		else {
+			// Is right argument
+			if (arg1_type == ARGTYPE_NUMBER) {
+				int arg1_num = stoi(arg1);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = 0;
+					if (input_query_.GetSynType(common_column) == ARGTYPE_CALLS) {
+						int index_of_space = common_column_list.at(i).find_first_of(" ");
+						common_col_stmt_num = stoi(common_column_list.at(i).substr(0, index_of_space));
+					}
+					else {
+						common_col_stmt_num = stoi(common_column_list.at(i));
+					}
+
+					if (common_col_stmt_num == arg1_num) {
+						joined_table.SetIsQueryTrue(true);
+						joined_table.InsertRow(current_result_set.GetRow(i));
+					}
+				}
+			}
+			else {
+				// Arg 1 is a synonym
+				joined_table.InsertNewColumn(arg1);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = 0;
+					if (input_query_.GetSynType(common_column) == ARGTYPE_CALLS) {
+						int index_of_space = common_column_list.at(i).find_first_of(" ");
+						common_col_stmt_num = stoi(common_column_list.at(i).substr(0, index_of_space));
+					}
+					else {
+						common_col_stmt_num = stoi(common_column_list.at(i));
+					}
+					list<int> arg1_type_list = GetList(arg1_type);
+					if (arg1_type_list.empty() == false) {
+						for (auto &arg1_num : arg1_type_list) {
+							if (common_col_stmt_num == arg1_num) {
+								joined_table.SetIsQueryTrue(true);
+								string argument = "";
+								if (arg1_type == ARGTYPE_CALLS_NUMBER) {
+									argument = to_string(arg1_num) + " " + pkb_.getProcNameByCallStmt(arg1_num);
+								}
+								else {
+									argument = to_string(arg1_num);
+								}
+								vector<string> temp_row_data = current_result_set.GetRow(i);
+								temp_row_data.push_back(argument);
+								joined_table.InsertRow(temp_row_data);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else {
+		// Both syns in clause are in current_result_set
+		for (int i = 0; i < current_result_set.GetTableHeight(); ++i) {
+			int lhs = 0, rhs = 0;
+			if (arg1_type == ARGTYPE_CALLS) {
+				int index_of_space = current_result_set.GetValue(arg1, i).find_first_of(" ");
+				lhs = stoi(current_result_set.GetValue(arg1, i).substr(0, index_of_space));
+			}
+			else {
+				lhs = stoi(current_result_set.GetValue(arg1, i));
+			}
+
+			if (arg2_type == ARGTYPE_CALLS) {
+				int index_of_space = current_result_set.GetValue(arg2, i).find_first_of(" ");
+				rhs = stoi(current_result_set.GetValue(arg2, i).substr(0, index_of_space));
+			}
+			else {
+				rhs = stoi(current_result_set.GetValue(arg2, i));
+			}
+
+			if (lhs == rhs) {
+				joined_table.SetIsQueryTrue(true);
+				joined_table.InsertRow(current_result_set.GetRow(i));
+			}
+		}
+	}
+
+	return joined_table;
 }
 
 int QueryEvaluator::GetNumOfCommonColumn(vector<string>& table_columns, vector<string>& clause_columns)
