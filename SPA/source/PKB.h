@@ -158,6 +158,17 @@ public:
 	list<int> getExecutedAfter(int n);
 	list<int> getExecutedBeforeStar(int n);
 	list<int> getExecutedAfterStar(int n);
+
+	bool IsAffects(int assign_stmt1, int assign_stmt2);
+	bool IsAffectsEmpty();
+	list<int> GetAffected(int assign_stmt);
+	list<int> GetAffector(int assign_stmt);
+	list<pair<int, int>> GetAffectsBothSyn();
+	bool IsAffectsStar(int assign_stmt1, int assign_stmt2);
+	bool IsAffectsStarEmpty();
+	list<int> GetAffectedStar(int assign_stmt);
+	list<int> GetAffectorStar(int assign_stmt);
+
 private:
 
 };

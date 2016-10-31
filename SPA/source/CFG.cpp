@@ -213,3 +213,7 @@ list<int> CFG::getExecutedAfterStar(int n) {
 	}
 	return output;
 }
+
+unordered_map<int, Node*> CFG::getNodeTable() {
+	return nodeTable;
+}

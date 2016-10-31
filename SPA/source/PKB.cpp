@@ -492,3 +492,74 @@ list<int> PKB::getExecutedAfterStar(int n)
 {
 	return Cfg.getExecutedAfterStar(n);
 }
+
+bool PKB::IsAffects(int stmt1, int stmt2)
+{
+	if (!isNextStar(stmt1,stmt2)) {
+		return false;
+	}
+	unordered_map<int, Node*> nodeTable = Cfg.getNodeTable();
+	string var = getModifiedBy(stmt1).front();
+	list<int> used;
+	list<int> search;
+	search.push_back(stmt1);
+	while (!search.empty()) {
+		int stmt = search.front();
+		search.pop_front();
+		Node* n = nodeTable.at(stmt);
+		list<Node*> nextList = n->getNextList();
+		for (Node* next : nextList) {
+			int stmtline = next->getStmtnum();
+			if (isUsed(stmtline,var)) {
+				if (stmtline == stmt1) {
+					return true;
+				}
+			}
+			else {
+				if (std::find(search.begin(), search.end(), stmtline) == search.end()) {
+					search.push_back(stmtline);
+				}
+			}
+		}
+	}
+}
+
+bool PKB::IsAffectsEmpty()
+{
+	return false;
+}
+
+list<int> PKB::GetAffected(int assign_stmt)
+{
+	return list<int>();
+}
+
+list<int> PKB::GetAffector(int assign_stmt)
+{
+	return list<int>();
+}
+
+list<pair<int, int>> PKB::GetAffectsBothSyn()
+{
+	return list<pair<int, int>>();
+}
+
+bool PKB::IsAffectsStar(int assign_stmt1, int assign_stmt2)
+{
+	return false;
+}
+
+bool PKB::IsAffectsStarEmpty()
+{
+	return false;
+}
+
+list<int> PKB::GetAffectedStar(int assign_stmt)
+{
+	return list<int>();
+}
+
+list<int> PKB::GetAffectorStar(int assign_stmt)
+{
+	return list<int>();
+}
