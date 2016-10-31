@@ -222,6 +222,11 @@ list<int> PKB::getWhileListWithControlVariable(string control_var)
 	return S_Table.getWhileListWithControlVariable(control_var);
 }
 
+string PKB::getControlVarWithStmt(int stmtNum)
+{
+	return S_Table.getControlVarWithStmt(stmtNum);
+}
+
 list<int> PKB::getStmtList()
 {
 	return S_Table.getStmtList();
@@ -491,4 +496,54 @@ list<int> PKB::getExecutedBeforeStar(int n)
 list<int> PKB::getExecutedAfterStar(int n)
 {
 	return Cfg.getExecutedAfterStar(n);
+}
+
+string PKB::getStmtType(int stmtNum)
+{
+	return S_Table.getStmtType(stmtNum);
+}
+
+bool PKB::isAffects(int assign_stmt1, int assign_stmt2)
+{
+	return false;
+}
+
+bool PKB::isAffectsStar(int assign_stmt1, int assign_stmt2)
+{
+	return false;
+}
+
+bool PKB::isAffectsEmpty()
+{
+	return false;
+}
+
+bool PKB::isAffectsStarEmpty()
+{
+	return false;
+}
+
+list<int> PKB::getAffected(int assign_stmt)
+{
+	return list<int>();
+}
+
+list<int> PKB::getAffectedStar(int assign_stmt)
+{
+	return list<int>();
+}
+
+list<int> PKB::getAffector(int assign_stmt)
+{
+	return list<int>();
+}
+
+list<int> PKB::getAffectorStar(int assign_stmt)
+{
+	return list<int>();
+}
+
+list<pair<int, int>> PKB::getAffectsBothSyn()
+{
+	return list<pair<int, int>>();
 }
