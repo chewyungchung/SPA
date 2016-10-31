@@ -117,7 +117,7 @@ ResultTable QueryEvaluator::ProcessClauseOptimized(Clause input_clause, ResultTa
 		return ProcessPatternOptimized(intermediate_result, input_clause);
 	}
 	else if (relation == REL_WITH) {
-		return ProcessWith(input_clause);
+		return ProcessWithOptimized(intermediate_result, input_clause);
 	}
 	else {
 		return ProcessSuchThatOptimized(input_clause, intermediate_result);
@@ -4497,9 +4497,146 @@ ResultTable QueryEvaluator::ProcessWithNameOptimized(ResultTable & current_resul
 	string arg2 = with_name_clause.GetArg().at(1);
 	string arg1_type = with_name_clause.GetArgType().at(0);
 	string arg2_type = with_name_clause.GetArgType().at(1);
-
 	ResultTable joined_table;
-	vector<string> temp_row_data;
+	if (arg1 == arg2) {
+		return joined_table;
+	}
+
+	joined_table.InsertColumns(current_result_set.GetColumnNames());
+	int common_syn_count = GetNumOfCommonColumn(current_result_set.GetColumnNames(), with_name_clause.GetArg());
+
+	if (common_syn_count == 1) {
+		string common_column = GetCommonColumn(current_result_set.GetColumnNames(), with_name_clause.GetArg());
+		bool is_common_col_left_arg = IsLeftArg(with_name_clause, common_column);
+		vector<string> common_column_list = current_result_set.GetColumn(common_column);
+
+		if (is_common_col_left_arg == true) {
+			if (arg2_type == ARGTYPE_PROCEDURE) {
+				joined_table.InsertNewColumn(arg2);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					list<string> procedure_list = pkb_.getProcedureList();
+					for (auto &procedure : procedure_list) {
+						if (procedure == common_col_entry) {
+							joined_table.SetIsQueryTrue(true);
+							vector<string> temp_row_data = current_result_set.GetRow(i);
+							temp_row_data.push_back(procedure);
+							joined_table.InsertRow(temp_row_data);
+						}
+					}
+				}
+			}
+			else if (arg2_type == ARGTYPE_VARIABLE) {
+				joined_table.InsertNewColumn(arg2);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					list<string> variable_list = pkb_.getVarList();
+					for (auto &variable : variable_list) {
+						if (variable == common_col_entry) {
+							joined_table.SetIsQueryTrue(true);
+							vector<string> temp_row_data = current_result_set.GetRow(i);
+							temp_row_data.push_back(variable);
+							joined_table.InsertRow(temp_row_data);
+						}
+					}
+				}
+			}
+			else if (arg2_type == ARGTYPE_CALLS_NAME) {
+				joined_table.InsertNewColumn(arg2);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					list<string> called_proc = pkb_.getCalledProcNamesList();
+					for (auto &procedure : called_proc) {
+						if (procedure == common_col_entry) {
+							joined_table.SetIsQueryTrue(true);
+							vector<string> temp_row_data = current_result_set.GetRow(i);
+							temp_row_data.push_back(procedure);
+							joined_table.InsertRow(temp_row_data);
+						}
+					}
+				}
+			}
+			else {
+				// Arg 2 is a string
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					if (common_col_entry == arg2) {
+						joined_table.SetIsQueryTrue(true);
+						joined_table.InsertRow(current_result_set.GetRow(i));
+					}
+				}
+			}
+		}
+		else {
+			// Is right argument
+			if (arg1_type == ARGTYPE_PROCEDURE) {
+				joined_table.InsertNewColumn(arg1);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					list<string> procedure_list = pkb_.getProcedureList();
+					for (auto &procedure : procedure_list) {
+						if (procedure == common_col_entry) {
+							joined_table.SetIsQueryTrue(true);
+							vector<string> temp_row_data = current_result_set.GetRow(i);
+							temp_row_data.push_back(procedure);
+							joined_table.InsertRow(temp_row_data);
+						}
+					}
+				}
+			}
+			else if (arg1_type == ARGTYPE_VARIABLE) {
+				joined_table.InsertNewColumn(arg1);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					list<string> variable_list = pkb_.getVarList();
+					for (auto &variable : variable_list) {
+						if (variable == common_col_entry) {
+							joined_table.SetIsQueryTrue(true);
+							vector<string> temp_row_data = current_result_set.GetRow(i);
+							temp_row_data.push_back(variable);
+							joined_table.InsertRow(temp_row_data);
+						}
+					}
+				}
+			}
+			else if (arg1_type == ARGTYPE_CALLS_NAME) {
+				joined_table.InsertNewColumn(arg1);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					list<string> called_proc = pkb_.getCalledProcNamesList();
+					for (auto &procedure : called_proc) {
+						if (procedure == common_col_entry) {
+							joined_table.SetIsQueryTrue(true);
+							vector<string> temp_row_data = current_result_set.GetRow(i);
+							temp_row_data.push_back(procedure);
+							joined_table.InsertRow(temp_row_data);
+						}
+					}
+				}
+			}
+			else {
+				// Arg 1 is a string
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					string common_col_entry = common_column_list.at(i);
+					if (common_col_entry == arg1) {
+						joined_table.SetIsQueryTrue(true);
+						joined_table.InsertRow(current_result_set.GetRow(i));
+					}
+				}
+			}
+		}
+	}
+	else {
+		// Both syns in clause are in current_result_set
+		for (int i = 0; i < current_result_set.GetTableHeight(); ++i) {
+			string lhs = current_result_set.GetValue(arg1, i);
+			string rhs = current_result_set.GetValue(arg2, i);
+			if (lhs == rhs) {
+				joined_table.SetIsQueryTrue(true);
+				joined_table.InsertRow(current_result_set.GetRow(i));
+			}
+		}
+	}
 
 	return joined_table;
 }
