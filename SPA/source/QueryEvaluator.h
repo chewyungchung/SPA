@@ -61,10 +61,6 @@ public:
 	list<string> Evaluate();
 
 private:
-	vector<vector<ResultTable>> connected_group_intermediate_result_;
-	vector<vector<ResultTable>> non_connected_group_intermediate_result_;
-
-	// Optimized version
 	vector<ResultTable> connected_groups_results_;
 	vector<ResultTable> non_connected_groups_results_;
 
@@ -112,13 +108,10 @@ private:
 
 	int GetNumOfCommonColumn(vector<string>& table_columns, vector<string>& clause_columns);
 	string GetCommonColumn(vector<string>& table_columns, vector<string>& clause_columns);
-	string GetOtherColumnType(Clause& clause, string common_column);
 	bool IsLeftArg(Clause& clause, string common_column);
 	bool IsCompatibleStmtType(string stmt_type, int stmt_num);
 	bool ProcessNoSynGroup();
-	bool ProcessConnectedGroups();
 	bool ProcessConnectedGroupsOptimized();
-	bool ProcessNonConnectedGroups();
 	bool ProcessNonConnectedGroupsOptimized();
 	bool IsBooleanSelected();
 	bool IsNumber(string& s);
