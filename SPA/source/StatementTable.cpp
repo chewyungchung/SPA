@@ -23,7 +23,7 @@ void StatementTable::addStatement(int stmtNum, string stmtType)
 	if (stmtType == "assign")
 	{
 		assignList.push_back(stmtNum);
-		allStmtList.push_back(stmtNum);
+		allStmtList.insert(pair<int, string>(stmtNum, stmtType));
 	}
 	else
 	{
@@ -36,24 +36,24 @@ void StatementTable::addStatement(int stmtNum, string stmtType, string ctrlVar_o
 	if (stmtType == "assign")
 	{
 		assignList.push_back(stmtNum);
-		allStmtList.push_back(stmtNum);
+		allStmtList.insert(pair<int, string>(stmtNum, stmtType));
 	}
 	else if (stmtType == "call")
 	{
 		callList.push_back(stmtNum);
-		allStmtList.push_back(stmtNum);
+		allStmtList.insert(pair<int, string>(stmtNum, stmtType));
 		callProcList.insert(pair<int, string>(stmtNum, ctrlVar_or_procName));
 	}
 	else if (stmtType == "while")
 	{
 		whileList.push_back(stmtNum);
-		allStmtList.push_back(stmtNum);
+		allStmtList.insert(pair<int, string>(stmtNum, stmtType));
 		ctrlvarList.insert(pair<int, string>(stmtNum, ctrlVar_or_procName));
 	}
 	else if (stmtType == "if")
 	{
 		ifList.push_back(stmtNum);
-		allStmtList.push_back(stmtNum);
+		allStmtList.insert(pair<int, string>(stmtNum, stmtType));
 		ctrlvarList.insert(pair<int, string>(stmtNum, ctrlVar_or_procName));
 	}
 	else
@@ -122,9 +122,24 @@ list<int> StatementTable::getWhileListWithControlVariable(string ctrlvar)
 	return whilelist;
 }
 
+string StatementTable::getControlVarWithStmt(int stmtNum)
+{
+	string ctrlVar = "";
+	if (ctrlvarList[stmtNum] != "") {
+		ctrlVar = ctrlvarList[stmtNum];
+	}
+	return ctrlVar;
+}
+
 list<int> StatementTable::getStmtList()
 {
-	return allStmtList;
+	list<int> results = list<int>();
+	unordered_map<int, string>::iterator it;
+	for (it = allStmtList.begin(); it != allStmtList.end(); ++it)
+	{
+		results.push_back(it->first);
+	}
+	return results;
 }
 
 int StatementTable::getStatementCount()
@@ -134,13 +149,29 @@ int StatementTable::getStatementCount()
 
 bool StatementTable::isValidStmt(int stmtNum)
 {
-	bool isFound = find(allStmtList.begin(), allStmtList.end(), stmtNum) != allStmtList.end();
-	if (isFound)
+	unordered_map<int, string>::iterator it = allStmtList.find(stmtNum);
+	if (it != allStmtList.end())
 	{
 		return true;
 	}
 	else
 	{
 		return false;
+	}
+}
+
+string StatementTable::getStmtType(int stmtNum)
+{
+	string result = "";
+	unordered_map<int, string>::iterator it = allStmtList.find(stmtNum);
+
+	if (it != allStmtList.end())
+	{
+		result = it->second;
+		return result;
+	}
+	else
+	{
+		return result;
 	}
 }
