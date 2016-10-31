@@ -495,7 +495,7 @@ list<int> PKB::getExecutedAfterStar(int n)
 
 bool PKB::IsAffects(int stmt1, int stmt2)
 {
-	if (!isNextStar(stmt1,stmt2)) {
+	if (!isNextStar(stmt1, stmt2)) {
 		return false;
 	}
 	unordered_map<int, Node*> nodeTable = Cfg.getNodeTable();
@@ -511,12 +511,12 @@ bool PKB::IsAffects(int stmt1, int stmt2)
 		list<Node*> nextList = n->getNextList();
 		for (Node* next : nextList) {
 			int stmtline = next->getStmtnum();
-			if (isUsed(stmtline,var)) {
+			if (isUsed(stmtline, var)) {
 				if (stmtline == stmt2) {
 					return true;
 				}
 			}
-			else if(!isModified(stmtline,var)){
+			else if (!isModified(stmtline, var)) {
 				if (std::find(used.begin(), used.end(), stmtline) == used.end()) {
 					search.push_back(stmtline);
 					used.push_back(stmt);
@@ -576,7 +576,15 @@ list<int> PKB::GetAffector(int stmt)
 
 list<pair<int, int>> PKB::GetAffectsBothSyn()
 {
-	return list<pair<int, int>>();
+	list<pair<int, int>> output;
+	list<int> stmtlist = getAssignList();
+	for (int stmt : stmtlist) {
+		list<int> affectlist = GetAffected(stmt);
+		for (int affected : affectlist) {
+			output.push_back(pair<int, int>(stmt, affected));
+		}
+	}
+	return output;
 }
 
 bool PKB::IsAffectsStar(int assign_stmt1, int assign_stmt2)
