@@ -469,12 +469,11 @@ vector<vector<Clause>> QueryTable::GetNonConnectedGroups()
 }
 
 string QueryTable::GetSynType(string syn) {
-	if (syn_entity_map_.find(syn) != syn_entity_map_.end()) {
-		return syn_entity_map_.at(syn);
+	string syn_type = "";
+	if (syn_entity_map_[syn] != "") {
+		syn_type = syn_entity_map_[syn];
 	}
-
-	// Debug
-	return "NO HAVE";
+	return syn_type;
 }
 
 bool QueryTable::IsNullQuery() {
