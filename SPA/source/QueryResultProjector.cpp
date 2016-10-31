@@ -69,7 +69,7 @@ void QueryResultProjector::CartesianProductGroups(vector<ResultTable>& joined_ta
 	}
 }
 
-ResultTable QueryResultProjector::CartesianProduct(ResultTable table_one, ResultTable table_two) 
+ResultTable QueryResultProjector::CartesianProduct(ResultTable& table_one, ResultTable& table_two) 
 {
 	vector<string> table_one_columns = table_one.GetColumnNames();
 	vector<string> table_two_columns = table_two.GetColumnNames();

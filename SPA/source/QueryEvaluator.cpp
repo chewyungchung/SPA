@@ -44,7 +44,7 @@ list<string> QueryEvaluator::Evaluate()
 	return final_results;
 }
 
-ResultTable QueryEvaluator::ProcessSubstitute(Clause substitute_clause) 
+ResultTable QueryEvaluator::ProcessSubstitute(Clause& substitute_clause)
 {
 	string substitute_arg = substitute_clause.GetArg().at(0);
 	string substitute_arg_type = substitute_clause.GetArgType().at(0);
@@ -93,7 +93,7 @@ ResultTable QueryEvaluator::ProcessSubstitute(Clause substitute_clause)
 	}
 }
 
-ResultTable QueryEvaluator::ProcessClause(Clause input_clause)
+ResultTable QueryEvaluator::ProcessClause(Clause& input_clause)
 {
 	string relation = input_clause.GetRelation();
 	if (relation == REL_SUBSTITUTE) {
@@ -110,7 +110,7 @@ ResultTable QueryEvaluator::ProcessClause(Clause input_clause)
 	}
 }
 
-ResultTable QueryEvaluator::ProcessClauseOptimized(Clause input_clause, ResultTable & intermediate_result)
+ResultTable QueryEvaluator::ProcessClauseOptimized(Clause& input_clause, ResultTable & intermediate_result)
 {
 	string relation = input_clause.GetRelation();
 	if (relation == REL_SUBSTITUTE) {
@@ -127,7 +127,7 @@ ResultTable QueryEvaluator::ProcessClauseOptimized(Clause input_clause, ResultTa
 	}
 }
 
-ResultTable QueryEvaluator::ProcessSuchThat(Clause such_that_clause) 
+ResultTable QueryEvaluator::ProcessSuchThat(Clause& such_that_clause)
 {
 	string relation = such_that_clause.GetRelation();
 	ResultTable temp_result;
@@ -168,7 +168,7 @@ ResultTable QueryEvaluator::ProcessSuchThat(Clause such_that_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessSuchThatOptimized(Clause such_that_clause, ResultTable & intermediate_result)
+ResultTable QueryEvaluator::ProcessSuchThatOptimized(Clause& such_that_clause, ResultTable & intermediate_result)
 {
 	string relation = such_that_clause.GetRelation();
 	ResultTable temp_result;
@@ -209,7 +209,7 @@ ResultTable QueryEvaluator::ProcessSuchThatOptimized(Clause such_that_clause, Re
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessPattern(Clause pattern_clause) 
+ResultTable QueryEvaluator::ProcessPattern(Clause& pattern_clause)
 {
 	ResultTable temp_result;
 	string pattern_syn_type = pattern_clause.GetArgType().at(0);
@@ -225,7 +225,7 @@ ResultTable QueryEvaluator::ProcessPattern(Clause pattern_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessPatternOptimized(ResultTable & intermediate_result, Clause pattern_clause)
+ResultTable QueryEvaluator::ProcessPatternOptimized(ResultTable & intermediate_result, Clause& pattern_clause)
 {
 	ResultTable temp_result;
 	string pattern_syn_type = pattern_clause.GetArgType().at(0);
@@ -241,7 +241,7 @@ ResultTable QueryEvaluator::ProcessPatternOptimized(ResultTable & intermediate_r
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause) 
+ResultTable QueryEvaluator::ProcessFollows(Clause& follows_clause)
 {
 	string arg1 = follows_clause.GetArg().at(0);
 	string arg2 = follows_clause.GetArg().at(1);
@@ -444,7 +444,7 @@ ResultTable QueryEvaluator::ProcessFollows(Clause follows_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause) 
+ResultTable QueryEvaluator::ProcessFollowsT(Clause& follow_star_clause)
 {
 	string arg1 = follow_star_clause.GetArg().at(0);
 	string arg2 = follow_star_clause.GetArg().at(1);
@@ -639,7 +639,7 @@ ResultTable QueryEvaluator::ProcessFollowsT(Clause follow_star_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessFollowsOptimized(ResultTable & current_result_set, Clause follow_clause, bool is_star) 
+ResultTable QueryEvaluator::ProcessFollowsOptimized(ResultTable & current_result_set, Clause& follow_clause, bool is_star)
 {
 	string arg1 = follow_clause.GetArg().at(0);
 	string arg2 = follow_clause.GetArg().at(1);
@@ -911,7 +911,7 @@ ResultTable QueryEvaluator::ProcessFollowsOptimized(ResultTable & current_result
 	return joined_table;
 }
 
-ResultTable QueryEvaluator::ProcessParent(Clause parent_clause) 
+ResultTable QueryEvaluator::ProcessParent(Clause& parent_clause)
 {
 	string arg1 = parent_clause.GetArg().at(0);
 	string arg2 = parent_clause.GetArg().at(1);
@@ -1114,7 +1114,7 @@ ResultTable QueryEvaluator::ProcessParent(Clause parent_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause) 
+ResultTable QueryEvaluator::ProcessParentT(Clause& parent_star_clause)
 {
 	string arg1 = parent_star_clause.GetArg().at(0);
 	string arg2 = parent_star_clause.GetArg().at(1);
@@ -1312,7 +1312,7 @@ ResultTable QueryEvaluator::ProcessParentT(Clause parent_star_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessParentOptimized(ResultTable & current_result_set, Clause parent_clause, bool is_star) 
+ResultTable QueryEvaluator::ProcessParentOptimized(ResultTable & current_result_set, Clause& parent_clause, bool is_star)
 {
 	string arg1 = parent_clause.GetArg().at(0);
 	string arg2 = parent_clause.GetArg().at(1);
@@ -1587,7 +1587,7 @@ ResultTable QueryEvaluator::ProcessParentOptimized(ResultTable & current_result_
 	return joined_table;
 }
 
-ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause) 
+ResultTable QueryEvaluator::ProcessModifies(Clause& modifies_clause)
 {
 	string arg1 = modifies_clause.GetArg().at(0);
 	string arg2 = modifies_clause.GetArg().at(1);
@@ -1856,7 +1856,7 @@ ResultTable QueryEvaluator::ProcessModifies(Clause modifies_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessModifiesOptimized(ResultTable & current_result_set, Clause modifies_clause) 
+ResultTable QueryEvaluator::ProcessModifiesOptimized(ResultTable & current_result_set, Clause& modifies_clause)
 {
 	string arg1 = modifies_clause.GetArg().at(0);
 	string arg2 = modifies_clause.GetArg().at(1);
@@ -2067,7 +2067,7 @@ ResultTable QueryEvaluator::ProcessModifiesOptimized(ResultTable & current_resul
 	return joined_table;
 }
 
-ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
+ResultTable QueryEvaluator::ProcessNext(Clause& next_clause)
 {
 	string arg1 = next_clause.GetArg().at(0);
 	string arg2 = next_clause.GetArg().at(1);
@@ -2264,7 +2264,7 @@ ResultTable QueryEvaluator::ProcessNext(Clause next_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
+ResultTable QueryEvaluator::ProcessNextT(Clause& next_star_clause)
 {
 	string arg1 = next_star_clause.GetArg().at(0);
 	string arg2 = next_star_clause.GetArg().at(1);
@@ -2479,7 +2479,7 @@ ResultTable QueryEvaluator::ProcessNextT(Clause next_star_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessNextOptimized(ResultTable & current_result_set, Clause next_clause, bool is_star) 
+ResultTable QueryEvaluator::ProcessNextOptimized(ResultTable & current_result_set, Clause& next_clause, bool is_star)
 {
 	string arg1 = next_clause.GetArg().at(0);
 	string arg2 = next_clause.GetArg().at(1);
@@ -2779,7 +2779,7 @@ ResultTable QueryEvaluator::ProcessNextOptimized(ResultTable & current_result_se
 	return joined_table;
 }
 
-ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
+ResultTable QueryEvaluator::ProcessCalls(Clause& calls_clause)
 {
 	string arg1 = calls_clause.GetArg().at(0);
 	string arg2 = calls_clause.GetArg().at(1);
@@ -2938,7 +2938,7 @@ ResultTable QueryEvaluator::ProcessCalls(Clause calls_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
+ResultTable QueryEvaluator::ProcessCallsStar(Clause& calls_star_clause)
 {
 	string arg1 = calls_star_clause.GetArg().at(0);
 	string arg2 = calls_star_clause.GetArg().at(1);
@@ -3093,7 +3093,7 @@ ResultTable QueryEvaluator::ProcessCallsStar(Clause calls_star_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessCallsOptimized(ResultTable & current_result_set, Clause calls_clause, bool is_star) 
+ResultTable QueryEvaluator::ProcessCallsOptimized(ResultTable & current_result_set, Clause& calls_clause, bool is_star)
 {
 	string arg1 = calls_clause.GetArg().at(0);
 	string arg2 = calls_clause.GetArg().at(1);
@@ -3277,7 +3277,7 @@ ResultTable QueryEvaluator::ProcessCallsOptimized(ResultTable & current_result_s
 	return joined_table;
 }
 
-ResultTable QueryEvaluator::ProcessAffects(Clause affects_clause)
+ResultTable QueryEvaluator::ProcessAffects(Clause& affects_clause)
 {
 	string arg1 = affects_clause.GetArg().at(0);
 	string arg2 = affects_clause.GetArg().at(1);
@@ -3453,7 +3453,7 @@ ResultTable QueryEvaluator::ProcessAffects(Clause affects_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessAffectsStar(Clause affects_star_clause)
+ResultTable QueryEvaluator::ProcessAffectsStar(Clause& affects_star_clause)
 {
 	string arg1 = affects_star_clause.GetArg().at(0);
 	string arg2 = affects_star_clause.GetArg().at(1);
@@ -3634,12 +3634,12 @@ ResultTable QueryEvaluator::ProcessAffectsStar(Clause affects_star_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessAffectsOptimized(ResultTable & current_result_set, Clause affects_clause, bool is_star) 
+ResultTable QueryEvaluator::ProcessAffectsOptimized(ResultTable & current_result_set, Clause& affects_clause, bool is_star)
 {
 	return ResultTable();
 }
 
-ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
+ResultTable QueryEvaluator::ProcessPatternAssign(Clause& pattern_assign_clause)
 {
 	string pattern_assign_syn = pattern_assign_clause.GetArg().at(0);
 	string arg1 = pattern_assign_clause.GetArg().at(1);
@@ -3840,7 +3840,7 @@ ResultTable QueryEvaluator::ProcessPatternAssign(Clause pattern_assign_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessPatternAssignOptimized(ResultTable & current_result_set, Clause pattern_assign_clause) 
+ResultTable QueryEvaluator::ProcessPatternAssignOptimized(ResultTable & current_result_set, Clause& pattern_assign_clause)
 {
 	string arg1 = pattern_assign_clause.GetArg().at(0);
 	string arg2 = pattern_assign_clause.GetArg().at(1);
@@ -4043,7 +4043,7 @@ ResultTable QueryEvaluator::ProcessPatternAssignOptimized(ResultTable & current_
 	return joined_table;
 }
 
-ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
+ResultTable QueryEvaluator::ProcessPatternWhile(Clause& pattern_while_clause)
 {
 	string pattern_while_syn = pattern_while_clause.GetArg().at(0);
 	string arg1 = pattern_while_clause.GetArg().at(1);
@@ -4107,7 +4107,7 @@ ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessPatternWhileOptimized(ResultTable & current_result_set, Clause pattern_while_clause) 
+ResultTable QueryEvaluator::ProcessPatternWhileOptimized(ResultTable & current_result_set, Clause& pattern_while_clause)
 {
 	string arg1 = pattern_while_clause.GetArg().at(0);
 	string arg2 = pattern_while_clause.GetArg().at(1);
@@ -4189,7 +4189,7 @@ ResultTable QueryEvaluator::ProcessPatternWhileOptimized(ResultTable & current_r
 	return joined_table;
 }
 
-ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
+ResultTable QueryEvaluator::ProcessPatternIf(Clause& pattern_if_clause)
 {
 	string pattern_if_syn = pattern_if_clause.GetArg().at(0);
 	string arg1 = pattern_if_clause.GetArg().at(1);
@@ -4253,7 +4253,7 @@ ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessPatternIfOptimized(ResultTable & current_result_set, Clause pattern_if_clause) 
+ResultTable QueryEvaluator::ProcessPatternIfOptimized(ResultTable & current_result_set, Clause& pattern_if_clause)
 {
 	string arg1 = pattern_if_clause.GetArg().at(0);
 	string arg2 = pattern_if_clause.GetArg().at(1);
@@ -4335,7 +4335,7 @@ ResultTable QueryEvaluator::ProcessPatternIfOptimized(ResultTable & current_resu
 	return joined_table;
 }
 
-ResultTable QueryEvaluator::ProcessWith(Clause with_clause)
+ResultTable QueryEvaluator::ProcessWith(Clause& with_clause)
 {
 	string arg1_type = with_clause.GetArgType().at(0);
 	string arg2_type = with_clause.GetArgType().at(1);
@@ -4353,7 +4353,7 @@ ResultTable QueryEvaluator::ProcessWith(Clause with_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessWithOptimized(ResultTable & current_result_set, Clause with_clause)
+ResultTable QueryEvaluator::ProcessWithOptimized(ResultTable & current_result_set, Clause& with_clause)
 {
 	string arg1_type = with_clause.GetArgType().at(0);
 	string arg2_type = with_clause.GetArgType().at(1);
@@ -4371,7 +4371,7 @@ ResultTable QueryEvaluator::ProcessWithOptimized(ResultTable & current_result_se
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
+ResultTable QueryEvaluator::ProcessWithName(Clause& with_name_clause)
 {
 	string arg1 = with_name_clause.GetArg().at(0);
 	string arg2 = with_name_clause.GetArg().at(1);
@@ -4510,7 +4510,7 @@ ResultTable QueryEvaluator::ProcessWithName(Clause with_name_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessWithNameOptimized(ResultTable & current_result_set, Clause with_name_clause)
+ResultTable QueryEvaluator::ProcessWithNameOptimized(ResultTable & current_result_set, Clause& with_name_clause)
 {
 	string arg1 = with_name_clause.GetArg().at(0);
 	string arg2 = with_name_clause.GetArg().at(1);
@@ -4660,7 +4660,7 @@ ResultTable QueryEvaluator::ProcessWithNameOptimized(ResultTable & current_resul
 	return joined_table;
 }
 
-ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
+ResultTable QueryEvaluator::ProcessWithNumber(Clause& with_number_clause)
 {
 	string arg1 = with_number_clause.GetArg().at(0);
 	string arg2 = with_number_clause.GetArg().at(1);
@@ -4723,7 +4723,7 @@ ResultTable QueryEvaluator::ProcessWithNumber(Clause with_number_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessWithNumberOptimized(ResultTable & current_result_set, Clause with_number_clause)
+ResultTable QueryEvaluator::ProcessWithNumberOptimized(ResultTable & current_result_set, Clause& with_number_clause)
 {
 	string arg1 = with_number_clause.GetArg().at(0);
 	string arg2 = with_number_clause.GetArg().at(1);
@@ -4903,7 +4903,7 @@ string QueryEvaluator::GetCommonColumn(vector<string>& table_columns, vector<str
 	return common_column;
 }
 
-bool QueryEvaluator::IsLeftArg(Clause & clause, string common_column)
+bool QueryEvaluator::IsLeftArg(Clause & clause, string& common_column)
 {
 	if (clause.GetArg().at(0) == common_column) {
 		return true;
@@ -4911,7 +4911,7 @@ bool QueryEvaluator::IsLeftArg(Clause & clause, string common_column)
 	return false;
 }
 
-bool QueryEvaluator::IsCompatibleStmtType(string arg_type, int stmt_num)
+bool QueryEvaluator::IsCompatibleStmtType(string& arg_type, int stmt_num)
 {
 	string stmt_type = pkb_.getStmtType(stmt_num);
 	if (arg_type == "stmt" || arg_type == "prog_line") {
@@ -5017,7 +5017,7 @@ bool QueryEvaluator::IsNumber(string & s)
 		s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
 }
 
-ResultTable QueryEvaluator::ProcessUses(Clause uses_clause) 
+ResultTable QueryEvaluator::ProcessUses(Clause& uses_clause)
 {
 	string arg1 = uses_clause.GetArg().at(0);
 	string arg2 = uses_clause.GetArg().at(1);
@@ -5276,7 +5276,7 @@ ResultTable QueryEvaluator::ProcessUses(Clause uses_clause)
 	return temp_result;
 }
 
-ResultTable QueryEvaluator::ProcessUsesOptimized(ResultTable & current_result_set, Clause uses_clause) 
+ResultTable QueryEvaluator::ProcessUsesOptimized(ResultTable & current_result_set, Clause& uses_clause)
 {
 	string arg1 = uses_clause.GetArg().at(0);
 	string arg2 = uses_clause.GetArg().at(1);

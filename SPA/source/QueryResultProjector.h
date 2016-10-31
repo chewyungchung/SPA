@@ -21,7 +21,7 @@ private:
 	void ProcessConnectedResultsOptimized();
 	bool HasFalseResult(vector<vector<ResultTable>>& results);
 	void CartesianProductGroups(vector<ResultTable>& joined_tables, ResultTable& final_table);
-	ResultTable CartesianProduct(ResultTable table_one, ResultTable table_two);
+	ResultTable CartesianProduct(ResultTable& table_one, ResultTable& table_two);
 	void MergeRows(vector<string>& row_one, vector<string>& row_two);
 	string GetRowInString(vector<string>& row);
 	void PopulateFinalResultList(ResultTable& final_table);
