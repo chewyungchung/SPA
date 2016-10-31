@@ -511,7 +511,7 @@ bool PKB::IsAffects(int stmt1, int stmt2)
 		for (Node* next : nextList) {
 			int stmtline = next->getStmtnum();
 			if (isUsed(stmtline,var)) {
-				if (stmtline == stmt1) {
+				if (stmtline == stmt2) {
 					return true;
 				}
 			}
@@ -522,6 +522,7 @@ bool PKB::IsAffects(int stmt1, int stmt2)
 			}
 		}
 	}
+	return false;
 }
 
 bool PKB::IsAffectsEmpty()
