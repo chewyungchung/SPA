@@ -48,6 +48,18 @@ vector<string> ResultTable::GetRow(int row_index)
 	}
 }
 
+vector<string> ResultTable::GetColumn(string column_name)
+{
+	vector<string> column;
+	int column_index = synonym_to_column_map_[column_name];
+	if (column_index != -1) {
+		for (int i = 0; i < table_height_; ++i) {
+			column.push_back(GetValue(column_name, i));
+		}
+	} 
+	return column;
+}
+
 vector<string> ResultTable::GetColumnNames()
 {
 	return column_names_;

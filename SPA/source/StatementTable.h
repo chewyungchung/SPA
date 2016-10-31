@@ -11,7 +11,7 @@ class StatementTable
 private:
 	list<int> assignList;
 	list<int> whileList;
-	list<int> allStmtList;
+	unordered_map<int, string> allStmtList;
 	list<int> ifList;
 	list<int> callList;
 	unordered_map<int, string> callProcList; // key: callstmt#, value: associated procName
@@ -29,9 +29,11 @@ private:
 	string getProcNameByCallStmt(int callStmt);
 	list<int> getIfListWithControlVariable(string ctrlvar);
 	list<int> getWhileListWithControlVariable(string ctrlvar);
+	string getControlVarWithStmt(int stmtNum);
 	list<int> getStmtList();
 	int getStatementCount();
 	bool isValidStmt(int stmtNum);
+	string getStmtType(int stmtNum);
 
 private:
 };

@@ -101,7 +101,7 @@ public:
 	string getProcNameByCallStmt(int callStmt);
 	list<int> getIfListWithControlVariable(string control_var);
 	list<int> getWhileListWithControlVariable(string control_var);
-
+	string getControlVarWithStmt(int stmtNum);
 	void addConstant(int constant, int stmt);
 	list<int> getConstantList();
 	list<int> getStmtlineByConstant(int c);
@@ -158,6 +158,7 @@ public:
 	list<int> getExecutedAfter(int n);
 	list<int> getExecutedBeforeStar(int n);
 	list<int> getExecutedAfterStar(int n);
+	string getStmtType(int stmtNum);
 private:
 
 };

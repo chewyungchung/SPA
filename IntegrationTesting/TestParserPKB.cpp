@@ -678,7 +678,7 @@ namespace IntegrationTesting
 			vector<string> expectedVec;
 
 			// Test isCallExist()
-			Assert::IsTrue(_pkb.isCallExist);
+			Assert::IsTrue(_pkb.isCallExist());
 
 			// Test isCall
 			Assert::IsTrue(_pkb.isCall("Adam", "Beanstalk"));
@@ -859,7 +859,7 @@ namespace IntegrationTesting
 			clearVector(expectedVec);
 			expectedVec = { "Beanstalk", "Cat", "France", "Edmonds", "Diamond", "Iowa", "Houston", "Germany", "Kansai", "Llama" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getCalledProcNamesList, expectedList));
+			Assert::IsTrue(listCmpHelper(_pkb.getCalledProcNamesList(), expectedList));
 
 			// Test getProcedureList()
 			clearVector(expectedVec);
