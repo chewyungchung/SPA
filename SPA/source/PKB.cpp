@@ -515,7 +515,7 @@ bool PKB::IsAffects(int stmt1, int stmt2)
 					return true;
 				}
 			}
-			else {
+			else if(!isModified(stmtline,var)){
 				if (std::find(search.begin(), search.end(), stmtline) == search.end()) {
 					search.push_back(stmtline);
 				}
@@ -530,9 +530,32 @@ bool PKB::IsAffectsEmpty()
 	return false;
 }
 
-list<int> PKB::GetAffected(int assign_stmt)
+list<int> PKB::GetAffected(int stmt)
 {
-	return list<int>();
+	list<int> output;
+	unordered_map<int, Node*> nodeTable = Cfg.getNodeTable();
+	string var = getModifiedBy(stmt).front();
+	list<int> used;
+	list<int> search;
+	search.push_back(stmt);
+	while (!search.empty()) {
+		int stmt = search.front();
+		search.pop_front();
+		Node* n = nodeTable.at(stmt);
+		list<Node*> nextList = n->getNextList();
+		for (Node* next : nextList) {
+			int stmtline = next->getStmtnum();
+			if (isUsed(stmtline, var)) {
+				output.push_back(stmtline);
+			}
+			else if (!isModified(stmtline, var)) {
+				if (std::find(search.begin(), search.end(), stmtline) == search.end()) {
+					search.push_back(stmtline);
+				}
+			}
+		}
+	}
+	return output;
 }
 
 list<int> PKB::GetAffector(int assign_stmt)
