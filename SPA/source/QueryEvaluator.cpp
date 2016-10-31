@@ -3800,7 +3800,85 @@ ResultTable QueryEvaluator::ProcessPatternWhile(Clause pattern_while_clause)
 }
 
 ResultTable QueryEvaluator::ProcessPatternWhileOptimized(ResultTable & current_result_set, Clause pattern_while_clause) {
-	return ResultTable();
+	string arg1 = pattern_while_clause.GetArg().at(0);
+	string arg2 = pattern_while_clause.GetArg().at(1);
+	string arg1_type = pattern_while_clause.GetArgType().at(0);
+	string arg2_type = pattern_while_clause.GetArgType().at(1);
+	ResultTable joined_table;
+
+	joined_table.InsertColumns(current_result_set.GetColumnNames());
+	int common_syn_count = GetNumOfCommonColumn(current_result_set.GetColumnNames(), pattern_while_clause.GetArg());
+
+	if (common_syn_count == 1) {
+		string common_column = GetCommonColumn(current_result_set.GetColumnNames(), pattern_while_clause.GetArg());
+		bool is_common_col_left_arg = IsLeftArg(pattern_while_clause, common_column);
+		vector<string> common_column_list = current_result_set.GetColumn(common_column);
+
+		if (is_common_col_left_arg == true) {
+			if (arg2_type == ARGTYPE_STRING) {
+				if (pkb_.isValidVar(arg2) == false) {
+					return joined_table;
+				}
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					int common_col_stmt_num = stoi(common_column_list.at(i));
+					list<int> while_with_control_var = pkb_.getWhileListWithControlVariable(arg2);
+					list<int>::iterator while_with_control_var_it = find(while_with_control_var.begin(), while_with_control_var.end(), common_col_stmt_num);
+					if (while_with_control_var.empty() == false && while_with_control_var_it != while_with_control_var.end()) {
+						joined_table.SetIsQueryTrue(true);
+						joined_table.InsertRow(current_result_set.GetRow(i));
+					}
+				}
+			}
+			else if (arg2_type == ARGTYPE_ANY) {
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					joined_table.SetIsQueryTrue(true);
+					joined_table.InsertRow(current_result_set.GetRow(i));
+				}
+			}
+			else {
+				// Arg 2 is a variable synonym
+				joined_table.InsertNewColumn(arg2);
+				for (unsigned i = 0; i < common_column_list.size(); ++i) {
+					joined_table.SetIsQueryTrue(true);
+					int common_col_stmt_num = stoi(common_column_list.at(i));
+					string while_control_var = pkb_.getControlVarWithStmt(common_col_stmt_num);
+					vector<string> temp_row_data = current_result_set.GetRow(i);
+					temp_row_data.push_back(while_control_var);
+					joined_table.InsertRow(temp_row_data);
+				}
+			}
+		}
+		else {
+			// Is right argument
+			joined_table.InsertNewColumn(arg1);
+			for (unsigned i = 0; i < common_column_list.size(); ++i) {
+				string common_col_variable = common_column_list.at(i);
+				list<int> while_list_with_ctrl_var = pkb_.getWhileListWithControlVariable(common_col_variable);
+				if (while_list_with_ctrl_var.empty() == false) {
+					joined_table.SetIsQueryTrue(true);
+					for (auto &while_stmt_num : while_list_with_ctrl_var) {
+						vector<string> temp_row_data = current_result_set.GetRow(i);
+						temp_row_data.push_back(to_string(while_stmt_num));
+						joined_table.InsertRow(temp_row_data);
+					}
+				}
+			}
+		}
+	}
+	else {
+		// Both syns in clause are in current_result_set
+		for (int i = 0; i < current_result_set.GetTableHeight(); ++i) {
+			int lhs = stoi(current_result_set.GetValue(arg1, i));
+			string rhs = current_result_set.GetValue(arg2, i);
+			string lhs_control_var = pkb_.getControlVarWithStmt(lhs);
+			if (lhs_control_var == rhs) {
+				joined_table.SetIsQueryTrue(true);
+				joined_table.InsertRow(current_result_set.GetRow(i));
+			}
+		}
+	}
+
+	return joined_table;
 }
 
 ResultTable QueryEvaluator::ProcessPatternIf(Clause pattern_if_clause)
