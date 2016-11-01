@@ -170,5 +170,5 @@ public:
 	list<int> GetAffectorStar(int assign_stmt);
 
 private:
-
+	list<pair<int, int>> affectsCache;
 };

@@ -534,57 +534,82 @@ bool PKB::IsAffectsEmpty()
 
 list<int> PKB::GetAffected(int stmt)
 {
-	list<int> output;
-	unordered_map<int, Node*> nodeTable = Cfg.getNodeTable();
-	string var = getModifiedBy(stmt).front();
-	list<int> used;
-	list<int> search;
-	search.push_back(stmt);
-	used.push_back(stmt);
-	while (!search.empty()) {
-		int stmt = search.front();
-		search.pop_front();
-		Node* n = nodeTable.at(stmt);
-		list<Node*> nextList = n->getNextList();
-		for (Node* next : nextList) {
-			int stmtline = next->getStmtnum();
-			if (isUsed(stmtline, var)) {
-				output.push_back(stmtline);
+	if (!affectsCache.empty()) {
+		list<int> output;
+		for (pair<int, int> i : affectsCache) {
+			if (i.first == stmt) {
+				output.push_back(i.second);
 			}
-			else if (!isModified(stmtline, var)) {
-				if (std::find(used.begin(), used.end(), stmtline) == used.end()) {
-					search.push_back(stmtline);
-					used.push_back(stmt);
+		}
+		return output;
+	}
+	else {
+		list<int> output;
+		unordered_map<int, Node*> nodeTable = Cfg.getNodeTable();
+		string var = getModifiedBy(stmt).front();
+		list<int> used;
+		list<int> search;
+		search.push_back(stmt);
+		used.push_back(stmt);
+		while (!search.empty()) {
+			int stmt = search.front();
+			search.pop_front();
+			Node* n = nodeTable.at(stmt);
+			list<Node*> nextList = n->getNextList();
+			for (Node* next : nextList) {
+				int stmtline = next->getStmtnum();
+				if (isUsed(stmtline, var)) {
+					output.push_back(stmtline);
+				}
+				else if (!isModified(stmtline, var)) {
+					if (std::find(used.begin(), used.end(), stmtline) == used.end()) {
+						search.push_back(stmtline);
+						used.push_back(stmt);
+					}
 				}
 			}
 		}
+		return output;
 	}
-	return output;
 }
 
 list<int> PKB::GetAffector(int stmt)
 {
-	list<int> stmtlist = getExecutedBeforeStar(stmt);
-	list<int> output;
-	for (int i : stmtlist) {
-		if (IsAffects(i, stmt)) {
-			output.push_back(i);
+	if (!affectsCache.empty()) {
+		list<int> output;
+		for (pair<int, int> i : affectsCache) {
+			if (i.second == stmt) {
+				output.push_back(i.first);
+			}
 		}
+		return output;
 	}
-	return output;
+	else {
+		list<int> stmtlist = getExecutedBeforeStar(stmt);
+		list<int> output;
+		for (int i : stmtlist) {
+			if (IsAffects(i, stmt)) {
+				output.push_back(i);
+			}
+		}
+		return output;
+	}
 }
 
 list<pair<int, int>> PKB::GetAffectsBothSyn()
 {
-	list<pair<int, int>> output;
+	if (!affectsCache.empty()) {
+		return affectsCache;
+	}
+	list<pair<int, int>> affectsCache;
 	list<int> stmtlist = getAssignList();
 	for (int stmt : stmtlist) {
 		list<int> affectlist = GetAffected(stmt);
 		for (int affected : affectlist) {
-			output.push_back(pair<int, int>(stmt, affected));
+			affectsCache.push_back(pair<int, int>(stmt, affected));
 		}
 	}
-	return output;
+	return affectsCache;
 }
 
 bool PKB::IsAffectsStar(int assign_stmt1, int assign_stmt2)
