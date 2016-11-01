@@ -529,7 +529,8 @@ bool PKB::IsAffects(int stmt1, int stmt2)
 
 bool PKB::IsAffectsEmpty()
 {
-	return false;
+	GetAffectsBothSyn();
+	return affectsCache.empty();
 }
 
 list<int> PKB::GetAffected(int stmt)
@@ -612,8 +613,26 @@ list<pair<int, int>> PKB::GetAffectsBothSyn()
 	return affectsCache;
 }
 
-bool PKB::IsAffectsStar(int assign_stmt1, int assign_stmt2)
+bool PKB::IsAffectsStar(int stmt1, int stmt2)
 {
+	if (!affectsCache.empty()) {
+		list<int> search;
+		search.push_back(stmt1);
+		while (!search.empty()) {
+			int stmt = search.front();
+			search.pop_front();
+			for (pair<int, int> i : affectsCache) {
+				if (i.first == stmt) {
+					if (i.second == stmt2) {
+						return true;
+					}
+					else {
+						search.push_back(i.second);
+					}
+				}
+			}
+		}
+	}
 	return false;
 }
 
