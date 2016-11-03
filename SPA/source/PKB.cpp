@@ -526,6 +526,12 @@ bool PKB::IsAffects(int stmt1, int stmt2)
 				}
 			}
 			else if (!isModified(stmtline, var)) {
+				while (next->getStmtnum() == -1) {
+					if (next->getNextList().empty()) {
+						break;
+					}
+					next = next->getNextList().front();
+				}
 				if (std::find(used.begin(), used.end(), stmtline) == used.end()) {
 					search.push_back(stmtline);
 					used.push_back(stmt);
@@ -575,6 +581,12 @@ list<int> PKB::GetAffected(int stmt)
 					output.push_back(stmtline);
 				}
 				else if (!isModified(stmtline, var)) {
+					while (next->getStmtnum() == -1) {
+						if (next->getNextList().empty()) {
+							break;
+						}
+						next = next->getNextList().front();
+					}
 					if (std::find(used.begin(), used.end(), stmtline) == used.end()) {
 						search.push_back(stmtline);
 						used.push_back(stmt);
