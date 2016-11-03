@@ -144,3 +144,8 @@ bool StatementTable::isValidStmt(int stmtNum)
 		return false;
 	}
 }
+
+bool StatementTable::isAssign(int stmtNum)
+{
+	return find(assignList.begin(), assignList.end(), stmtNum) != assignList.end();
+}

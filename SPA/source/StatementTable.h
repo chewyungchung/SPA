@@ -32,6 +32,7 @@ private:
 	list<int> getStmtList();
 	int getStatementCount();
 	bool isValidStmt(int stmtNum);
+	bool isAssign(int stmtNum);
 
 private:
 };

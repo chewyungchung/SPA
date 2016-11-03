@@ -222,6 +222,11 @@ list<int> PKB::getWhileListWithControlVariable(string control_var)
 	return S_Table.getWhileListWithControlVariable(control_var);
 }
 
+bool PKB::isAssign(int stmtNum)
+{
+	S_Table.isAssign(stmtNum);
+}
+
 list<int> PKB::getStmtList()
 {
 	return S_Table.getStmtList();
@@ -495,6 +500,10 @@ list<int> PKB::getExecutedAfterStar(int n)
 
 bool PKB::IsAffects(int stmt1, int stmt2)
 {
+	if (!isAssign(stmt1) || !isAssign(stmt2)) {
+		list<int> output;
+		return false;
+	}
 	if (!isNextStar(stmt1, stmt2)) {
 		return false;
 	}
@@ -511,7 +520,7 @@ bool PKB::IsAffects(int stmt1, int stmt2)
 		list<Node*> nextList = n->getNextList();
 		for (Node* next : nextList) {
 			int stmtline = next->getStmtnum();
-			if (isUsed(stmtline, var)) {
+			if (isUsed(stmtline, var) && isAssign(stmtline)) {
 				if (stmtline == stmt2) {
 					return true;
 				}
@@ -535,6 +544,10 @@ bool PKB::IsAffectsEmpty()
 
 list<int> PKB::GetAffected(int stmt)
 {
+	if (!isAssign(stmt)) {
+		list<int> output;
+		return output;
+	}
 	if (!affectsCache.empty()) {
 		list<int> output;
 		for (pair<int, int> i : affectsCache) {
@@ -551,7 +564,6 @@ list<int> PKB::GetAffected(int stmt)
 		list<int> used;
 		list<int> search;
 		search.push_back(stmt);
-		used.push_back(stmt);
 		while (!search.empty()) {
 			int stmt = search.front();
 			search.pop_front();
@@ -559,7 +571,7 @@ list<int> PKB::GetAffected(int stmt)
 			list<Node*> nextList = n->getNextList();
 			for (Node* next : nextList) {
 				int stmtline = next->getStmtnum();
-				if (isUsed(stmtline, var)) {
+				if (isUsed(stmtline, var) && isAssign(stmtline)) {
 					output.push_back(stmtline);
 				}
 				else if (!isModified(stmtline, var)) {
@@ -604,7 +616,8 @@ list<pair<int, int>> PKB::GetAffectsBothSyn()
 	}
 	list<pair<int, int>> affectsCache;
 	list<int> stmtlist = getAssignList();
-	for (int stmt : stmtlist) {
+	for (int stmt : stmtlist)
+	{
 		list<int> affectlist = GetAffected(stmt);
 		for (int affected : affectlist) {
 			affectsCache.push_back(pair<int, int>(stmt, affected));

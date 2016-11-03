@@ -101,6 +101,7 @@ public:
 	string getProcNameByCallStmt(int callStmt);
 	list<int> getIfListWithControlVariable(string control_var);
 	list<int> getWhileListWithControlVariable(string control_var);
+	bool isAssign(int stmtNum);
 
 	void addConstant(int constant, int stmt);
 	list<int> getConstantList();
