@@ -164,6 +164,7 @@ public:
 	bool IsAffectsEmpty();
 	list<int> GetAffected(int assign_stmt);
 	list<int> GetAffector(int assign_stmt);
+	list<int> DFS(list<int> output, list<int> visited, list<string> var, int stmt);
 	list<pair<int, int>> GetAffectsBothSyn();
 	bool IsAffectsStar(int assign_stmt1, int assign_stmt2);
 	bool IsAffectsStarEmpty();

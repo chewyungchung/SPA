@@ -592,15 +592,35 @@ list<int> PKB::GetAffector(int stmt)
 		return output;
 	}
 	else {
-		list<int> stmtlist = getExecutedBeforeStar(stmt);
 		list<int> output;
-		for (int i : stmtlist) {
-			if (IsAffects(i, stmt)) {
-				output.push_back(i);
-			}
+		list<int> visited;
+		list<string> var = getUsedBy(stmt);
+		return DFS(output, visited, var, stmt);
+	}
+}
+
+list<int> PKB::DFS(list<int> output, list<int> visited, list<string> var, int stmt) {
+	list<string> varlist;
+	for (string v : var) {
+		varlist.push_back(v);
+	}
+	if (isAssign(stmt)) {
+		string v = getModifiedBy(stmt).front();
+		if (find(varlist.begin(), varlist.end(), v) == varlist.end()) {
+			output.push_back(stmt);
+			varlist.remove(v);
 		}
+	}
+	if (varlist.empty()) {
 		return output;
 	}
+	for (int i : getExecutedBefore(stmt)) {
+		if (!(find(visited.begin(), visited.end(), i) == visited.end())) {
+			visited.push_back(i);
+			DFS(output, visited, varlist, i);
+		}
+	}
+	return output;
 }
 
 list<pair<int, int>> PKB::GetAffectsBothSyn()
