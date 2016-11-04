@@ -507,7 +507,6 @@ bool PKB::IsAffects(int stmt1, int stmt2)
 	if (!isNextStar(stmt1, stmt2)) {
 		return false;
 	}
-	unordered_map<int, Node*> nodeTable = Cfg.getNodeTable();
 	string var = getModifiedBy(stmt1).front();
 	list<int> used;
 	list<int> search;
@@ -515,23 +514,14 @@ bool PKB::IsAffects(int stmt1, int stmt2)
 	while (!search.empty()) {
 		int stmt = search.front();
 		search.pop_front();
-		used.push_back(stmt);
-		Node* n = nodeTable.at(stmt);
-		list<Node*> nextList = n->getNextList();
-		for (Node* next : nextList) {
-			int stmtline = next->getStmtnum();
+		list<int> nextList = getExecutedAfter(stmt);
+		for (int stmtline : nextList) {
 			if (isUsed(stmtline, var) && isAssign(stmtline)) {
 				if (stmtline == stmt2) {
 					return true;
 				}
 			}
 			else if (!isModified(stmtline, var)) {
-				while (next->getStmtnum() == -1) {
-					if (next->getNextList().empty()) {
-						break;
-					}
-					next = next->getNextList().front();
-				}
 				if (std::find(used.begin(), used.end(), stmtline) == used.end()) {
 					search.push_back(stmtline);
 					used.push_back(stmt);
@@ -573,20 +563,12 @@ list<int> PKB::GetAffected(int stmt)
 		while (!search.empty()) {
 			int stmt = search.front();
 			search.pop_front();
-			Node* n = nodeTable.at(stmt);
-			list<Node*> nextList = n->getNextList();
-			for (Node* next : nextList) {
-				int stmtline = next->getStmtnum();
+			list<int> nextList = getExecutedAfter(stmt);
+			for (int stmtline : nextList) {
 				if (isUsed(stmtline, var) && isAssign(stmtline)) {
 					output.push_back(stmtline);
 				}
 				else if (!isModified(stmtline, var)) {
-					while (next->getStmtnum() == -1) {
-						if (next->getNextList().empty()) {
-							break;
-						}
-						next = next->getNextList().front();
-					}
 					if (std::find(used.begin(), used.end(), stmtline) == used.end()) {
 						search.push_back(stmtline);
 						used.push_back(stmt);
