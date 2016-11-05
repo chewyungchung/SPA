@@ -245,9 +245,6 @@ void Parser::parseCallStmt()
 	addAllParentsOfCurrStmt(stmtLine);
 	_pkb.addFollows(stmtLine, followsStack.top());
 
-	// Populate ProcTable
-	_pkb.addProcCalledInStmt(procName, stmtLine);
-
 	// Populate CFG
 	_pkb.addStmtCFG(stmtLine, CALL_FLAG);
 
@@ -255,6 +252,9 @@ void Parser::parseCallStmt()
 
 	string caller = procName;
 	string callee = next_token;
+
+	// Populate ProcTable
+	_pkb.addProcCalledInStmt(callee, stmtLine);
 
 	// Populate StatementTable
 	_pkb.addStatement(stmtLine, CALL_FLAG, callee);
