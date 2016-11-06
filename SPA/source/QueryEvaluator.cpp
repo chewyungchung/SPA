@@ -165,6 +165,12 @@ ResultTable QueryEvaluator::ProcessSuchThat(Clause& such_that_clause)
 	else if (relation == REL_PATTERN) {
 		temp_result = ProcessPattern(such_that_clause);
 	}
+	else if (relation == REL_AFFECTS) {
+		temp_result = ProcessAffects(such_that_clause);
+	}
+	else if (relation == REL_AFFECTS_STAR) {
+		temp_result = ProcessAffectsStar(such_that_clause);
+	}
 	return temp_result;
 }
 
@@ -205,6 +211,12 @@ ResultTable QueryEvaluator::ProcessSuchThatOptimized(Clause& such_that_clause, R
 	}
 	else if (relation == REL_PATTERN) {
 		temp_result = ProcessPatternOptimized(intermediate_result, such_that_clause);
+	}
+	else if (relation == REL_AFFECTS) {
+		temp_result = ProcessAffectsOptimized(intermediate_result, such_that_clause, false);
+	}
+	else if (relation == REL_AFFECTS_STAR) {
+		temp_result = ProcessAffectsOptimized(intermediate_result, such_that_clause, true);
 	}
 	return temp_result;
 }
