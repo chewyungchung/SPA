@@ -49,6 +49,8 @@ void CFG::closeIfCFG()
 {
 	Node *empty = new Node(-1);
 	ptr->addNext(empty);
+	// Add to if_to_terminal_table
+	if_to_terminal_table[stack.top()->getStmtnum()] = empty;
 	ptr = stack.top();
 	stack.pop();
 	stack.push(empty);
@@ -212,4 +214,24 @@ list<int> CFG::getExecutedAfterStar(int n) {
 		}
 	}
 	return output;
+}
+
+Node CFG::getNodeByStmt(int stmtNum)
+{
+	if (nodeTable[stmtNum] != nullptr) {
+		return *(nodeTable[stmtNum]);
+	}
+	else {
+		return Node(-1);
+	}
+}
+
+Node CFG::getTerminalNodeByStmt(int if_stmt_num)
+{
+	if (if_to_terminal_table[if_stmt_num] != nullptr) {
+		return *(if_to_terminal_table[if_stmt_num]);
+	}
+	else {
+		return Node(-10);
+	}
 }
