@@ -1,0 +1,115 @@
+- invalid call
+procedure p;
+Select p such that Calls (nonsense, p)
+none
+5000
+- invalid
+procedure p;
+Select p such that Calls (p, nonsense)
+none
+5000
+- invalid
+procedure p;
+Select p such that Calls (nonsense, nonsense)
+none
+5000
+- invalid 
+procedure p;
+Select p such that Calls (p, p)
+none
+5000
+- invalid 
+procedure p;
+Select p such that Calls (, p)
+none
+5000
+- invalid 
+procedure p;
+Select p such that Calls (p,)
+none
+5000
+- invalid 
+procedure p;
+Select p such that Calls (,)
+none
+5000
+- invalid call star
+procedure p;
+Select p such that Calls* (nonsense, p)
+none
+5000
+- invalid
+procedure p;
+Select p such that Calls* (p, nonsense)
+none
+5000
+- invalid
+procedure p;
+Select p such that Calls* (nonsense, nonsense)
+none
+5000
+- invalid 
+procedure p;
+Select p such that Calls* (p, p)
+none
+5000
+- invalid 
+procedure p;
+Select p such that Calls* (, p)
+none
+5000
+- invalid 
+procedure p;
+Select p such that Calls* (p,)
+none
+5000
+- invalid 
+procedure p;
+Select p such that Calls* (,)
+none
+5000
+- invalid patternwhile
+while w;
+Select w pattern w (, _)
+none
+5000
+- invalid
+while w;
+Select w pattern w ("s0lid",)
+none
+5000
+- invalid
+while w;
+Select w pattern w (,)
+none
+5000
+- invalid patternif
+if eve;
+Select eve pattern eve (, _)
+none
+5000
+- invalid patternif
+if eve;
+Select eve pattern eve ("dull",)
+none
+5000
+- invalid patternif
+if eve;
+Select eve pattern eve (,)
+none
+5000
+- invalid uses
+assign a;
+Select a such that Uses (a,)
+none
+5000
+- invalid uses
+assign a;
+Select a such that Uses (, "opaque")
+none
+5000
+- invalid uses
+assign a;
+Select a such that Uses (,)
+none
+5000
