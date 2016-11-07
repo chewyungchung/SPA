@@ -1,0 +1,47 @@
+1 - tuple-next* & modifies & uses with stmtno.
+assign a; stmt s; variable v;
+Select <a, v> such that Next*(s, a) and Modifies(s, v) and Uses(a, v) with s.stmt#=44
+47 a, 49 Z
+2 - tuple- uses & modifies & parent
+stmt s; assign a; variable v; 
+Select <s, a, v> such that Uses(a, "c") and Modifies(a, v) and Parent(s, a) 
+66 67 t
+5000
+3 - tuple- uses pattern follows & parent*
+stmt s, s1; assign a; variable v;
+Select <s, a, v> such that Uses(s, "Echo") pattern a(v, _) such that Follows(a, s) and Parent*(s1, s)
+15 14 y, 29 28 q, 32 31 p, 38 37 l, 48 47 Z
+5000
+4 - select n before n1 and n is modified by a variable used in n1
+prog_line n, n1; variable v;
+Select n such that Next(n, n1) and Modifies(n, v) and Uses(n1, v)
+1, 2, 6, 12, 13, 15, 16, 17, 18, 19, 21, 23, 27, 28, 29, 35, 38, 44, 45, 46, 48, 62, 65, 69, 70
+5000
+5 - stmt - parent and modifies
+stmt s; variable v;
+Select s such that Parent (s, s1) and Modifies (s, v) with s1.stmt#=47
+46
+5000
+6 - variable- calls & uses & uses with p.name=v.name
+procedure p, q; variable v; 
+Select v such that Calls(p, q) and Uses(p, v) and Uses(q, v) with p.procName=v.varName
+Alpha, Charlie, Bravo
+7 - select tuple such that multiple uses and next
+stmt s, s1, s2, s3; 
+Select <s, s3> such that Uses(s, "a") and Uses(s3, "z") and Next(s, s1) and Next(s1, s2) and Next(s2, s3) 
+13 16, 15 41, 32 41
+8 - select tuple such that multiple modifies and follows
+stmt s, s1, s2, s3; 
+Select <s, s1, s2, s3> such that Modifies(s, "a") and Modifies(s1, "b") and Modifies(s2, "c") and Modifies(s3, "d") and Follows(s, s1) and Follows(s1, s2) and Follows(s2, s3) 
+51 52 53 54
+5000
+9 - comment
+procedure p, q; stmt s, s1; assign a;
+Select <s1, a> such that Calls(p, q) and Parent*(s1, s) and Uses(s1, "z") and Next*(a, s) and Modifies(s1, "y") pattern a(_, "z") with s.stmt#=22 and q.procName="Bravo"
+13 14, 13 17, 16 14, 16 17
+5000
+10 - select tuple such that modifies & modifies & uses with v.name=v1.name
+procedure p; stmt s; variable v, v1; 
+Select <s, v> such that Modifies(64, v) and Modifies(s, v1) and Uses(s, v) with v.varName=v1.varName
+11 w, 13 w, 16 w, 18 w
+5000
