@@ -102,6 +102,8 @@ public:
 	list<int> getIfListWithControlVariable(string control_var);
 	list<int> getWhileListWithControlVariable(string control_var);
 	string getControlVarWithStmt(int stmtNum);
+	bool isAssign(int stmtNum);
+
 	void addConstant(int constant, int stmt);
 	list<int> getConstantList();
 	list<int> getStmtlineByConstant(int c);
@@ -161,4 +163,17 @@ public:
 	string getStmtType(int stmtNum);
 private:
 
+	bool IsAffects(int assign_stmt1, int assign_stmt2);
+	bool IsAffectsEmpty();
+	list<int> GetAffected(int assign_stmt);
+	list<int> GetAffector(int assign_stmt);
+	list<int> DFS(list<int> output, list<int> visited, list<string> var, int stmt);
+	list<pair<int, int>> GetAffectsBothSyn();
+	bool IsAffectsStar(int assign_stmt1, int assign_stmt2);
+	bool IsAffectsStarEmpty();
+	list<int> GetAffectedStar(int assign_stmt);
+	list<int> GetAffectorStar(int assign_stmt);
+
+private:
+	list<pair<int, int>> affectsCache;
 };

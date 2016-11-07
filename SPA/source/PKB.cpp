@@ -227,6 +227,11 @@ string PKB::getControlVarWithStmt(int stmtNum)
 	return S_Table.getControlVarWithStmt(stmtNum);
 }
 
+bool PKB::isAssign(int stmtNum)
+{
+	return S_Table.isAssign(stmtNum);
+}
+
 list<int> PKB::getStmtList()
 {
 	return S_Table.getStmtList();
@@ -498,52 +503,177 @@ list<int> PKB::getExecutedAfterStar(int n)
 	return Cfg.getExecutedAfterStar(n);
 }
 
-string PKB::getStmtType(int stmtNum)
+bool PKB::IsAffects(int stmt1, int stmt2)
 {
-	return S_Table.getStmtType(stmtNum);
+	if (!isAssign(stmt1) || !isAssign(stmt2)) {
+		list<int> output;
+		return false;
+	}
+	if (!isNextStar(stmt1, stmt2)) {
+		return false;
+	}
+	string var = getModifiedBy(stmt1).front();
+	list<int> used;
+	list<int> search;
+	search.push_back(stmt1);
+	while (!search.empty()) {
+		int stmt = search.front();
+		search.pop_front();
+		list<int> nextList = getExecutedAfter(stmt);
+		for (int stmtline : nextList) {
+			if (isUsed(stmtline, var) && isAssign(stmtline)) {
+				if (stmtline == stmt2) {
+					return true;
+				}
+			}
+			else if (!isModified(stmtline, var)) {
+				if (std::find(used.begin(), used.end(), stmtline) == used.end()) {
+					search.push_back(stmtline);
+					used.push_back(stmt);
+				}
+			}
+		}
+	}
+	return false;
 }
 
-bool PKB::isAffects(int assign_stmt1, int assign_stmt2)
+bool PKB::IsAffectsEmpty()
+{
+	GetAffectsBothSyn();
+	return affectsCache.empty();
+}
+
+list<int> PKB::GetAffected(int stmt)
+{
+	if (!isAssign(stmt)) {
+		list<int> output;
+		return output;
+	}
+	if (!affectsCache.empty()) {
+		list<int> output;
+		for (pair<int, int> i : affectsCache) {
+			if (i.first == stmt) {
+				output.push_back(i.second);
+			}
+		}
+		return output;
+	}
+	else {
+		list<int> output;
+		unordered_map<int, Node*> nodeTable = Cfg.getNodeTable();
+		string var = getModifiedBy(stmt).front();
+		list<int> used;
+		list<int> search;
+		search.push_back(stmt);
+		while (!search.empty()) {
+			int stmt = search.front();
+			search.pop_front();
+			list<int> nextList = getExecutedAfter(stmt);
+			for (int stmtline : nextList) {
+				if (isUsed(stmtline, var) && isAssign(stmtline)) {
+					output.push_back(stmtline);
+				}
+				else if (!isModified(stmtline, var)) {
+					if (std::find(used.begin(), used.end(), stmtline) == used.end()) {
+						search.push_back(stmtline);
+						used.push_back(stmt);
+					}
+				}
+			}
+		}
+		return output;
+	}
+}
+
+list<int> PKB::GetAffector(int stmt)
+{
+	if (!affectsCache.empty()) {
+		list<int> output;
+		for (pair<int, int> i : affectsCache) {
+			if (i.second == stmt) {
+				output.push_back(i.first);
+			}
+		}
+		return output;
+	}
+	else {
+		list<int> output;
+		list<int> visited;
+		list<string> var = getUsedBy(stmt);
+		return DFS(output, visited, var, stmt);
+	}
+}
+
+list<int> PKB::DFS(list<int> output, list<int> visited, list<string> var, int stmt) {
+	list<string> varlist;
+	for (string v : var) {
+		varlist.push_back(v);
+	}
+	if (isAssign(stmt)) {
+		string v = getModifiedBy(stmt).front();
+		if (find(varlist.begin(), varlist.end(), v) == varlist.end()) {
+			output.push_back(stmt);
+			varlist.remove(v);
+		}
+	}
+	if (varlist.empty()) {
+		return output;
+	}
+	for (int i : getExecutedBefore(stmt)) {
+		if (!(find(visited.begin(), visited.end(), i) == visited.end())) {
+			visited.push_back(i);
+			DFS(output, visited, varlist, i);
+		}
+	}
+	return output;
+}
+
+list<pair<int, int>> PKB::GetAffectsBothSyn()
+{
+	if (!affectsCache.empty()) {
+		return affectsCache;
+	}
+	list<pair<int, int>> affectsCache;
+	list<int> stmtlist = getAssignList();
+	for (int stmt : stmtlist)
+	{
+		list<int> affectlist = GetAffected(stmt);
+		for (int affected : affectlist) {
+			affectsCache.push_back(pair<int, int>(stmt, affected));
+		}
+	}
+	return affectsCache;
+}
+
+bool PKB::IsAffectsStar(int stmt1, int stmt2)
+{
+	if (!affectsCache.empty()) {
+		list<int> search;
+		search.push_back(stmt1);
+		while (!search.empty()) {
+			int stmt = search.front();
+			search.pop_front();
+			for (pair<int, int> i : affectsCache) {
+				if (i.first == stmt) {
+					if (i.second == stmt2) {
+						return true;
+					}
+					else {
+						search.push_back(i.second);
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool PKB::IsAffectsStarEmpty()
 {
 	return false;
 }
 
-bool PKB::isAffectsStar(int assign_stmt1, int assign_stmt2)
-{
-	return false;
-}
-
-bool PKB::isAffectsEmpty()
-{
-	return false;
-}
-
-bool PKB::isAffectsStarEmpty()
-{
-	return false;
-}
-
-list<int> PKB::getAffected(int assign_stmt)
+list<int> PKB::GetAffectorStar(int assign_stmt)
 {
 	return list<int>();
-}
-
-list<int> PKB::getAffectedStar(int assign_stmt)
-{
-	return list<int>();
-}
-
-list<int> PKB::getAffector(int assign_stmt)
-{
-	return list<int>();
-}
-
-list<int> PKB::getAffectorStar(int assign_stmt)
-{
-	return list<int>();
-}
-
-list<pair<int, int>> PKB::getAffectsBothSyn()
-{
-	return list<pair<int, int>>();
 }

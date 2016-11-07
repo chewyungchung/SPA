@@ -25,6 +25,7 @@ public:
 	list<int> getExecutedAfter(int n);
 	list<int> getExecutedBeforeStar(int n);
 	list<int> getExecutedAfterStar(int n);
+	unordered_map<int, Node*> getNodeTable();
 
 private:
 	unordered_map<int, Node*> nodeTable;
