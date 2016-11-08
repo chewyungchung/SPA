@@ -9,6 +9,7 @@ PKB itself is a facade class
 #include <string>
 #include <vector>
 #include <list>
+#include <set>
 
 #include "ModUsesTablebyStmt.h"
 #include "ModUsesTablebyVariable.h"
@@ -37,7 +38,7 @@ class ProcTable;
 class AST;
 class CFG;
 
-class PKB 
+class PKB
 {
 public:
 	ModUsesTablebyStmt M_U_TableByStmt;
@@ -51,9 +52,19 @@ public:
 	ProcTable Proc_Table;
 	AST Ast;
 	CFG Cfg;
+	unordered_map<int, int> stmt_to_proc_begin_table;
+	vector<int> procedure_first_stmts_list;
+	list<int> all_stmtlst;
+	set<pair<int, int>> affects_cache;
+	set<pair<int, int>> affects_star_cache;
+	bool is_affects_cache_filled = false;
+	bool is_affects_star_cache_filled = false;
 	PKB();
 	~PKB();
 
+	void addStmtLst(int stmt_list_first);
+	void addProcedureFirstStmt(int first_stmt_of_procedure);
+	void addStmtProcBegin(int stmt_num, int proc_begin);
 	void addParent(int lineOfParent, int lineNum);
 	void addParentStar(int parentStar, int child);
 	int getParentOf(int stmt);
@@ -63,7 +74,7 @@ public:
 	bool isParentOf(int parentStmt, int childStmt);
 	bool isParentStar(int parent, int child);
 	list<int> getChildStarOf(int stmt);
-	
+
 	void addFollows(int lineNum, int nesting);
 	int getFollowedFrom(int stmt);
 	int getFollower(int stmt);
@@ -72,7 +83,7 @@ public:
 	bool isFollowEmpty();
 	bool isValidFollows(int followedFrom, int follower);
 	bool isFollowsStar(int stmt1, int stmt2);
-	
+
 	void addModifies(int stmtNum, string var);
 	void addUses(int stmtNum, string var);
 	bool isModified(int stmtNum, string varName);
@@ -159,6 +170,26 @@ public:
 	list<int> getExecutedBeforeStar(int n);
 	list<int> getExecutedAfterStar(int n);
 	string getStmtType(int stmtNum);
-private:
+	int getProcBeginStmt(int stmtNum);
+	vector<int> getProcedureFirstStmtList();
+	list<int> getAllStmtLst();
 
+	bool isAffects(int assign_stmt1, int assign_stmt2);
+	bool isAffectsStar(int assign_stmt1, int assign_stmt2);
+	bool isAffectsEmpty();
+	bool isAffectsStarEmpty();
+	list<int> getAffected(int assign_stmt);
+	list<int> getAffectedStar(int assign_stmt);
+	list<int> getAffector(int assign_stmt);
+	list<int> getAffectorStar(int assign_stmt);
+	list<pair<int, int>> getAffectsBothSyn();
+	map<string, set<int>> PKB::getAffectsBothSyn(map<int,map<string,set<int>>> while_map, set<pair<int, int>> &affectsList, map<string, set<int>> modifiesMap, Node currNode, map<string,set<int>> old_map, bool is_first_line);
+	list<pair<int, int>> getAffectsStarBothSyn();
+	map<string, set<int>> getAffectsStarBothSyn(set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node, map<string, set<int>> old_map, bool is_first_line);
+private:
+	Node getTerminalNodeByStmt(int if_stmt_num);
+	void UnionMap(map<string, set<int>>& main_map, map<string, set<int>>& if_then_map, map<string, set<int>>& else_map);
+	bool IsFoundInSet(map<string, set<int>>& mod_map, string modified_var, int stmt_num);
+	bool IsMapEqual(map<string, set<int>>& old_map, map<string, set<int>>& current_map);
+	bool IsInList(list<string> list, string target);
 };
