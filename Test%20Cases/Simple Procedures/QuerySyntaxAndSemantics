@@ -1,0 +1,460 @@
+1 - comment
+assign a; a1;
+Select a
+
+5000
+2 - comment
+assign a1;
+SeIect a1
+
+5000
+3 - comment
+variable v, assign a1;
+Select a1
+
+5000
+4 - comment
+variable v; assign a;
+Select a such that pattern a (v, _)
+
+5000
+5 - comment
+variable v; assign a;
+Select v pattern a (a, _)
+
+5000
+6 - comment
+variable v; assign a;
+Select a pattern (v, _)
+
+5000
+7 - comment
+variable v; assign a;
+Select a pattern a (v, v)
+
+5000
+8 - comment
+variable v; assign a;
+Select a pattern a (v. _"v"_)
+
+5000
+9 - comment
+variable v; assign a;
+Select a pattern a (v _"-v"_)
+
+5000
+10 - comment
+variable v; assign a;
+Select a pattern a (v, _"*v"_)
+
+5000
+11 - comment
+variable v; assign a;
+Select a pattern a (v, _"v-"_)
+
+5000
+12 - comment
+variable v; assign a;
+Select a pattern a (v, _"v+"_)
+
+5000
+13 - comment
+variable v; assign a;
+Select a pattern a (v, _"v*"_)
+
+5000
+14 - comment
+variable v; assign a;
+Select a pattern a (v, "a"_"d")
+
+5000
+15 - comment
+variable v; assign a;
+Select a pattern a (v, "__")
+
+5000
+16 - comment
+variable v; assign a;
+Select a pattern a (v, _"v")
+
+5000
+17 - comment
+assign a; variable v;
+Select a pattern a (v, "v"_)
+
+5000
+18 - comment
+assign a; variable v;
+Select a pattern a (_, "v"_)
+
+5000
+19 - comment
+variable v; assign a;
+Select a pattern a (_, _"v")
+
+5000
+20 - comment
+assign a;
+Select a pattern a (_, _, _)
+
+5000
+21 - comment
+if ifstat;
+Select ifstat pattern ifstat (_, _)
+
+5000
+22 - comment
+if ifstat;
+Select ifstat pattern ifstat (_, _"a"_, _)
+
+5000
+23 - comment
+if ifstat;
+Select ifstat pattern ifstat (_, _, _"a"_)
+
+5000
+24 - comment
+while w;
+Select w pattern w (_, _, _)
+
+5000
+25 - comment
+while w;
+Select w pattern w (_, _"0"_)
+
+5000
+26 - comment
+procedure p;
+Select p such that p.procName = "Assign"
+
+5000
+27 - comment
+proedure p;
+Select p with p.procName = "Assign"
+
+5000
+28 - comment
+procedure p;
+Select p wth p.procName = "Assign"
+
+5000
+29 - comment
+procedure p;
+Select p with p.procName = Assign"
+
+5000
+30 - comment
+stmt s; variable v;
+Select v with Uses (s, v)
+
+5000
+31 - comment
+stmt s; variable v;
+Select v with Modifies (s, v)
+
+5000
+32 - comment
+stmt s, s1;
+Select s with Parent (s, s1)
+
+5000
+33 - comment
+stmt s, s1;
+Select s with Follows (s, s1)
+
+5000
+34 - comment
+assign a, a1;
+Select s with Affects (a, a1)
+
+5000
+35 - comment
+stmt s;
+Select s with Next (1, 2)
+
+5000
+36 - comment
+procedure p, q;
+Select p with Calls (p, q)
+
+5000
+37 - comment
+stmt s; variable v;
+Select v such that uses (s, v)
+
+5000
+38 - comment
+stmt s; variable v;
+Select v such that Use (s, v)
+
+5000
+39 - comment
+stmt s; variable v;
+Select v such that modifies (s, v)
+
+5000
+40 - comment
+stmt s; variable v;
+Select v such that Modify (s, v)
+
+5000
+41 - comment
+stmt s, s1;
+Select s such that parent (s, s1)
+
+5000
+42 - comment
+stmt s, s1;
+Select s such that parent* (s, s1)
+
+5000
+43 - comment
+stmt s, s1;
+Select s such that follows (s, s1)
+
+5000
+44 - comment
+stmt s, s1;
+Select s such that Follow (s, s1)
+
+5000
+45 - comment
+stmt s, s1;
+Select s such that follows* (s, s1)
+
+5000
+46 - comment
+stmt s;
+Select s such that next (1, 2)
+
+5000
+47 - comment
+
+Select boolean such that Next (1, 2)
+
+5000
+48 - comment
+
+Select Boolean such that Next (1, 2)
+
+5000
+49 - comment
+assign a, a1;
+Select a Such that Affects (a, a1)
+
+5000
+66 - comment
+procedure p, q;
+Select p such that calls (p, q)
+
+5000
+50 - comment
+procedure p, q;
+Select p such that calls* (p, q)
+
+5000
+51 - comment
+procedure p, q;
+Select p such that Call* (p, q)
+
+5000
+52 - comment
+assign a; variable v;
+Select v such that Uses (v, a)
+
+5000
+53 - comment
+while w; variable v;
+Select v such that Uses (v, w)
+
+5000
+54 - comment
+stmtLst l, variable v;
+Select v such that Uses (v, l)
+
+5000
+55 - comment
+stmt s, s1;
+Select s such that Uses (s, s1)
+
+5000
+56 - comment
+assign a; stmt s;
+Select s such that Uses (s, a)
+
+5000
+57 - comment
+procedure p; stmt s;
+Select s such that Uses (s, p)
+
+5000
+58 - comment
+while w; stmt s;
+Select s such that Uses (s, w)
+
+5000
+59 - comment
+if ifstat; stmt s;
+Select s such that Uses (s, ifstat)
+
+5000
+60 - comment
+stmtLst l, stmt s;
+Select s such that Uses (s, l)
+
+5000
+61 - comment
+stmt s; variable v;
+Select v such that Modifies (v, s)
+
+5000
+62 - comment
+assign a; variable v;
+Select v such that Modifies (v, a)
+
+5000
+63 - comment
+procedure p; variable v;
+Select v such that Modifies (v, p)
+
+5000
+64 - comment
+while w; variable v;
+Select v such that Modifies (v, w)
+
+5000
+65 - comment
+if ifstat; variable v;
+Select v such that Modifies (v, ifstat)
+
+5000
+66 - comment
+stmtLst l, variable v;
+Select v such that Modifies (v, l)
+
+5000
+67 - comment
+if ifstat; stmt s;
+Select s such that Modifies (s, ifstat)
+
+5000
+68 - comment
+stmtLst l, stmt s;
+Select s such that Modifies (s, l)
+
+5000
+69 - comment
+variable v; stmt s;
+Select v such that Parent (s, v)
+
+5000
+70 - comment
+stmtLst l; variable v; 
+Select v such that Parent (l, v)
+
+5000
+72 - comment
+call c; variable v; 
+Select v such that Parent (c, v)
+
+5000
+73 - comment
+variable v; stmt s;
+Select v such that Parent* (s, v)
+
+5000
+74 - comment
+variable v; stmtLst l;
+Select v such that Parent* (l, v)
+
+5000
+75 - comment
+variable v; call c;
+Select v such that Parent* (c, v)
+
+5000
+76 - comment
+variable v; if ifstat;
+Select v such that Parent* (ifstat, v)
+
+5000
+77 - comment
+variable v; while w;
+Select v such that Parent* (w, v)
+
+5000
+78 - comment
+stmt s; variable v; 
+Select v such that Parent* (v, s)
+
+5000
+79 - comment
+stmtLst l; variable v; 
+Select v such that Parent* (v, l)
+
+5000
+80 - comment
+variable v; call c;
+Select v such that Parent* (v, c)
+
+5000
+81 - comment
+if ifstat; variable v; 
+Select v such that Parent* (v, ifstat)
+
+5000
+82 - comment
+while w; variable v; 
+Select v such that Parent* (v, w)
+
+5000
+83 - comment
+variable v; stmt s;
+Select v such that Follows (s, v)
+
+5000
+84 - comment
+variable v; stmtLst l;
+Select v such that Follows (l, v)
+
+5000
+85 - comment
+variable v; call c;
+Select v such that Follows (c, v)
+
+5000
+86 - comment
+variable v; stmt s;
+Select v such that Follows* (s, v)
+
+5000
+87 - comment
+variable v; stmtLst l;
+Select v such that Follows* (l, v)
+
+5000
+88 - comment
+variable v; call c;
+Select v such that Follows* (c, v)
+
+5000
+89 - comment
+variable v; if ifstat;
+Select v such that Follows* (ifstat, v)
+
+5000
+90 - comment
+while w; variable v; 
+Select v such that Follows* (w, v)
+
+5000
+91 - comment
+stmt s; variable v; 
+Select v such that Follows (v, s)
+
+5000
+92 - comment
+stmtLst l; variable v; 
+Select v such that Follows (v, l)
+
+5000
