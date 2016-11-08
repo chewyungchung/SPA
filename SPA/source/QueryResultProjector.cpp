@@ -120,7 +120,7 @@ void QueryResultProjector::PopulateFinalResultList(ResultTable& final_table)
 			}
 			else if (select_clause_.GetArgType().at(j) == "call_name") {
 				int index_of_space = final_table.GetValue(select_clause_.GetArg().at(j), i).find_first_of(" ");
-				result_string += final_table.GetValue(select_clause_.GetArg().at(j), i).substr(index_of_space, string::npos);
+				result_string += final_table.GetValue(select_clause_.GetArg().at(j), i).substr(index_of_space+1, string::npos);
 			} 
 			else {
 				result_string += final_table.GetValue(select_clause_.GetArg().at(j), i);
