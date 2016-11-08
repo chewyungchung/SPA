@@ -3393,7 +3393,7 @@ ResultTable QueryEvaluator::ProcessAffects(Clause& affects_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			if (pkb_.getAffectsBothSyn().empty() == false) {
+			if (pkb_.getAffectsBothSyn(true).empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -3409,7 +3409,7 @@ ResultTable QueryEvaluator::ProcessAffects(Clause& affects_clause)
 			temp_result = ResultTable(arg2);
 			vector<string> temp_row_data;
 
-			list<pair<int, int>> affects_both_syn = pkb_.getAffectsBothSyn();
+			list<pair<int, int>> affects_both_syn = pkb_.getAffectsBothSyn(true);
 			if (affects_both_syn.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &affects_entry : affects_both_syn) {
@@ -3449,7 +3449,7 @@ ResultTable QueryEvaluator::ProcessAffects(Clause& affects_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			list<pair<int, int>> affects_both_syn = pkb_.getAffectsBothSyn();
+			list<pair<int, int>> affects_both_syn = pkb_.getAffectsBothSyn(true);
 			if (affects_both_syn.empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 				for (auto &affects_entry : affects_both_syn) {
@@ -3469,7 +3469,7 @@ ResultTable QueryEvaluator::ProcessAffects(Clause& affects_clause)
 				temp_result = ResultTable(arg1, arg2);
 			}
 
-			list<pair<int, int>> affects_both_syn = pkb_.getAffectsBothSyn();
+			list<pair<int, int>> affects_both_syn = pkb_.getAffectsBothSyn(true);
 			if (affects_both_syn.empty() == false) {
 				for (auto &affects_entry : affects_both_syn) {
 					// Corner: Affects(a,a)
@@ -3569,7 +3569,7 @@ ResultTable QueryEvaluator::ProcessAffectsStar(Clause& affects_star_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			if (pkb_.getAffectsStarBothSyn().empty() == false) {
+			if (pkb_.getAffectsStarBothSyn(true).empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -3585,7 +3585,7 @@ ResultTable QueryEvaluator::ProcessAffectsStar(Clause& affects_star_clause)
 			temp_result = ResultTable(arg2);
 			vector<string> temp_row_data;
 
-			list<pair<int, int>> affects_star_list = pkb_.getAffectsStarBothSyn();
+			list<pair<int, int>> affects_star_list = pkb_.getAffectsStarBothSyn(true);
 
 			for (auto &affects_star_pair : affects_star_list) {
 				temp_result.SetIsQueryTrue(true);
@@ -3625,7 +3625,7 @@ ResultTable QueryEvaluator::ProcessAffectsStar(Clause& affects_star_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			list<pair<int, int>> affects_star_list = pkb_.getAffectsStarBothSyn();
+			list<pair<int, int>> affects_star_list = pkb_.getAffectsStarBothSyn(true);
 			for (auto &affects_star_pair : affects_star_list) {
 				temp_result.SetIsQueryTrue(true);
 				temp_row_data.push_back(to_string(affects_star_pair.first));
@@ -3644,7 +3644,7 @@ ResultTable QueryEvaluator::ProcessAffectsStar(Clause& affects_star_clause)
 				temp_result = ResultTable(arg1, arg2);
 			}
 
-			list<pair<int, int>> affects_star_both_syn = pkb_.getAffectsStarBothSyn();
+			list<pair<int, int>> affects_star_both_syn = pkb_.getAffectsStarBothSyn(true);
 			if (affects_star_both_syn.empty() == false) {
 				for (auto &affects_star_entry : affects_star_both_syn) {
 					// Corner: Affects(a,a)
