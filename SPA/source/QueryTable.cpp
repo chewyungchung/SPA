@@ -119,7 +119,7 @@ int QueryTable::GetNumOfSynInClause(Clause clause) {
 		(clause_arg_type.at(1) == "string" || clause_arg_type.at(1) == "constant" || clause_arg_type.at(1) == "any" || clause_arg_type.at(1) == "number")) {
 		return 0;
 	}
-	else if (IsSynonym(clause_arg.at(0)) && IsSynonym(clause_arg.at(1))) {
+	else if (IsSynonym(clause_arg.at(0), clause_arg_type.at(0)) && IsSynonym(clause_arg.at(1), clause_arg_type.at(1))) {
 		return 2;
 	}
 	else {
@@ -133,8 +133,11 @@ void QueryTable::SortGroups()
 	sort(non_connected_groups_.begin(), non_connected_groups_.end(), GroupComparator());
 }
 
-bool QueryTable::IsSynonym(string key) {
-	if (syn_entity_map_.count(key) == 0) {
+bool QueryTable::IsSynonym(string key, string arg_type) {
+	if (arg_type == "string" || arg_type == "constant" || arg_type == "any" || arg_type == "number") {
+		return false;
+	}
+	else if (syn_entity_map_.count(key) == 0) {
 		return false;
 	}
 	else {
@@ -377,7 +380,7 @@ bool QueryTable::IsSynFound(Clause clause, string synonym) {
 		select_arg_type = "value";
 	}*/
 
-	if (clause_arg1 == synonym || (clause_arg2 == synonym)) {
+	if ((clause_arg1 == synonym && clause_arg1_type == syn_entity_map_[synonym]) || (clause_arg2 == synonym && clause_arg2_type == syn_entity_map_[synonym])) {
 		return true;
 	}
 	return false;
@@ -397,10 +400,12 @@ set<string> QueryTable::ExtractSynonymsFromSet()
 	for (auto &one_syn_clause : one_syn_clauses_) {
 		string one_syn_clause_arg1 = one_syn_clause.GetArg().at(0);
 		string one_syn_clause_arg2 = one_syn_clause.GetArg().at(1);
-		if (IsSynonym(one_syn_clause_arg1) == true) {
+		string one_syn_clause_arg1_type = one_syn_clause.GetArgType().at(0);
+		string one_syn_clause_arg2_type = one_syn_clause.GetArgType().at(1);
+		if (IsSynonym(one_syn_clause_arg1, one_syn_clause_arg1_type) == true) {
 			synonym_set.insert(one_syn_clause_arg1);
 		}
-		if (IsSynonym(one_syn_clause_arg2) == true) {
+		if (IsSynonym(one_syn_clause_arg2, one_syn_clause_arg2_type) == true) {
 			synonym_set.insert(one_syn_clause_arg2);
 		}
 	}
@@ -408,10 +413,12 @@ set<string> QueryTable::ExtractSynonymsFromSet()
 	for (auto &two_syn_clause : two_syn_clauses_) {
 		string two_syn_clause_arg1 = two_syn_clause.GetArg().at(0);
 		string two_syn_clause_arg2 = two_syn_clause.GetArg().at(1);
-		if (IsSynonym(two_syn_clause_arg1) == true) {
+		string one_syn_clause_arg1_type = two_syn_clause.GetArgType().at(0);
+		string one_syn_clause_arg2_type = two_syn_clause.GetArgType().at(1);
+		if (IsSynonym(two_syn_clause_arg1, one_syn_clause_arg1_type) == true) {
 			synonym_set.insert(two_syn_clause_arg1);
 		}
-		if (IsSynonym(two_syn_clause_arg2) == true) {
+		if (IsSynonym(two_syn_clause_arg2, one_syn_clause_arg2_type) == true) {
 			synonym_set.insert(two_syn_clause_arg2);
 		}
 	}
