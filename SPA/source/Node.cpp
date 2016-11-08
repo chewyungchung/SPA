@@ -10,12 +10,6 @@ Node::Node(int stmtline) {
 }
 
 void Node::addNext(Node* n) {
-	/*for (Node i : nextList) {
-		int x = i.stmtnum;
-		if (x == n.stmtnum) {
-			return;
-		}
-	}*/
 	nextList.push_back(n);
 }
 

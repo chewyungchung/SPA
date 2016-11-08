@@ -2,7 +2,7 @@
 
 #include <list>
 #include <string>
-#include <unordered_map>
+#include <map>
 
 using namespace std;
 
@@ -23,7 +23,7 @@ public:
 	list<string> getCallerStar(string callee);
 
 private:
-	unordered_map<string, list<string>> callsTable; // key: caller procName; value: list of callee procNames
+	map<string, list<string>> callsTable; // key: caller procName; value: list of callee procNames
 	list<string> callsStarHelperChecked;
 	list<string> getCalleesStarHelperList;
 	list<string> getCallersStarHelperList;

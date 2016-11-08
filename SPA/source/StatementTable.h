@@ -2,7 +2,7 @@
 
 #include <list>
 #include <string>
-#include <unordered_map>
+#include <map>
 
 using namespace std;
 
@@ -11,11 +11,11 @@ class StatementTable
 private:
 	list<int> assignList;
 	list<int> whileList;
-	unordered_map<int, string> allStmtList;
+	map<int, string> allStmtList;
 	list<int> ifList;
 	list<int> callList;
-	unordered_map<int, string> callProcList; // key: callstmt#, value: associated procName
-	unordered_map<int, string> ctrlvarList;
+	map<int, string> callProcList; // key: callstmt#, value: associated procName
+	map<int, string> ctrlvarList;
 
 	public:
 	StatementTable();

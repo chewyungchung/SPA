@@ -4,7 +4,7 @@
 
 CallsTable::CallsTable()
 {
-	callsTable = unordered_map<string, list<string>>();
+	callsTable = map<string, list<string>>();
 }
 
 CallsTable::~CallsTable()
@@ -14,7 +14,7 @@ CallsTable::~CallsTable()
 
 void CallsTable::addCalls(string caller, string callee)
 {
-	unordered_map<string, list<string>>::iterator it = callsTable.find(caller);
+	map<string, list<string>>::iterator it = callsTable.find(caller);
 	list<string> calleeList;
 
 	if (it != callsTable.end())
@@ -35,7 +35,7 @@ void CallsTable::addCalls(string caller, string callee)
 
 list<string> CallsTable::getCallee(string caller)
 {
-	unordered_map<string, list<string>>::iterator it = callsTable.find(caller);
+	map<string, list<string>>::iterator it = callsTable.find(caller);
 
 	if (it != callsTable.end())
 	{
@@ -51,7 +51,7 @@ list<string> CallsTable::getCaller(string callee)
 {
 	list<string> callerList = list<string>();
 
-	for (unordered_map<string, list<string>>::iterator callerIndex = callsTable.begin(); callerIndex != callsTable.end(); ++callerIndex)
+	for (map<string, list<string>>::iterator callerIndex = callsTable.begin(); callerIndex != callsTable.end(); ++callerIndex)
 	{
 		for (list<string>::iterator calleeIndex = callerIndex->second.begin(); calleeIndex != callerIndex->second.end(); ++calleeIndex)
 		{
@@ -77,7 +77,7 @@ bool CallsTable::isCallExist()
 
 bool CallsTable::isCall(string caller, string callee)
 {
-	unordered_map<string, list<string>>::iterator it = callsTable.find(caller);
+	map<string, list<string>>::iterator it = callsTable.find(caller);
 
 	if (it != callsTable.end())
 	{
@@ -99,7 +99,7 @@ bool CallsTable::isCallStar(string caller, string callee)
 
 bool CallsTable::isCallsStarHelper(string caller, string callee)
 {
-	unordered_map<string, list<string>>::iterator it = callsTable.find(caller);
+	map<string, list<string>>::iterator it = callsTable.find(caller);
 
 	if (it != callsTable.end())
 	{
@@ -142,7 +142,7 @@ list<string> CallsTable::getCalleeStar(string caller)
 /* DFS method of searching for callees */
 void CallsTable::getCalleesStarHelper(string caller)
 {
-	unordered_map<string, list<string>>::iterator it = callsTable.find(caller);
+	map<string, list<string>>::iterator it = callsTable.find(caller);
 
 	if (it != callsTable.end())
 	{
@@ -177,7 +177,7 @@ list<string> CallsTable::getCallerStar(string callee)
 /* DFS search for all Callers, (because dont have a callee-keyed table, runtime here could be bad, pending further testing */
 void CallsTable::getCallersStarHelper(string callee)
 {
-	for (unordered_map<string, list<string>>::iterator callerIndex = callsTable.begin(); callerIndex != callsTable.end(); ++callerIndex)
+	for (map<string, list<string>>::iterator callerIndex = callsTable.begin(); callerIndex != callsTable.end(); ++callerIndex)
 	{
 		for (list<string>::iterator calleeIndex = callerIndex->second.begin(); calleeIndex != callerIndex->second.end(); ++calleeIndex)
 		{

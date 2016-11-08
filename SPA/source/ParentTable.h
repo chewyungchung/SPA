@@ -1,8 +1,7 @@
 #pragma once
 
-#include <unordered_map>
+#include <map>
 #include <list>
-#include <iostream>
 
 using namespace std;
 
@@ -25,8 +24,8 @@ public:
 
 private:
 	int NO_PARENT_FLAG = -1;
-	unordered_map<int, int> TableChildWise; // key: child: value: parent
-	unordered_map<int, list<int> > TableParentWise; // key: parent; value: child(ren)	
-	unordered_map<int, list<int> > TableChildWiseStar; // key: child; value: parent(s)-star
-	unordered_map<int, list<int> > TableParentWiseStar; // key: parent; value: child(ren)-star
+	map<int, int> TableChildWise; // key: child: value: parent
+	map<int, list<int> > TableParentWise; // key: parent; value: child(ren)	
+	map<int, list<int> > TableChildWiseStar; // key: child; value: parent(s)-star
+	map<int, list<int> > TableParentWiseStar; // key: parent; value: child(ren)-star
 };

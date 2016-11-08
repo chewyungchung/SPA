@@ -1,8 +1,8 @@
 #pragma once
 
-#include <unordered_map>
+#include <vector>
+#include <list>
 #include <map>
-#include <iostream>
 
 using namespace std;
 
@@ -24,5 +24,5 @@ public:
 
 private:
 	map<int, int> tableStmtWise; // key: stmt; value: nesting index
-	unordered_map<int, vector<int> > tableNestingWise; // key: nesting index; value: stmt	
+	map<int, vector<int> > tableNestingWise; // key: nesting index; value: stmt	
 };
