@@ -24,6 +24,9 @@ ProcTable::~ProcTable()
 
 void ProcTable::addProc(string procName)
 {
+	if (procNameIndexTable.find(procName) != procNameIndexTable.end()) {
+		return;
+	}
 	procNameIndexTable.insert(pair<string, int>(procName, maxProcIndex));
 
 	vector<list<string>> newProc(PROCDATA_COLSIZE);
