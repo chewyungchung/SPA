@@ -182,14 +182,13 @@ public:
 	list<int> getAffectedStar(int assign_stmt);
 	list<int> getAffector(int assign_stmt);
 	list<int> getAffectorStar(int assign_stmt);
-	list<pair<int, int>> getAffectsBothSyn();
-	map<string, set<int>> PKB::getAffectsBothSyn(map<int,map<string,set<int>>> while_map, set<pair<int, int>> &affectsList, map<string, set<int>> modifiesMap, Node currNode, map<string,set<int>> old_map, bool is_first_line);
-	list<pair<int, int>> getAffectsStarBothSyn();
-	map<string, set<int>> getAffectsStarBothSyn(set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node, map<string, set<int>> old_map, bool is_first_line);
+	list<pair<int, int>> getAffectsBothSyn(bool is_fill_cache);
+	map<string, set<int>> PKB::getAffectsBothSyn(map<int,map<string,set<int>>> while_map, set<pair<int, int>> &affectsList, map<string, set<int>> modifiesMap, Node currNode);
+	list<pair<int, int>> getAffectsStarBothSyn(bool is_fill_cache);
+	map<string, set<int>> getAffectsStarBothSyn(map<int,map<string,set<int>>> while_Map, set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node);
 private:
 	Node getTerminalNodeByStmt(int if_stmt_num);
 	void UnionMap(map<string, set<int>>& main_map, map<string, set<int>>& if_then_map, map<string, set<int>>& else_map);
-	bool IsFoundInSet(map<string, set<int>>& mod_map, string modified_var, int stmt_num);
 	bool IsMapEqual(map<string, set<int>>& old_map, map<string, set<int>>& current_map);
 	bool IsInList(list<string> list, string target);
 };

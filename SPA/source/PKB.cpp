@@ -541,10 +541,10 @@ list<int> PKB::getAllStmtLst()
 bool PKB::isAffects(int assign_stmt1, int assign_stmt2)
 {
 	set<pair<int, int>> affected_list;
-	map<string, set<int>> modifies_map, old_map;
+	map<string, set<int>> modifies_map;
 	map<int, map<string, set<int>>> while_map;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt1));
-	getAffectsBothSyn(while_map, affected_list, modifies_map, proc_begin_of_assign_stmt, old_map, true);
+	getAffectsBothSyn(while_map, affected_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_pair : affected_list) {
 		if (affected_pair.first == assign_stmt1 && affected_pair.second == assign_stmt2) {
 			return true;
@@ -557,9 +557,10 @@ bool PKB::isAffects(int assign_stmt1, int assign_stmt2)
 bool PKB::isAffectsStar(int assign_stmt1, int assign_stmt2)
 {
 	set<pair<int, int>> affected_star_list;
-	map<string, set<int>> modifies_map, old_map;
+	map<string, set<int>> modifies_map;
+	map<int, map<string, set<int>>> while_map;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt1));
-	getAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt, old_map, true);
+	getAffectsStarBothSyn(while_map, affected_star_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_star_pair : affected_star_list) {
 		if (affected_star_pair.first == assign_stmt1 && affected_star_pair.second == assign_stmt2) {
 			return true;
@@ -583,10 +584,10 @@ list<int> PKB::getAffected(int assign_stmt)
 {
 	list<int> results;
 	set<pair<int, int>> affected_list;
-	map<string, set<int>> modifies_map, old_map;
+	map<string, set<int>> modifies_map;
 	map<int, map<string, set<int>>> while_map;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt));
-	getAffectsBothSyn(while_map, affected_list, modifies_map, proc_begin_of_assign_stmt, old_map, true);
+	getAffectsBothSyn(while_map, affected_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_pair : affected_list) {
 		if (affected_pair.first == assign_stmt) {
 			results.push_back(affected_pair.second);
@@ -600,9 +601,10 @@ list<int> PKB::getAffectedStar(int affector_stmt_num)
 {
 	list<int> results;
 	set<pair<int, int>> affected_star_list;
-	map<string, set<int>> modifies_map, old_map;
+	map<string, set<int>> modifies_map;
+	map<int, map<string, set<int>>> while_map;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(affector_stmt_num));
-	getAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt, old_map, true);
+	getAffectsStarBothSyn(while_map, affected_star_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_star_pair : affected_star_list) {
 		if (affected_star_pair.first == affector_stmt_num) {
 			results.push_back(affected_star_pair.second);
@@ -616,10 +618,10 @@ list<int> PKB::getAffector(int assign_stmt)
 {
 	list<int> results;
 	set<pair<int, int>> affected_list;
-	map<string, set<int>> modifies_map, old_map;
+	map<string, set<int>> modifies_map;
 	map<int, map<string, set<int>>> while_map;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt));
-	getAffectsBothSyn(while_map, affected_list, modifies_map, proc_begin_of_assign_stmt, old_map, true);
+	getAffectsBothSyn(while_map, affected_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_pair : affected_list) {
 		if (affected_pair.second == assign_stmt) {
 			results.push_back(affected_pair.first);
@@ -633,9 +635,10 @@ list<int> PKB::getAffectorStar(int assign_stmt)
 {
 	list<int> results;
 	set<pair<int, int>> affected_star_list;
-	map<string, set<int>> modifies_map, old_map;
+	map<string, set<int>> modifies_map;
+	map<int, map<string, set<int>>> while_map;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt));
-	getAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt, old_map, true);
+	getAffectsStarBothSyn(while_map, affected_star_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_star_pair : affected_star_list) {
 		if (affected_star_pair.second == assign_stmt) {
 			results.push_back(affected_star_pair.first);
@@ -645,11 +648,11 @@ list<int> PKB::getAffectorStar(int assign_stmt)
 	return results;
 }
 
-list<pair<int, int>> PKB::getAffectsBothSyn()
+list<pair<int, int>> PKB::getAffectsBothSyn(bool is_fill_cache)
 {
 	list<pair<int, int>> results;
 	set<pair<int, int>> affects_list;
-	map<string, set<int>> modifiesMap, old_map;
+	map<string, set<int>> modifiesMap;
 	map<int, map<string, set<int>>> while_map;
 	vector<int> startStmtList = getProcedureFirstStmtList();
 
@@ -664,75 +667,90 @@ list<pair<int, int>> PKB::getAffectsBothSyn()
 		{
 			set<pair<int, int>> affects_list;
 			Node currNode = Cfg.getNodeByStmt(*it);
-			getAffectsBothSyn(while_map, affects_list, modifiesMap, currNode, old_map, true);
+			getAffectsBothSyn(while_map, affects_list, modifiesMap, currNode);
 			for (auto &result_pair : affects_list) {
 				results.push_back(result_pair);
-				if (!is_affects_cache_filled) {
+				if (is_fill_cache && !is_affects_cache_filled) {
 					affects_cache.insert(result_pair);
 				}
 			}
 		}
 	}
 
-	if (!is_affects_cache_filled) {
+	if (is_fill_cache) {
 		is_affects_cache_filled = true;
 	}
 
 	return results;
 }
 
-map<string, set<int>> PKB::getAffectsBothSyn(map<int, map<string, set<int>>> while_map, set<pair<int, int>>& affectsList, map<string, set<int>> modifiesMap, Node currNode, map<string,set<int>> old_map, bool is_first_line)
+map<string, set<int>> PKB::getAffectsBothSyn(map<int, map<string, set<int>>> while_map, set<pair<int, int>>& affectsList, map<string, set<int>> modifiesMap, Node currNode)
 {
 	int currStmt = currNode.getStmtnum();
 	string nodeType = getStmtType(currStmt);
 	if (nodeType == "assign")
 	{
-		if (is_first_line) {
-			is_first_line = false;
-		}
-		// Check uses and update affectsList
-		list<string> useList = getUsedBy(currStmt);
-		for (list<string>::iterator uIt = useList.begin(); uIt != useList.end(); ++uIt)
-		{
-			map<string, set<int>>::iterator mIt = modifiesMap.find(*uIt);
-			if (mIt != modifiesMap.end())
-			{
-				for (set<int>::iterator sIt = mIt->second.begin(); sIt != mIt->second.end(); ++sIt)
-				{
-					affectsList.insert(pair<int, int>(*sIt, currStmt));
+		// Get used vars of assign and check against mod_map
+		string curr_modified_var = getModifiedBy(currStmt).front();
+		list<string> curr_stmt_used_vars = getUsedBy(currStmt);
+
+		for (auto &used_var : curr_stmt_used_vars) {
+			if (modifiesMap.find(used_var) != modifiesMap.end()) {
+				for (auto &used_var_modified_stmt_num : modifiesMap[used_var]) {
+					affectsList.insert(pair<int, int>(used_var_modified_stmt_num, currStmt));
 				}
 			}
 		}
+		
+		modifiesMap[curr_modified_var] = set<int>();
+		modifiesMap[curr_modified_var].insert(currStmt);
 
-		// Update modifiesMap
-		string modifiedVar = getModifiedBy(currStmt).front();
-		modifiesMap[modifiedVar] = set<int>();
-		modifiesMap[modifiedVar].insert(currStmt);
-
-		// Go next
-		if (currNode.getNextList().empty())
-		{
+		// If got next node, recurse. Else, return map
+		if (currNode.getNextList().empty()) {
 			return modifiesMap;
 		}
-		else
-		{
-			Node nextNode = *(currNode.getNextList().front());
-			return getAffectsBothSyn(while_map, affectsList, modifiesMap, nextNode, old_map, is_first_line);
+		else {
+			Node next_node = *(currNode.getNextList().front());
+			return getAffectsBothSyn(while_map, affectsList, modifiesMap, next_node);
 		}
+
+
+
+
+		//// Check uses and update affectsList
+		//list<string> useList = getUsedBy(currStmt);
+
+		//for (auto &used_variable : useList) {
+		//	if (modifiesMap.find(used_variable) != modifiesMap.end()) {
+		//		for (auto used_var_modified_stmt_num : modifiesMap[used_variable]) {
+		//			affectsList.insert(pair<int, int>(used_var_modified_stmt_num, currStmt));
+		//		}
+		//	}
+		//}
+
+		//// Update modifiesMap
+		//string modifiedVar = getModifiedBy(currStmt).front();
+		//modifiesMap[modifiedVar] = set<int>();
+		//modifiesMap[modifiedVar].insert(currStmt);
+
+		//// Go next
+		//if (currNode.getNextList().empty())
+		//{
+		//	return modifiesMap;
+		//}
+		//else
+		//{
+		//	Node nextNode = *(currNode.getNextList().front());
+		//	return getAffectsBothSyn(while_map, affectsList, modifiesMap, nextNode);
+		//}
 	}
 	else if (nodeType == "call")
 	{
-		if (is_first_line) {
-			is_first_line = false;
-		}
 		// Update modifiesMap (delete modifiedVar that are modified by this call statement)
 		list<string> modifiedByCall = getModifiedBy(currStmt);
-		for (list<string>::iterator it = modifiedByCall.begin(); it != modifiedByCall.end(); ++it)
-		{
-			map<string, set<int>>::iterator mIt = modifiesMap.find(*it);
-			if (mIt != modifiesMap.end())
-			{
-				modifiesMap.erase(*it);
+		for (auto &modified_variable : modifiedByCall) {
+			if (modifiesMap.find(modified_variable) != modifiesMap.end()) {
+				modifiesMap.erase(modified_variable);
 			}
 		}
 
@@ -744,23 +762,22 @@ map<string, set<int>> PKB::getAffectsBothSyn(map<int, map<string, set<int>>> whi
 		else
 		{
 			Node nextNode = *(currNode.getNextList().front());
-			return getAffectsBothSyn(while_map, affectsList, modifiesMap, nextNode, old_map, is_first_line);
+			return getAffectsBothSyn(while_map, affectsList, modifiesMap, nextNode);
 		}
 	}
 	else if (nodeType == "if")
 	{
-		if (is_first_line) {
-			is_first_line = false;
-		}
-		list<int> ifElseBlockStartStmts = getExecutedAfter(currStmt);
+		/*list<int> ifElseBlockStartStmts = getExecutedAfter(currStmt);
 		int ifStart = ifElseBlockStartStmts.front();
 		int elseStart = ifElseBlockStartStmts.back();
 		Node ifNode = Cfg.getNodeByStmt(ifStart);
-		Node elseNode = Cfg.getNodeByStmt(elseStart);
+		Node elseNode = Cfg.getNodeByStmt(elseStart);*/
+		Node if_then_node = *(currNode.getNextList().at(0));
+		Node else_node = *(currNode.getNextList().at(1));
 
 		// Process the if and else chains separately, merge them later
-		map<string, set<int>> ifMap = getAffectsBothSyn(while_map, affectsList, modifiesMap, ifNode, old_map, is_first_line);
-		map<string, set<int>> elseMap = getAffectsBothSyn(while_map, affectsList, modifiesMap, elseNode, old_map, is_first_line);
+		map<string, set<int>> ifMap = getAffectsBothSyn(while_map, affectsList, modifiesMap, if_then_node);
+		map<string, set<int>> elseMap = getAffectsBothSyn(while_map, affectsList, modifiesMap, else_node);
 		UnionMap(modifiesMap, ifMap, elseMap);
 		// Go next
 		Node terminalNode = getTerminalNodeByStmt(currStmt);
@@ -769,61 +786,74 @@ map<string, set<int>> PKB::getAffectsBothSyn(map<int, map<string, set<int>>> whi
 		}
 		else {
 			Node nextNode = *(terminalNode.getNextList().front());
-			return getAffectsBothSyn(while_map, affectsList, modifiesMap, nextNode, old_map, is_first_line);
+			return getAffectsBothSyn(while_map, affectsList, modifiesMap, nextNode);
 		}
 	}
 	else if (nodeType == "while")
 	{
+		bool has_out = currNode.getNextList().size() == 2;
+		Node into_while_node = *(currNode.getNextList().at(0));
+		Node out_of_while_node; 
+		if (has_out) {
+			out_of_while_node = *(currNode.getNextList().at(1));
+		}
 		if (while_map.find(currStmt) != while_map.end()) {
-			if (IsMapEqual(while_map[currStmt], modifiesMap) == false) {
-				while_map[currStmt] = modifiesMap;
-				for (auto &nextNode : currNode.getNextList()) {
-					getAffectsBothSyn(while_map, affectsList, modifiesMap, *nextNode, old_map, is_first_line);
+			map<string, set<int>> merged_set;
+			UnionMap(merged_set, modifiesMap, while_map[currStmt]);
+			if (IsMapEqual(merged_set, while_map[currStmt]) == false) {
+				while_map[currStmt] = merged_set;
+				if (currNode.getNextList().size() == 2) {
+					map<string, set<int>> into_while_set = getAffectsBothSyn(while_map, affectsList, merged_set, into_while_node);
+					modifiesMap = into_while_set;
+					//map<string, set<int>> out_of_while_set = getAffectsBothSyn(while_map, affectsList, merged_set, out_of_while_node);
+					//UnionMap(modifiesMap, out_of_while_set, into_while_set);
+				}
+				else {
+					for (auto &nextNode : currNode.getNextList()) {
+						modifiesMap = getAffectsBothSyn(while_map, affectsList, merged_set, *nextNode);
+					}
 				}
 				return modifiesMap;
 			}
 			else {
-				return modifiesMap;
+				if (has_out) {
+					return getAffectsBothSyn(while_map, affectsList, merged_set, out_of_while_node);
+				}
+				else {
+					return merged_set;
+				}
 			}
 		}
 		else {
 			while_map[currStmt] = modifiesMap;
-			for (auto &nextNode : currNode.getNextList()) {
-				getAffectsBothSyn(while_map, affectsList, modifiesMap, *nextNode, old_map, is_first_line);
+			if (currNode.getNextList().size() == 2) {
+				Node into_while_node = *(currNode.getNextList().at(0));
+				Node out_of_while_node = *(currNode.getNextList().at(1));
+				map<string, set<int>> into_while_set = getAffectsBothSyn(while_map, affectsList, modifiesMap, into_while_node);
+				map<string, set<int>> out_of_while_set = getAffectsBothSyn(while_map, affectsList, into_while_set, out_of_while_node);
+				//UnionMap(modifiesMap, out_of_while_set, into_while_set);
+				return out_of_while_set;
+			}
+			else {
+				for (auto &nextNode : currNode.getNextList()) {
+					modifiesMap = getAffectsBothSyn(while_map, affectsList, modifiesMap, *nextNode);
+				}
 			}
 			return modifiesMap;
 		}
-
-
-		/*if (IsMapEqual(old_map, modifiesMap) == false || is_first_line) {
-			if (is_first_line) {
-				is_first_line = false;
-			}
-
-			old_map = modifiesMap;
-			for (auto &nextNode : currNode.getNextList()) {
-				getAffectsBothSyn(while_map, affectsList, modifiesMap, *nextNode, old_map, is_first_line);
-			}
-			return modifiesMap;
-		}
-		else {
-			return modifiesMap;
-		}*/
 	}
 	else
 	{
 		// Should only be terminal node
-		if (is_first_line) {
-			is_first_line = false;
-		}
 		return modifiesMap;
 	}
 }
 
-list<pair<int, int>> PKB::getAffectsStarBothSyn()
+list<pair<int, int>> PKB::getAffectsStarBothSyn(bool is_fill_cache)
 {
 	list<pair<int,int>> results;
-	map<string, set<int>> modifies_map, old_map;
+	map<string, set<int>> modifies_map;
+	map<int, map<string, set<int>>> while_map;
 	vector<int> procedure_first_stmts_list = getProcedureFirstStmtList();
 
 	if (is_affects_star_cache_filled) {
@@ -836,37 +866,34 @@ list<pair<int, int>> PKB::getAffectsStarBothSyn()
 		for (auto &proc_first_stmt : procedure_first_stmts_list) {
 			set<pair<int, int>> affected_star_list;
 			Node curr_node = Cfg.getNodeByStmt(proc_first_stmt);
-			getAffectsStarBothSyn(affected_star_list, modifies_map, curr_node, old_map, true);
+			getAffectsStarBothSyn(while_map, affected_star_list, modifies_map, curr_node);
 			for (auto &result_pair : affected_star_list) {
 				results.push_back(result_pair);
-				if (!is_affects_star_cache_filled) {
+				if (is_fill_cache && !is_affects_star_cache_filled) {
 					affects_star_cache.insert(result_pair);
 				}
 			}
 		}
 	}
 
-	if (!is_affects_star_cache_filled) {
+	if (is_fill_cache) {
 		is_affects_star_cache_filled = true;
 	}
 
 	return results;
 }
 
-map<string, set<int>> PKB::getAffectsStarBothSyn(set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node, map<string,set<int>> old_map, bool is_first_line)
+map<string, set<int>> PKB::getAffectsStarBothSyn(map<int,map<string,set<int>>> while_map, set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node)
 {
 	int curr_stmt_num = curr_node.getStmtnum();
 	string curr_stmt_type = getStmtType(curr_stmt_num);
-
 	if (curr_stmt_type == "assign") {
-		if (is_first_line) {
-			is_first_line = false;
-		}
-
 		// Get used vars of assign and check against mod_map
 		string curr_modified_var = getModifiedBy(curr_stmt_num).front();
 		set<int> new_set_for_curr_modified_var;
 		list<string> curr_stmt_used_vars = getUsedBy(curr_stmt_num);
+		bool is_modified_being_used = find(curr_stmt_used_vars.begin(), curr_stmt_used_vars.end(), curr_modified_var) != curr_stmt_used_vars.end();
+
 		for (auto &used_var : curr_stmt_used_vars) {
 			if (modifies_map.find(used_var) != modifies_map.end()) {
 				for (auto &used_var_modified_stmt_num : modifies_map[used_var]) {
@@ -875,8 +902,14 @@ map<string, set<int>> PKB::getAffectsStarBothSyn(set<pair<int, int>>& result_lis
 				}
 			}
 		}
-		
-		modifies_map[curr_modified_var] = new_set_for_curr_modified_var;
+		if (!is_modified_being_used) {
+			modifies_map[curr_modified_var] = new_set_for_curr_modified_var;
+		}
+		else {
+			for (auto &new_thing : new_set_for_curr_modified_var) {
+				modifies_map[curr_modified_var].insert(new_thing);
+			}
+		}
 		modifies_map[curr_modified_var].insert(curr_stmt_num);
 
 		// If got next node, recurse. Else, return map
@@ -885,53 +918,76 @@ map<string, set<int>> PKB::getAffectsStarBothSyn(set<pair<int, int>>& result_lis
 		}
 		else {
 			Node next_node = *(curr_node.getNextList().front());
-			return getAffectsStarBothSyn(result_list, modifies_map, next_node, old_map, is_first_line);
+			return getAffectsStarBothSyn(while_map, result_list, modifies_map, next_node);
 		}
 	}
 	else if (curr_stmt_type == "if") {
-		if (is_first_line) {
-			is_first_line = false;
-		}
-
 		Node if_then_node = *(curr_node.getNextList().at(0));
 		Node else_node = *(curr_node.getNextList().at(1));
-		map<string, set<int>> if_then_map = getAffectsStarBothSyn(result_list, modifies_map, if_then_node, old_map, is_first_line);
-		map<string, set<int>> else_map = getAffectsStarBothSyn(result_list, modifies_map, else_node, old_map, is_first_line);
+		map<string, set<int>> if_then_map = getAffectsStarBothSyn(while_map, result_list, modifies_map, if_then_node);
+		map<string, set<int>> else_map = getAffectsStarBothSyn(while_map, result_list, modifies_map, else_node);
 		UnionMap(modifies_map, if_then_map, else_map);
-		// Get terminal node of curr if-node and then recurse if got next node. Else return map
 		Node terminal_node = getTerminalNodeByStmt(curr_stmt_num);
 		if (terminal_node.getNextList().empty()) {
 			return modifies_map;
 		}
 		else {
 			Node next_node = *(terminal_node.getNextList().front());
-			return getAffectsStarBothSyn(result_list, modifies_map, next_node, old_map, is_first_line);
+			return getAffectsStarBothSyn(while_map, result_list, modifies_map, next_node);
 		}
 	}
 	else if (curr_stmt_type == "while") {
-		// If the mod_map has been updated or this while node has not been visited, go into the while again
-		if (IsMapEqual(old_map, modifies_map) == false || is_first_line) {
-			if (is_first_line) {
-				is_first_line = false;
+		bool has_out = curr_node.getNextList().size() == 2;
+		Node into_while_node = *(curr_node.getNextList().at(0));
+		Node out_of_while_node;
+		if (has_out) {
+			out_of_while_node = *(curr_node.getNextList().at(1));
+		}
+
+		if (while_map.find(curr_stmt_num) != while_map.end()) {
+			map<string, set<int>> merged_set;
+			UnionMap(merged_set, modifies_map, while_map[curr_stmt_num]);
+			if (IsMapEqual(merged_set, while_map[curr_stmt_num]) == false) {
+				while_map[curr_stmt_num] = merged_set;
+				if (curr_node.getNextList().size() == 2) {
+					map<string, set<int>> into_while_set = getAffectsStarBothSyn(while_map, result_list, merged_set, into_while_node);
+					//map<string, set<int>> out_of_while_set = getAffectsStarBothSyn(while_map, result_list, merged_set, out_of_while_node);
+					//UnionMap(modifies_map, out_of_while_set, into_while_set);
+				}
+				else {
+					for (auto &nextNode : curr_node.getNextList()) {
+						modifies_map = getAffectsStarBothSyn(while_map, result_list, merged_set, *nextNode);
+					}
+				}
+				return modifies_map;
 			}
-			old_map = modifies_map;
-			for (auto &next_node : curr_node.getNextList()) {
-				getAffectsStarBothSyn(result_list, modifies_map, *next_node, old_map, is_first_line);
+			else {
+				if (has_out) {
+					return getAffectsStarBothSyn(while_map, result_list, merged_set, out_of_while_node);
+				}
+				else {
+					return merged_set;
+				}
 			}
-			return modifies_map;
 		}
 		else {
-			if (is_first_line) {
-				is_first_line = false;
+			while_map[curr_stmt_num] = modifies_map;
+			if (curr_node.getNextList().size() == 2) {
+				Node into_while_node = *(curr_node.getNextList().at(0));
+				Node out_of_while_node = *(curr_node.getNextList().at(1));
+				map<string, set<int>> into_while_set = getAffectsStarBothSyn(while_map, result_list, modifies_map, into_while_node);
+				map<string, set<int>> out_of_while_set = getAffectsStarBothSyn(while_map, result_list, modifies_map, out_of_while_node);
+				UnionMap(modifies_map, out_of_while_set, into_while_set);
+			}
+			else {
+				for (auto &nextNode : curr_node.getNextList()) {
+					modifies_map = getAffectsStarBothSyn(while_map, result_list, modifies_map, *nextNode);
+				}
 			}
 			return modifies_map;
 		}
 	}
 	else if (curr_stmt_type == "call") {
-		if (is_first_line) {
-			is_first_line = false;
-		}
-
 		list<string> curr_modified_vars = getModifiedBy(curr_stmt_num);
 		for (auto &modified_var : curr_modified_vars) {
 			if (modifies_map.find(modified_var) != modifies_map.end()) {
@@ -945,7 +1001,7 @@ map<string, set<int>> PKB::getAffectsStarBothSyn(set<pair<int, int>>& result_lis
 		}
 		else {
 			Node next_node = *(curr_node.getNextList().front());
-			return getAffectsStarBothSyn(result_list, modifies_map, next_node, old_map, is_first_line);
+			return getAffectsStarBothSyn(while_map, result_list, modifies_map, next_node);
 		}
 	}
 	else {
@@ -971,18 +1027,6 @@ void PKB::UnionMap(map<string, set<int>>& main_map, map<string, set<int>>& if_th
 			main_map[entry.first].insert(value);
 		}
 	}
-}
-
-bool PKB::IsFoundInSet(map<string, set<int>>& mod_map, string modified_var, int stmt_num)
-{
-	if (mod_map[modified_var].empty()) {
-		return false;
-	}
-	else if (mod_map[modified_var].find(stmt_num) == mod_map[modified_var].end()) {
-		return false;
-	}
-
-	return true;
 }
 
 bool PKB::IsMapEqual(map<string, set<int>>& old_map, map<string, set<int>>& current_map)
