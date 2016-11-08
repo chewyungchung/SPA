@@ -1,0 +1,80 @@
+1 - select assign that follows and affects
+stmt s, s1; assign a;
+Select a such that Follows(s, a) and Affects(a, s1)
+2, 3, 23, 25, 28, 31, 37, 39, 52, 55
+5000
+2 - select assign that follows and affects
+stmt s; call c; assign a;
+Select a such that Follows(c, a) and Affects(a, s)
+39
+5000
+3 - select assign that follows and affects
+stmt s; call c; assign a;
+Select s such that Follows(c, a) and Affects(a, s)
+42
+5000
+4 - select stmt that modifies and affects
+stmt s, s1; variable v;
+Select s such that Modifies(s, v) and Affects(s, s1) 
+1, 2, 3, 12, 14, 17, 19, 23, 25, 27, 28, 31, 35, 37, 39, 47, 51, 52, 55, 65
+5000
+5 - select stmt that modifies and affects
+stmt s, s1; variable v;
+Select s1 such that Modifies(s, v) and Affects(s, s1) 
+2, 3, 5, 8, 10, 14, 17, 19, 20, 24, 26, 28, 30, 31, 33, 36, 37, 40, 41, 42, 49, 53, 56, 57, 67
+5000
+6 - select assign that modifies and affects
+assign a, a1; variable v;
+Select a such that Modifies(a, v) and Affects(a, a1) 
+1, 2, 3, 12, 14, 17, 19, 23, 25, 27, 28, 31, 35, 37, 39, 47, 51, 52, 55, 65
+5000
+7 - select assign that modifies and affects
+assign a, a1; variable v;
+Select a1 such that Affects(a, a1) and Modifies(a, v) 
+2, 3, 5, 8, 10, 14, 17, 19, 20, 24, 26, 28, 30, 31, 33, 36, 37, 40, 41, 42, 49, 53, 56, 57, 67
+5000
+8 - select variable that modifies and affects
+variable v;
+Select v such that Modifies(12, v) and Affects(12, _) 
+z
+5000
+9 - select variable that Affects and Follows* and Modifies
+assign a, a1; variable v;
+Select v such that Affects(a, a1) and Follows*(a, a1) and Modifies(a, v)
+Alpha, b, Charlie, z, y, x, w, q, p, l, a, e
+5000
+10 - select assign s.t modifies and affects 
+assign a, a1;
+Select a such that Modifies(a, "a") and Affects*(a, a1) 
+51
+5000
+11 - select assign such that k is modified and something uses k
+assign a;
+Select a such that Modifies(a, "k") and Affects*(a, _) 
+39, 65
+5000
+12 - select bool st an "a" is modified in an assign and "a" is used in a1
+assign a, a1;
+Select BOOLEAN such that Modifies (a, "a") and Affects* (a, a1)
+true
+5000
+13 - select v st modifies and affects*
+variable v;
+Select v such that Modifies(12, v) and Affects*(12, _) 
+z
+5000
+14 - select assign st an assign appear after stmt s and assign affect s1
+stmt s, s1; assign a;
+Select a such that Follows(s, a) and Affects*(a, s1)
+2, 3, 23, 25, 28, 31, 37, 39, 52, 55
+5000
+15 - select assign st assign is follows in a call and assign affect s
+stmt s; call c; assign a;
+Select a such that Follows(c, a) and Affects*(a, s)
+39
+5000
+16 - select stmt that assign is follow after a call and assign affect s
+stmt s; call c; assign a;
+Select s such that Follows(c, a) and Affects*(a, s)
+42
+5000
