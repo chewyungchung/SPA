@@ -78,12 +78,44 @@ ResultTable QueryEvaluator::ProcessSubstitute(Clause& substitute_clause)
 
 		return temp_result;
 	}
+	else if (substitute_arg_type == ARGTYPE_STMTLST) {
+		data_list = pkb_.getAllStmtLst();
+		if (data_list.empty() == false) {
+			temp_result.SetIsQueryTrue(true);
+			for (auto &data : data_list) {
+				temp_row_data.push_back(to_string(data));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
+	else if (substitute_arg_type == ARGTYPE_CALLS_NAME) {
+		list<string> all_called_proc_list = pkb_.getCalledProcNamesList();
+		for (auto &procedure : all_called_proc_list) {
+			temp_result.SetIsQueryTrue(true);
+			list<int> stmts_calling_procedure = pkb_.getCallByProcName(procedure);
+			for (auto &call_stmt_num : stmts_calling_procedure) {
+				string substitute_argument = to_string(call_stmt_num) + " " + procedure;
+				temp_row_data.push_back(substitute_argument);
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
+			}
+		}
+
+		return temp_result;
+	}
 	else {
 		data_list = GetList(substitute_arg_type);
 		if (data_list.empty() == false) {
 			temp_result.SetIsQueryTrue(true);
 			for (auto &data : data_list) {
-				temp_row_data.push_back(to_string(data));
+				string substitute_argument = to_string(data);
+				if (substitute_arg_type == ARGTYPE_CALLS || substitute_arg_type == ARGTYPE_CALLS_NUMBER) {
+					substitute_argument += " " + pkb_.getProcNameByCallStmt(data);
+				}
+				temp_row_data.push_back(substitute_argument);
 				temp_result.InsertRow(temp_row_data);
 				temp_row_data.clear();
 			}
@@ -3361,7 +3393,7 @@ ResultTable QueryEvaluator::ProcessAffects(Clause& affects_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			if (pkb_.isAffectsEmpty() == false) {
+			if (pkb_.getAffectsBothSyn().empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -3537,7 +3569,7 @@ ResultTable QueryEvaluator::ProcessAffectsStar(Clause& affects_star_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			if (pkb_.isAffectsStarEmpty() == false) {
+			if (pkb_.getAffectsStarBothSyn().empty() == false) {
 				temp_result.SetIsQueryTrue(true);
 			}
 
@@ -3553,14 +3585,13 @@ ResultTable QueryEvaluator::ProcessAffectsStar(Clause& affects_star_clause)
 			temp_result = ResultTable(arg2);
 			vector<string> temp_row_data;
 
-			for (auto &arg2_stmt_num : synonym_stmt_list_arg2) {
-				list<int> arg2_affector_star = pkb_.getAffectorStar(arg2_stmt_num);
-				if (arg2_affector_star.empty() == false) {
-					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg2_stmt_num));
-					temp_result.InsertRow(temp_row_data);
-					temp_row_data.clear();
-				}
+			list<pair<int, int>> affects_star_list = pkb_.getAffectsStarBothSyn();
+
+			for (auto &affects_star_pair : affects_star_list) {
+				temp_result.SetIsQueryTrue(true);
+				temp_row_data.push_back(to_string(affects_star_pair.second));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
 			}
 
 			return temp_result;
@@ -3594,14 +3625,12 @@ ResultTable QueryEvaluator::ProcessAffectsStar(Clause& affects_star_clause)
 			return temp_result;
 		}
 		else if (arg2_type == ARGTYPE_ANY) {
-			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				list<int> arg1_affectee_star = pkb_.getAffectedStar(arg1_stmt_num);
-				if (arg1_affectee_star.empty() == false) {
-					temp_result.SetIsQueryTrue(true);
-					temp_row_data.push_back(to_string(arg1_stmt_num));
-					temp_result.InsertRow(temp_row_data);
-					temp_row_data.clear();
-				}
+			list<pair<int, int>> affects_star_list = pkb_.getAffectsStarBothSyn();
+			for (auto &affects_star_pair : affects_star_list) {
+				temp_result.SetIsQueryTrue(true);
+				temp_row_data.push_back(to_string(affects_star_pair.first));
+				temp_result.InsertRow(temp_row_data);
+				temp_row_data.clear();
 			}
 
 			return temp_result;
@@ -3615,30 +3644,27 @@ ResultTable QueryEvaluator::ProcessAffectsStar(Clause& affects_star_clause)
 				temp_result = ResultTable(arg1, arg2);
 			}
 
-			for (auto &arg1_stmt_num : synonym_stmt_list_arg1) {
-				// Corner: Affects*(a,a)
-				if (arg1 == arg2) {
-					if (pkb_.isAffectsStar(arg1_stmt_num, arg1_stmt_num) == true) {
-						temp_result.SetIsQueryTrue(true);
-						temp_row_data.push_back(to_string(arg1_stmt_num));
-						temp_result.InsertRow(temp_row_data);
-						temp_row_data.clear();
-					}
-				}
-				else {
-					list<int> arg1_affectee_star = pkb_.getAffectedStar(arg1_stmt_num);
-					if (arg1_affectee_star.empty() == false) {
-						temp_result.SetIsQueryTrue(true);
-						for (auto &arg2_stmt_num : arg1_affectee_star) {
-							temp_row_data.push_back(to_string(arg1_stmt_num));
-							temp_row_data.push_back(to_string(arg2_stmt_num));
+			list<pair<int, int>> affects_star_both_syn = pkb_.getAffectsStarBothSyn();
+			if (affects_star_both_syn.empty() == false) {
+				for (auto &affects_star_entry : affects_star_both_syn) {
+					// Corner: Affects(a,a)
+					if (arg1 == arg2) {
+						if (affects_star_entry.first == affects_star_entry.second) {
+							temp_result.SetIsQueryTrue(true);
+							temp_row_data.push_back(to_string(affects_star_entry.first));
 							temp_result.InsertRow(temp_row_data);
 							temp_row_data.clear();
 						}
 					}
+					else {
+						temp_result.SetIsQueryTrue(true);
+						temp_row_data.push_back(to_string(affects_star_entry.first));
+						temp_row_data.push_back(to_string(affects_star_entry.second));
+						temp_result.InsertRow(temp_row_data);
+						temp_row_data.clear();
+					}
 				}
 			}
-
 			return temp_result;
 		}
 	}
