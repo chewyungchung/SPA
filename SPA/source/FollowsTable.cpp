@@ -12,7 +12,7 @@ Follows(s1, s2) holds if the above conditions are satisfied AND additionally s1 
 FollowsTable::FollowsTable()
 {
 	tableStmtWise = map<int, int>();
-	tableNestingWise = unordered_map<int, vector<int> >();
+	tableNestingWise = map<int, vector<int> >();
 }
 
 FollowsTable::~FollowsTable()

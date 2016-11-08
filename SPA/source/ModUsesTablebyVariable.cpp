@@ -4,20 +4,20 @@ using namespace std;
 
 ModUsesTablebyVariable::ModUsesTablebyVariable()
 {
-	varModTable = unordered_map<string, list<int>>();
-	varUsesTable = unordered_map<string, list<int>>();
+	varModTable = map<string, list<int>>();
+	varUsesTable = map<string, list<int>>();
 }
 
 ModUsesTablebyVariable::~ModUsesTablebyVariable()
 {
 }
 
-unordered_map<string, list<int>> ModUsesTablebyVariable::getModTable()
+map<string, list<int>> ModUsesTablebyVariable::getModTable()
 {
 	return varModTable;
 }
 
-unordered_map<string, list<int>> ModUsesTablebyVariable::getUsesTable()
+map<string, list<int>> ModUsesTablebyVariable::getUsesTable()
 {
 	return varUsesTable;
 }
@@ -25,7 +25,7 @@ unordered_map<string, list<int>> ModUsesTablebyVariable::getUsesTable()
 
 void ModUsesTablebyVariable::addModifies(string varName, int stmtNum)
 {
-	unordered_map<string, list<int>>::iterator it = varModTable.find(varName);
+	map<string, list<int>>::iterator it = varModTable.find(varName);
 	list<int> mStmtList;
 
 	/* if key is not found, add key-value pair into modifiesTable */
@@ -48,7 +48,7 @@ void ModUsesTablebyVariable::addModifies(string varName, int stmtNum)
 
 void ModUsesTablebyVariable::addUses(string varName, int stmtNum)
 {
-	unordered_map<string, list<int>>::iterator it = varUsesTable.find(varName);
+	map<string, list<int>>::iterator it = varUsesTable.find(varName);
 	list<int> uStmtList;
 
 	/* if key is not found, add key-value pair into modifiesTable */
@@ -70,8 +70,8 @@ void ModUsesTablebyVariable::addUses(string varName, int stmtNum)
 
 bool ModUsesTablebyVariable::isValidVar(string varName)
 {
-	unordered_map<string, list<int>>::iterator it1 = varUsesTable.find(varName);
-	unordered_map<string, list<int>>::iterator it2 = varModTable.find(varName);
+	map<string, list<int>>::iterator it1 = varUsesTable.find(varName);
+	map<string, list<int>>::iterator it2 = varModTable.find(varName);
 
 	if (it1 != varUsesTable.end() || it2 != varModTable.end())
 	{
@@ -85,7 +85,7 @@ bool ModUsesTablebyVariable::isValidVar(string varName)
 
 list<int> ModUsesTablebyVariable::getModifiedBy(string varName)
 {
-	unordered_map<string, list<int>>::iterator it = varModTable.find(varName);
+	map<string, list<int>>::iterator it = varModTable.find(varName);
 
 	if (it != varModTable.end())
 	{
@@ -99,7 +99,7 @@ list<int> ModUsesTablebyVariable::getModifiedBy(string varName)
 
 list<int> ModUsesTablebyVariable::getUsedBy(string varName)
 {
-	unordered_map<string, list<int>>::iterator it = varUsesTable.find(varName);
+	map<string, list<int>>::iterator it = varUsesTable.find(varName);
 	list<int> empty;
 	if (it != varUsesTable.end())
 	{
@@ -113,7 +113,7 @@ list<int> ModUsesTablebyVariable::getUsedBy(string varName)
 
 list<string> ModUsesTablebyVariable::getAllModVar()
 {
-	unordered_map<string, list<int>>::iterator it;
+	map<string, list<int>>::iterator it;
 	list<string> allModVarList;
 
 	if (varModTable.empty())
@@ -132,7 +132,7 @@ list<string> ModUsesTablebyVariable::getAllModVar()
 
 list<string> ModUsesTablebyVariable::getAllUsedVar()
 {
-	unordered_map<string, list<int>>::iterator it;
+	map<string, list<int>>::iterator it;
 	list<string> allUsedVarList;
 
 	if (varUsesTable.empty())
@@ -151,8 +151,8 @@ list<string> ModUsesTablebyVariable::getAllUsedVar()
 
 list<string> ModUsesTablebyVariable::getVarList()
 {
-	unordered_map<string, list<int>>::iterator it1;
-	unordered_map<string, list<int>>::iterator it2;
+	map<string, list<int>>::iterator it1;
+	map<string, list<int>>::iterator it2;
 	list<string> allVarList;
 
 	for (it1 = varModTable.begin(); it1 != varModTable.end(); ++it1)

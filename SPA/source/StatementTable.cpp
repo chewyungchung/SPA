@@ -10,8 +10,8 @@ StatementTable::StatementTable()
 	list<int> allStmtList;
 	list<int> ifList;
 	list<int> callList;
-	unordered_map<int, string> callProcList; // key: callstmt#, value: associated procName
-	unordered_map<int, string> ctrlvarList;
+	map<int, string> callProcList; // key: callstmt#, value: associated procName
+	map<int, string> ctrlvarList;
 }
 
 StatementTable::~StatementTable()
@@ -134,7 +134,7 @@ string StatementTable::getControlVarWithStmt(int stmtNum)
 list<int> StatementTable::getStmtList()
 {
 	list<int> results = list<int>();
-	unordered_map<int, string>::iterator it;
+	map<int, string>::iterator it;
 	for (it = allStmtList.begin(); it != allStmtList.end(); ++it)
 	{
 		results.push_back(it->first);
@@ -149,7 +149,7 @@ int StatementTable::getStatementCount()
 
 bool StatementTable::isValidStmt(int stmtNum)
 {
-	unordered_map<int, string>::iterator it = allStmtList.find(stmtNum);
+	map<int, string>::iterator it = allStmtList.find(stmtNum);
 	if (it != allStmtList.end())
 	{
 		return true;
@@ -163,7 +163,7 @@ bool StatementTable::isValidStmt(int stmtNum)
 string StatementTable::getStmtType(int stmtNum)
 {
 	string result = "";
-	unordered_map<int, string>::iterator it = allStmtList.find(stmtNum);
+	map<int, string>::iterator it = allStmtList.find(stmtNum);
 
 	if (it != allStmtList.end())
 	{

@@ -2,7 +2,7 @@
 
 #include <list>
 #include <string>
-#include <unordered_map>
+#include <map>
 
 using namespace std;
 
@@ -11,8 +11,8 @@ class ModUsesTablebyVariable
 public:
 	ModUsesTablebyVariable();
 	~ModUsesTablebyVariable();
-	unordered_map<string, list<int>> getModTable();
-	unordered_map<string, list<int>> getUsesTable();
+	map<string, list<int>> getModTable();
+	map<string, list<int>> getUsesTable();
 	void addModifies(string var, int stmtNum);
 	void addUses(string var, int stmtNum);
 	bool isValidVar(string varName);
@@ -23,7 +23,7 @@ public:
 	list<string> getVarList();
 
 private:
-	unordered_map<string, list<int>> varModTable;
-	unordered_map<string, list<int>> varUsesTable;
+	map<string, list<int>> varModTable;
+	map<string, list<int>> varUsesTable;
 };
 
