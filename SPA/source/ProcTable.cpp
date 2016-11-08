@@ -91,6 +91,11 @@ void ProcTable::addProcCalledInStmt(string procName, int stmtLine)
 			procDataTable[it->second][CALLED_IN_STMT_COL].push_back(to_string(stmtLine));
 		}
 	}
+	else {
+		addProc(procName);
+		unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+		procDataTable[it->second][CALLED_IN_STMT_COL].push_back(to_string(stmtLine));
+	}
 }
 
 // Return empty string if procIndex does not exist
