@@ -458,3 +458,48 @@ stmtLst l; variable v;
 Select v such that Follows (v, l)
 
 5000
+93 - no recursive calls
+stmt s; procedure p;
+Select p such that Calls("Golf","Golf")
+
+5000
+94 - incomplete queries
+stmt s; variable v;
+Select s such that Uses (s, v) such that
+
+5000
+95 - no such query
+variable v; assign a;
+Select a pattern a (v, "v"_)
+
+5000
+96 - no such query
+variable v; assign a;
+Select a pattern a (v, "_")
+
+5000
+97 - no such query
+variable v; assign a;
+Select a pattern a (v, "j"_"k")
+
+5000
+98 - no such query
+variable v; assign a;
+Select v pattern a (a, _)
+
+5000
+99 - typo
+variable v; assign a;
+Select v pattern pattern a (a, _)
+
+5000
+100 - "with and"
+stmt s; variable v;
+Select v such that Modifies (s, v) with and Uses (s, v)
+
+5000
+101 - comment
+stmt s; variable s; 
+Select s
+
+5000
