@@ -53,6 +53,7 @@ public:
 	AST Ast;
 	CFG Cfg;
 	stack<int> while_stack;
+	stack <map<string, set<int>>> working_set_stack;
 	map<int, int> while_stmt_to_visited_counter;
 	unordered_map<int, int> stmt_to_proc_begin_table;
 	vector<int> procedure_first_stmts_list;
@@ -185,9 +186,9 @@ public:
 	list<int> getAffector(int assign_stmt);
 	list<int> getAffectorStar(int assign_stmt);
 	list<pair<int, int>> getAffectsBothSyn(bool is_fill_cache);
-	map<string, set<int>> PKB::getAffectsBothSyn(map<int,map<string,set<int>>> while_map, set<pair<int, int>> &affectsList, map<string, set<int>> modifiesMap, Node currNode, set<int> visited_while);
+	map<string, set<int>> PKB::getAffectsBothSyn(set<pair<int, int>> &affectsList, map<string, set<int>> modifiesMap, Node currNode);
 	list<pair<int, int>> getAffectsStarBothSyn(bool is_fill_cache);
-	map<string, set<int>> getAffectsStarBothSyn(map<int,map<string,set<int>>> while_Map, set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node, set<int> visited_while);
+	map<string, set<int>> getAffectsStarBothSyn(set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node);
 private:
 	Node getTerminalNodeByStmt(int if_stmt_num);
 	void UnionMap(map<string, set<int>>& main_map, map<string, set<int>>& if_then_map, map<string, set<int>>& else_map);

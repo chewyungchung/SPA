@@ -542,10 +542,8 @@ bool PKB::isAffects(int assign_stmt1, int assign_stmt2)
 {
 	set<pair<int, int>> affected_list;
 	map<string, set<int>> modifies_map;
-	map<int, map<string, set<int>>> while_map;
-	set<int> visited_while;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt1));
-	getAffectsBothSyn(while_map, affected_list, modifies_map, proc_begin_of_assign_stmt, visited_while);
+	getAffectsBothSyn(affected_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_pair : affected_list) {
 		if (affected_pair.first == assign_stmt1 && affected_pair.second == assign_stmt2) {
 			return true;
@@ -559,10 +557,8 @@ bool PKB::isAffectsStar(int assign_stmt1, int assign_stmt2)
 {
 	set<pair<int, int>> affected_star_list;
 	map<string, set<int>> modifies_map;
-	map<int, map<string, set<int>>> while_map;
-	set<int> visited_while;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt1));
-	getAffectsStarBothSyn(while_map, affected_star_list, modifies_map, proc_begin_of_assign_stmt, visited_while);
+	getAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_star_pair : affected_star_list) {
 		if (affected_star_pair.first == assign_stmt1 && affected_star_pair.second == assign_stmt2) {
 			return true;
@@ -587,10 +583,8 @@ list<int> PKB::getAffected(int assign_stmt)
 	list<int> results;
 	set<pair<int, int>> affected_list;
 	map<string, set<int>> modifies_map;
-	map<int, map<string, set<int>>> while_map;
-	set<int> visited_while;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt));
-	getAffectsBothSyn(while_map, affected_list, modifies_map, proc_begin_of_assign_stmt, visited_while);
+	getAffectsBothSyn(affected_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_pair : affected_list) {
 		if (affected_pair.first == assign_stmt) {
 			results.push_back(affected_pair.second);
@@ -605,10 +599,8 @@ list<int> PKB::getAffectedStar(int affector_stmt_num)
 	list<int> results;
 	set<pair<int, int>> affected_star_list;
 	map<string, set<int>> modifies_map;
-	map<int, map<string, set<int>>> while_map;
-	set<int> visited_while;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(affector_stmt_num));
-	getAffectsStarBothSyn(while_map, affected_star_list, modifies_map, proc_begin_of_assign_stmt, visited_while);
+	getAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_star_pair : affected_star_list) {
 		if (affected_star_pair.first == affector_stmt_num) {
 			results.push_back(affected_star_pair.second);
@@ -623,10 +615,8 @@ list<int> PKB::getAffector(int assign_stmt)
 	list<int> results;
 	set<pair<int, int>> affected_list;
 	map<string, set<int>> modifies_map;
-	map<int, map<string, set<int>>> while_map;
-	set<int> visited_while;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt));
-	getAffectsBothSyn(while_map, affected_list, modifies_map, proc_begin_of_assign_stmt, visited_while);
+	getAffectsBothSyn(affected_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_pair : affected_list) {
 		if (affected_pair.second == assign_stmt) {
 			results.push_back(affected_pair.first);
@@ -641,10 +631,8 @@ list<int> PKB::getAffectorStar(int assign_stmt)
 	list<int> results;
 	set<pair<int, int>> affected_star_list;
 	map<string, set<int>> modifies_map;
-	map<int, map<string, set<int>>> while_map;
-	set<int> visited_while;
 	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt));
-	getAffectsStarBothSyn(while_map, affected_star_list, modifies_map, proc_begin_of_assign_stmt, visited_while);
+	getAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_star_pair : affected_star_list) {
 		if (affected_star_pair.second == assign_stmt) {
 			results.push_back(affected_star_pair.first);
@@ -659,8 +647,6 @@ list<pair<int, int>> PKB::getAffectsBothSyn(bool is_fill_cache)
 	list<pair<int, int>> results;
 	set<pair<int, int>> affects_list;
 	map<string, set<int>> modifiesMap;
-	map<int, map<string, set<int>>> while_map;
-	set<int> visited_while;
 	vector<int> startStmtList = getProcedureFirstStmtList();
 
 	if (is_affects_cache_filled) {
@@ -674,7 +660,7 @@ list<pair<int, int>> PKB::getAffectsBothSyn(bool is_fill_cache)
 		{
 			set<pair<int, int>> affects_list;
 			Node currNode = Cfg.getNodeByStmt(*it);
-			getAffectsBothSyn(while_map, affects_list, modifiesMap, currNode, visited_while);
+			getAffectsBothSyn(affects_list, modifiesMap, currNode);
 			for (auto &result_pair : affects_list) {
 				results.push_back(result_pair);
 				if (is_fill_cache && !is_affects_cache_filled) {
@@ -691,7 +677,7 @@ list<pair<int, int>> PKB::getAffectsBothSyn(bool is_fill_cache)
 	return results;
 }
 
-map<string, set<int>> PKB::getAffectsBothSyn(map<int, map<string, set<int>>> while_map, set<pair<int, int>>& affectsList, map<string, set<int>> modifiesMap, Node currNode, set<int> visited_while)
+map<string, set<int>> PKB::getAffectsBothSyn(set<pair<int, int>>& affectsList, map<string, set<int>> modifiesMap, Node currNode)
 {
 	int currStmt = currNode.getStmtnum();
 	string nodeType = getStmtType(currStmt);
@@ -721,7 +707,7 @@ map<string, set<int>> PKB::getAffectsBothSyn(map<int, map<string, set<int>>> whi
 				while_stack.pop();
 				return modifiesMap;
 			}
-			return getAffectsBothSyn(while_map, affectsList, modifiesMap, next_node, visited_while);
+			return getAffectsBothSyn(affectsList, modifiesMap, next_node);
 		}
 	}
 	else if (nodeType == "call")
@@ -747,39 +733,39 @@ map<string, set<int>> PKB::getAffectsBothSyn(map<int, map<string, set<int>>> whi
 				while_stack.pop();
 				return modifiesMap;
 			}
-			return getAffectsBothSyn(while_map, affectsList, modifiesMap, nextNode, visited_while);
+			return getAffectsBothSyn(affectsList, modifiesMap, nextNode);
 		}
 	}
 	else if (nodeType == "if")
 	{
 		Node if_then_node = *(currNode.getNextList().at(0));
 		Node else_node = *(currNode.getNextList().at(1));
+		map<string, set<int>> merged_map;
 
 		int if_then_node_stmt_num = if_then_node.getStmtnum();
 		int else_node_stmt_num = else_node.getStmtnum();
 
 		// Process the if and else chains separately, merge them later
-		map<string, set<int>> ifMap = getAffectsBothSyn(while_map, affectsList, modifiesMap, if_then_node, visited_while);
-		map<string, set<int>> elseMap = getAffectsBothSyn(while_map, affectsList, modifiesMap, else_node, visited_while);
-		UnionMap(modifiesMap, ifMap, elseMap);
+		map<string, set<int>> ifMap = getAffectsBothSyn(affectsList, modifiesMap, if_then_node);
+		map<string, set<int>> elseMap = getAffectsBothSyn(affectsList, modifiesMap, else_node);
+		UnionMap(merged_map, ifMap, elseMap);
 		// Go next
 		Node terminalNode = getTerminalNodeByStmt(currStmt);
 		if (terminalNode.getNextList().empty()) {
-			return modifiesMap;
+			return merged_map;
 		}
 		else {
 			Node nextNode = *(terminalNode.getNextList().front());
 			int next_node_stmt_num = nextNode.getStmtnum();
 			if (!while_stack.empty() && while_stack.top() == next_node_stmt_num) {
 				while_stack.pop();
-				return modifiesMap;
+				return merged_map;
 			}
-			return getAffectsBothSyn(while_map, affectsList, modifiesMap, nextNode, visited_while);
+			return getAffectsBothSyn(affectsList, merged_map, nextNode);
 		}
 	}
 	else if (nodeType == "while")
 	{
-		bool has_visited = visited_while.find(currStmt) != visited_while.end();
 		bool has_out = currNode.getNextList().size() == 2;
 		Node into_while_node = *(currNode.getNextList().at(0));
 		Node out_of_while_node; 
@@ -789,133 +775,33 @@ map<string, set<int>> PKB::getAffectsBothSyn(map<int, map<string, set<int>>> whi
 		}
 
 		map<string, set<int>> merged_set;
+		working_set_stack.push(modifiesMap);
 		while_stack.push(currStmt);
-		while_map[currStmt] = modifiesMap;
-		map<string, set<int>> into_while_set = getAffectsBothSyn(while_map, affectsList, modifiesMap, into_while_node, visited_while);
-		UnionMap(merged_set, into_while_set, while_map[currStmt]);
-		while (IsMapEqual(while_map[currStmt], merged_set) == false) {
+		map<string, set<int>> into_while_set = getAffectsBothSyn(affectsList, modifiesMap, into_while_node);
+		map<string, set<int>> popped_set = working_set_stack.top();
+		working_set_stack.pop();
+		UnionMap(merged_set, popped_set, into_while_set);
+		while (IsMapEqual(popped_set, merged_set) == false) {
 			while_stack.push(currStmt);
-			while_map[currStmt] = merged_set;
-			modifiesMap = getAffectsBothSyn(while_map, affectsList, merged_set, into_while_node, visited_while);
-			UnionMap(merged_set, modifiesMap, while_map[currStmt]);
+			working_set_stack.push(merged_set);
+			modifiesMap = getAffectsBothSyn(affectsList, merged_set, into_while_node);
+			popped_set = working_set_stack.top();
+			working_set_stack.pop();
+			UnionMap(merged_set, modifiesMap, popped_set);
 		}
 
 		if (has_out) {
-			return getAffectsBothSyn(while_map, affectsList, merged_set, out_of_while_node, visited_while);
+			if (!while_stack.empty() && while_stack.top() == out_of_while_node.getStmtnum()) {
+				while_stack.pop();
+				return merged_set;
+			}
+			else {
+				return getAffectsBothSyn(affectsList, merged_set, out_of_while_node);
+			}
 		}
 		else {
 			return merged_set;
 		}
-	/*	UnionMap(merged_set, modifiesMap, while_map[currStmt]);
-		if (IsMapEqual(merged_set, modifiesMap) == false) {
-			while_map[currStmt] = merged_set;
-			return getAffectsBothSyn(while_map, affectsList, merged_set, into_while_node, visited_while);
-		}
-		else {
-			if (has_out) {
-				while_stmt_to_visited_counter[currStmt] = 0;
-				return getAffectsBothSyn(while_map, affectsList, merged_set, out_of_while_node, visited_while);
-			}
-			else {
-				return merged_set;
-			}
-		}*/
-
-
-		/*if (while_stmt_to_visited_counter[currStmt] == 2) {
-			while_stmt_to_visited_counter[currStmt] = 1;
-			UnionMap(merged_set, modifiesMap, while_map[currStmt]);
-			if (IsMapEqual(merged_set, modifiesMap) == false) {
-				while_map[currStmt] = merged_set;
-				return getAffectsBothSyn(while_map, affectsList, merged_set, into_while_node, visited_while);
-			}
-			else {
-				if (has_out) {
-					while_stmt_to_visited_counter[currStmt] = 0;
-					return getAffectsBothSyn(while_map, affectsList, merged_set, out_of_while_node, visited_while);
-				}
-				else {
-					return merged_set;
-				}
-			}
-		}
-		else {
-			while_stmt_to_visited_counter[currStmt]++;
-			while_map[currStmt] = modifiesMap;
-			return getAffectsBothSyn(while_map, affectsList, modifiesMap, into_while_node, visited_while);
-		}*/
-
-		//if (IsMapEqual(merged_set, while_map[currStmt]) == false || !has_visited) {
-		//	visited_while.insert(currStmt);
-		//	//while_map[currStmt] = merged_set;
-		//	map<string, set<int>> into_while_set = getAffectsBothSyn(while_map, affectsList, merged_set, into_while_node, visited_while);
-		//	//modifiesMap = into_while_set;
-		//	//if (currNode.getNextList().size() == 2) {
-		//	//	map<string, set<int>> into_while_set = getAffectsBothSyn(while_map, affectsList, merged_set, into_while_node);
-		//	//	modifiesMap = into_while_set;
-		//	//	//map<string, set<int>> out_of_while_set = getAffectsBothSyn(while_map, affectsList, merged_set, out_of_while_node);
-		//	//	//UnionMap(modifiesMap, out_of_while_set, into_while_set);
-		//	//}
-		//	//else {
-		//	//	for (auto &nextNode : currNode.getNextList()) {
-		//	//		modifiesMap = getAffectsBothSyn(while_map, affectsList, merged_set, *nextNode);
-		//	//	}
-		//	//}
-		//	return into_while_set;
-		//}
-		//else {
-		//	if (has_out) {
-		//		return getAffectsBothSyn(while_map, affectsList, merged_set, out_of_while_node, visited_while);
-		//	}
-		//	else {
-		//		return merged_set;
-		//	}
-		//}
-
-		//if (while_map.find(currStmt) != while_map.end()) {
-		//	map<string, set<int>> merged_set;
-		//	UnionMap(merged_set, modifiesMap, while_map[currStmt]);
-		//	if (IsMapEqual(merged_set, while_map[currStmt]) == false) {
-		//		while_map[currStmt] = merged_set;
-		//		if (currNode.getNextList().size() == 2) {
-		//			map<string, set<int>> into_while_set = getAffectsBothSyn(while_map, affectsList, merged_set, into_while_node);
-		//			modifiesMap = into_while_set;
-		//			//map<string, set<int>> out_of_while_set = getAffectsBothSyn(while_map, affectsList, merged_set, out_of_while_node);
-		//			//UnionMap(modifiesMap, out_of_while_set, into_while_set);
-		//		}
-		//		else {
-		//			for (auto &nextNode : currNode.getNextList()) {
-		//				modifiesMap = getAffectsBothSyn(while_map, affectsList, merged_set, *nextNode);
-		//			}
-		//		}
-		//		return modifiesMap;
-		//	}
-		//	else {
-		//		if (has_out) {
-		//			return getAffectsBothSyn(while_map, affectsList, merged_set, out_of_while_node);
-		//		}
-		//		else {
-		//			return merged_set;
-		//		}
-		//	}
-		//}
-		//else {
-		//	while_map[currStmt] = modifiesMap;
-		//	if (currNode.getNextList().size() == 2) {
-		//		Node into_while_node = *(currNode.getNextList().at(0));
-		//		Node out_of_while_node = *(currNode.getNextList().at(1));
-		//		map<string, set<int>> into_while_set = getAffectsBothSyn(while_map, affectsList, modifiesMap, into_while_node);
-		//		map<string, set<int>> out_of_while_set = getAffectsBothSyn(while_map, affectsList, into_while_set, out_of_while_node);
-		//		//UnionMap(modifiesMap, out_of_while_set, into_while_set);
-		//		return out_of_while_set;
-		//	}
-		//	else {
-		//		for (auto &nextNode : currNode.getNextList()) {
-		//			modifiesMap = getAffectsBothSyn(while_map, affectsList, modifiesMap, *nextNode);
-		//		}
-		//	}
-		//	return modifiesMap;
-		//}
 	}
 	else {
 		// Should only be terminal node
@@ -927,8 +813,6 @@ list<pair<int, int>> PKB::getAffectsStarBothSyn(bool is_fill_cache)
 {
 	list<pair<int,int>> results;
 	map<string, set<int>> modifies_map;
-	map<int, map<string, set<int>>> while_map;
-	set<int> visited_while;
 	vector<int> procedure_first_stmts_list = getProcedureFirstStmtList();
 
 	if (is_affects_star_cache_filled) {
@@ -941,7 +825,7 @@ list<pair<int, int>> PKB::getAffectsStarBothSyn(bool is_fill_cache)
 		for (auto &proc_first_stmt : procedure_first_stmts_list) {
 			set<pair<int, int>> affected_star_list;
 			Node curr_node = Cfg.getNodeByStmt(proc_first_stmt);
-			getAffectsStarBothSyn(while_map, affected_star_list, modifies_map, curr_node, visited_while);
+			getAffectsStarBothSyn(affected_star_list, modifies_map, curr_node);
 			for (auto &result_pair : affected_star_list) {
 				results.push_back(result_pair);
 				if (is_fill_cache && !is_affects_star_cache_filled) {
@@ -958,7 +842,7 @@ list<pair<int, int>> PKB::getAffectsStarBothSyn(bool is_fill_cache)
 	return results;
 }
 
-map<string, set<int>> PKB::getAffectsStarBothSyn(map<int,map<string,set<int>>> while_map, set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node, set<int> visited_while)
+map<string, set<int>> PKB::getAffectsStarBothSyn(set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node)
 {
 	int curr_stmt_num = curr_node.getStmtnum();
 	string curr_stmt_type = getStmtType(curr_stmt_num);
@@ -993,73 +877,71 @@ map<string, set<int>> PKB::getAffectsStarBothSyn(map<int,map<string,set<int>>> w
 		}
 		else {
 			Node next_node = *(curr_node.getNextList().front());
-			return getAffectsStarBothSyn(while_map, result_list, modifies_map, next_node, visited_while);
+			int next_node_stmt_num = next_node.getStmtnum();
+			if (!while_stack.empty() && while_stack.top() == next_node_stmt_num) {
+				while_stack.pop();
+				return modifies_map;
+			}
+			return getAffectsStarBothSyn(result_list, modifies_map, next_node);
 		}
 	}
 	else if (curr_stmt_type == "if") {
 		Node if_then_node = *(curr_node.getNextList().at(0));
 		Node else_node = *(curr_node.getNextList().at(1));
-		map<string, set<int>> if_then_map = getAffectsStarBothSyn(while_map, result_list, modifies_map, if_then_node, visited_while);
-		map<string, set<int>> else_map = getAffectsStarBothSyn(while_map, result_list, modifies_map, else_node, visited_while);
-		UnionMap(modifies_map, if_then_map, else_map);
+		map<string, set<int>> merged_set;
+		map<string, set<int>> if_then_map = getAffectsStarBothSyn(result_list, modifies_map, if_then_node);
+		map<string, set<int>> else_map = getAffectsStarBothSyn(result_list, modifies_map, else_node);
+		UnionMap(merged_set, if_then_map, else_map);
 		Node terminal_node = getTerminalNodeByStmt(curr_stmt_num);
 		if (terminal_node.getNextList().empty()) {
-			return modifies_map;
+			return merged_set;
 		}
 		else {
 			Node next_node = *(terminal_node.getNextList().front());
-			return getAffectsStarBothSyn(while_map, result_list, modifies_map, next_node, visited_while);
+			int next_node_stmt_num = next_node.getStmtnum();
+			if (!while_stack.empty() && while_stack.top() == next_node_stmt_num) {
+				while_stack.pop();
+				return merged_set;
+			}
+			return getAffectsStarBothSyn(result_list, merged_set, next_node);
 		}
 	}
 	else if (curr_stmt_type == "while") {
 		bool has_out = curr_node.getNextList().size() == 2;
 		Node into_while_node = *(curr_node.getNextList().at(0));
 		Node out_of_while_node;
+
 		if (has_out) {
 			out_of_while_node = *(curr_node.getNextList().at(1));
 		}
 
-		if (while_map.find(curr_stmt_num) != while_map.end()) {
-			map<string, set<int>> merged_set;
-			UnionMap(merged_set, modifies_map, while_map[curr_stmt_num]);
-			if (IsMapEqual(merged_set, while_map[curr_stmt_num]) == false) {
-				while_map[curr_stmt_num] = merged_set;
-				if (curr_node.getNextList().size() == 2) {
-					map<string, set<int>> into_while_set = getAffectsStarBothSyn(while_map, result_list, merged_set, into_while_node, visited_while);
-					//map<string, set<int>> out_of_while_set = getAffectsStarBothSyn(while_map, result_list, merged_set, out_of_while_node);
-					//UnionMap(modifies_map, out_of_while_set, into_while_set);
-				}
-				else {
-					for (auto &nextNode : curr_node.getNextList()) {
-						modifies_map = getAffectsStarBothSyn(while_map, result_list, merged_set, *nextNode, visited_while);
-					}
-				}
-				return modifies_map;
+		map<string, set<int>> merged_set;
+		working_set_stack.push(modifies_map);
+		while_stack.push(curr_stmt_num);
+		map<string, set<int>> into_while_set = getAffectsStarBothSyn(result_list, modifies_map, into_while_node);
+		map<string, set<int>> popped_set = working_set_stack.top();
+		working_set_stack.pop();
+		UnionMap(merged_set, popped_set, into_while_set);
+		while (IsMapEqual(popped_set, merged_set) == false) {
+			while_stack.push(curr_stmt_num);
+			working_set_stack.push(merged_set);
+			modifies_map = getAffectsStarBothSyn(result_list, merged_set, into_while_node);
+			popped_set = working_set_stack.top();
+			working_set_stack.pop();
+			UnionMap(merged_set, modifies_map, popped_set);
+		}
+
+		if (has_out) {
+			if (!while_stack.empty() && while_stack.top() == out_of_while_node.getStmtnum()) {
+				while_stack.pop();
+				return merged_set;
 			}
 			else {
-				if (has_out) {
-					return getAffectsStarBothSyn(while_map, result_list, merged_set, out_of_while_node, visited_while);
-				}
-				else {
-					return merged_set;
-				}
+				return getAffectsStarBothSyn(result_list, merged_set, out_of_while_node);
 			}
 		}
 		else {
-			while_map[curr_stmt_num] = modifies_map;
-			if (curr_node.getNextList().size() == 2) {
-				Node into_while_node = *(curr_node.getNextList().at(0));
-				Node out_of_while_node = *(curr_node.getNextList().at(1));
-				map<string, set<int>> into_while_set = getAffectsStarBothSyn(while_map, result_list, modifies_map, into_while_node, visited_while);
-				map<string, set<int>> out_of_while_set = getAffectsStarBothSyn(while_map, result_list, modifies_map, out_of_while_node, visited_while);
-				UnionMap(modifies_map, out_of_while_set, into_while_set);
-			}
-			else {
-				for (auto &nextNode : curr_node.getNextList()) {
-					modifies_map = getAffectsStarBothSyn(while_map, result_list, modifies_map, *nextNode, visited_while);
-				}
-			}
-			return modifies_map;
+			return merged_set;
 		}
 	}
 	else if (curr_stmt_type == "call") {
@@ -1076,7 +958,12 @@ map<string, set<int>> PKB::getAffectsStarBothSyn(map<int,map<string,set<int>>> w
 		}
 		else {
 			Node next_node = *(curr_node.getNextList().front());
-			return getAffectsStarBothSyn(while_map, result_list, modifies_map, next_node, visited_while);
+			int next_node_stmt_num = next_node.getStmtnum();
+			if (!while_stack.empty() && while_stack.top() == next_node_stmt_num) {
+				while_stack.pop();
+				return modifies_map;
+			}
+			return getAffectsStarBothSyn(result_list, modifies_map, next_node);
 		}
 	}
 	else {
