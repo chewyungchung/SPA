@@ -242,6 +242,11 @@ string PKB::getControlVarWithStmt(int stmtNum)
 	return S_Table.getControlVarWithStmt(stmtNum);
 }
 
+bool PKB::isAssign(int stmtNum)
+{
+	return S_Table.isAssign(stmtNum);
+}
+
 list<int> PKB::getStmtList()
 {
 	return S_Table.getStmtList();
@@ -564,21 +569,9 @@ bool PKB::isAffectsStar(int assign_stmt1, int assign_stmt2)
 			return true;
 		}
 	}
-
-	return false;
 }
 
-bool PKB::isAffectsEmpty()
-{
-	return false;
-}
-
-bool PKB::isAffectsStarEmpty()
-{
-	return false;
-}
-
-list<int> PKB::getAffected(int assign_stmt)
+list<int> PKB::GetAffectorStar(int assign_stmt)
 {
 	list<int> results;
 	set<pair<int, int>> affected_list;

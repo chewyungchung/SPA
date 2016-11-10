@@ -34,6 +34,7 @@ private:
 	int getStatementCount();
 	bool isValidStmt(int stmtNum);
 	string getStmtType(int stmtNum);
+	bool isAssign(int stmtNum);
 
 private:
 };

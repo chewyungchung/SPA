@@ -116,6 +116,8 @@ public:
 	list<int> getIfListWithControlVariable(string control_var);
 	list<int> getWhileListWithControlVariable(string control_var);
 	string getControlVarWithStmt(int stmtNum);
+	bool isAssign(int stmtNum);
+
 	void addConstant(int constant, int stmt);
 	list<int> getConstantList();
 	list<int> getStmtlineByConstant(int c);
@@ -194,4 +196,5 @@ private:
 	void UnionMap(map<string, set<int>>& main_map, map<string, set<int>>& if_then_map, map<string, set<int>>& else_map);
 	bool IsMapEqual(map<string, set<int>>& old_map, map<string, set<int>>& current_map);
 	bool IsInList(list<string> list, string target);
+
 };
