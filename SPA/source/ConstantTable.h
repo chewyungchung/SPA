@@ -1,7 +1,7 @@
 #include <list>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <map>
 
 using namespace std;
 
@@ -14,6 +14,6 @@ public:
 	list<int> getStmtlineByConstant(int constant); //input: constant, output: stmtline
 
 private:
-	unordered_map<int, list<int>> constantTable;
+	map<int, list<int>> constantTable;
 	list<int> constantList;
 };

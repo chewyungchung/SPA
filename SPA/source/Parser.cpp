@@ -75,6 +75,13 @@ void Parser::parseProgram()
 
 void Parser::parseProcedure()
 {
+	// Add first stmt of proc
+	curr_first_stmt_of_proc = stmtLine;
+	_pkb.addProcedureFirstStmt(curr_first_stmt_of_proc);
+
+	// Add stmt lst first stmt
+	_pkb.addStmtLst(stmtLine);
+
 	match(PROCEDURE_FLAG);
 	procName = next_token;
 
@@ -136,6 +143,9 @@ void Parser::parseStmtLst()
 
 void Parser::parseWhileStmt()
 {
+	// Update stmt_to_proc_begin_table
+	_pkb.addStmtProcBegin(stmtLine, curr_first_stmt_of_proc);
+
 	// Populate CFG
 	_pkb.addStmtCFG(stmtLine, WHILE_FLAG);
 
@@ -167,6 +177,10 @@ void Parser::parseWhileStmt()
 	match(controlVar);
 	match(LEFT_BRACES);
 	stmtLine++;
+
+	// Add stmtlst first stmt
+	_pkb.addStmtLst(stmtLine);
+
 	parseStmtLst();
 	match(RIGHT_BRACES);
 	//stmtLine++;
@@ -180,6 +194,9 @@ void Parser::parseWhileStmt()
 
 void Parser::parseIfStmt()
 {
+	// Update stmt_to_proc_begin_table
+	_pkb.addStmtProcBegin(stmtLine, curr_first_stmt_of_proc);
+
 	// Populate CFG
 	_pkb.addStmtCFG(stmtLine, IF_FLAG);
 
@@ -212,6 +229,10 @@ void Parser::parseIfStmt()
 	match(THEN_FLAG);
 	match(LEFT_BRACES);
 	stmtLine++;
+
+	// Add stmt lst first stmt
+	_pkb.addStmtLst(stmtLine);
+
 	parseStmtLst();
 	match(RIGHT_BRACES);
 
@@ -229,6 +250,9 @@ void Parser::parseElseStmt()
 	followsMaxNestingLevel++;
 	followsStack.push(followsMaxNestingLevel);
 
+	// Add stmtLst first stmt
+	_pkb.addStmtLst(stmtLine);
+
 	parseStmtLst();
 	match(RIGHT_BRACES);
 
@@ -240,13 +264,13 @@ void Parser::parseElseStmt()
 
 void Parser::parseCallStmt()
 {
+	// Update stmt_to_proc_begin_table
+	_pkb.addStmtProcBegin(stmtLine, curr_first_stmt_of_proc);
+
 	// Populate ParentTable and FollowsTable for this call stmt
 	_pkb.addParent(parentStack.top(), stmtLine);
 	addAllParentsOfCurrStmt(stmtLine);
 	_pkb.addFollows(stmtLine, followsStack.top());
-
-	// Populate ProcTable
-	_pkb.addProcCalledInStmt(procName, stmtLine);
 
 	// Populate CFG
 	_pkb.addStmtCFG(stmtLine, CALL_FLAG);
@@ -255,6 +279,9 @@ void Parser::parseCallStmt()
 
 	string caller = procName;
 	string callee = next_token;
+
+	// Populate ProcTable
+	_pkb.addProcCalledInStmt(callee, stmtLine);
 
 	// Populate StatementTable
 	_pkb.addStatement(stmtLine, CALL_FLAG, callee);
@@ -267,6 +294,9 @@ void Parser::parseCallStmt()
 
 void Parser::parseAssignStmt()
 {
+	// Update stmt_to_proc_begin_table
+	_pkb.addStmtProcBegin(stmtLine, curr_first_stmt_of_proc);
+
 	// Populate StatementTable
 	_pkb.addStatement(stmtLine, ASSIGN_FLAG);
 

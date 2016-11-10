@@ -48,6 +48,7 @@ const string ARGTYPE_CALLS_NAME = "call_name";
 const string ARGTYPE_CALLS_NUMBER = "call_number";
 const string ARGTYPE_EXPR = "expr";
 const string ARGTYPE_SUB_EXPR = "sub_expr";
+const string ARGTYPE_STMTLST = "stmtLst";
 
 const string PARAM_ARG1 = "ARG1";
 const string PARAM_ARG2 = "ARG2";

@@ -2,7 +2,7 @@
 
 #include <list>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 using namespace std;
@@ -40,7 +40,7 @@ private:
 	int USEVAR_COL = 2;
 	int CALLED_IN_STMT_COL = 3;
 
-	unordered_map<string, int> procNameIndexTable; //key: procName; value: internal index (0, 1, 2, ..)
+	map<string, int> procNameIndexTable; //key: procName; value: internal index (0, 1, 2, ..)
 	vector<vector<list<string>>> procDataTable; // for every procIndex: col_1: procName; col_2: modified var, col_3: used var, col_4: called in stmtLine
 	int maxProcIndex;
 };

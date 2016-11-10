@@ -25,10 +25,12 @@ public:
 	list<int> getExecutedAfter(int n);
 	list<int> getExecutedBeforeStar(int n);
 	list<int> getExecutedAfterStar(int n);
-	unordered_map<int, Node*> getNodeTable();
+	Node getNodeByStmt(int stmtNum);
+	Node getTerminalNodeByStmt(int if_stmt_num);
 
 private:
 	unordered_map<int, Node*> nodeTable;
+	unordered_map<int, Node*> if_to_terminal_table;
 	stack<Node*> stack;
 	Node *ptr;
 	int** matrix;

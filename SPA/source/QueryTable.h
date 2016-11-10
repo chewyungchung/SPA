@@ -89,7 +89,7 @@ private:
 	string GetSecondSynonym(Clause clause, string select_syn);
 	bool IsConstantWithClause(Clause with_clause);
 	bool HasSelectedSynonym(Clause clause);
-	bool IsSynonym(string arg);
+	bool IsSynonym(string arg, string arg_type);
 	bool IsSynFound(Clause clause, string synonym);
 	bool IsSynSelected(Clause select_clause);
 	bool IsImplicitTrueWithClause(Clause clause);

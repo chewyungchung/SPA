@@ -11,7 +11,7 @@ col_1: procName; col_2: modified var, col_3: used var, col_4: called in stmtLine
 
 ProcTable::ProcTable()
 {
-	procNameIndexTable = unordered_map<string, int>();
+	procNameIndexTable = map<string, int>();
 	procDataTable = vector<vector<list<string>>>();
 	maxProcIndex = 0;
 }
@@ -24,6 +24,9 @@ ProcTable::~ProcTable()
 
 void ProcTable::addProc(string procName)
 {
+	if (procNameIndexTable.find(procName) != procNameIndexTable.end()) {
+		return;
+	}
 	procNameIndexTable.insert(pair<string, int>(procName, maxProcIndex));
 
 	vector<list<string>> newProc(PROCDATA_COLSIZE);
@@ -47,7 +50,7 @@ void ProcTable::addProc(string procName)
 
 void ProcTable::addProcMod(string procName, string var)
 {
-	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = procNameIndexTable.find(procName);
 	list<string> modVarList;
 
 	if (it != procNameIndexTable.end())
@@ -63,7 +66,7 @@ void ProcTable::addProcMod(string procName, string var)
 
 void ProcTable::addProcUses(string procName, string var)
 {
-	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = procNameIndexTable.find(procName);
 	list<string> usesVarList;
 
 	if (it != procNameIndexTable.end())
@@ -79,7 +82,7 @@ void ProcTable::addProcUses(string procName, string var)
 
 void ProcTable::addProcCalledInStmt(string procName, int stmtLine)
 {
-	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = procNameIndexTable.find(procName);
 	list<string> calledInVarList;
 
 	if (it != procNameIndexTable.end())
@@ -91,13 +94,18 @@ void ProcTable::addProcCalledInStmt(string procName, int stmtLine)
 			procDataTable[it->second][CALLED_IN_STMT_COL].push_back(to_string(stmtLine));
 		}
 	}
+	else {
+		addProc(procName);
+		map<string, int>::iterator it = procNameIndexTable.find(procName);
+		procDataTable[it->second][CALLED_IN_STMT_COL].push_back(to_string(stmtLine));
+	}
 }
 
 // Return empty string if procIndex does not exist
 string ProcTable::getProcName(int procIndex)
 {
 	string procName = "";
-	for (unordered_map<string, int>::iterator it = procNameIndexTable.begin(); it != procNameIndexTable.end(); ++it)
+	for (map<string, int>::iterator it = procNameIndexTable.begin(); it != procNameIndexTable.end(); ++it)
 	{
 		if (it->second == procIndex)
 		{
@@ -112,7 +120,7 @@ string ProcTable::getProcName(int procIndex)
 int ProcTable::getProcIndex(string procName)
 {
 	int procIndex = -1;
-	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = procNameIndexTable.find(procName);
 
 	if (it != procNameIndexTable.end())
 	{
@@ -128,7 +136,7 @@ int ProcTable::getProcIndex(string procName)
 // Also return false if procName doesn not exist
 bool ProcTable::isModifiedByProc(string procName, string varName)
 {
-	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = procNameIndexTable.find(procName);
 	list<string> modVarList;
 	
 	if (it != procNameIndexTable.end())
@@ -144,7 +152,7 @@ bool ProcTable::isModifiedByProc(string procName, string varName)
 
 bool ProcTable::isUsedByProc(string procName, string varName)
 {
-	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = procNameIndexTable.find(procName);
 	list<string> usesVarList;
 
 	if (it != procNameIndexTable.end())
@@ -160,7 +168,7 @@ bool ProcTable::isUsedByProc(string procName, string varName)
 
 list<string> ProcTable::getModifiedByProc(string procName)
 {
-	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = procNameIndexTable.find(procName);
 
 	if (it != procNameIndexTable.end())
 	{
@@ -174,7 +182,7 @@ list<string> ProcTable::getModifiedByProc(string procName)
 
 list<string> ProcTable::getUsedByProc(string procName)
 {
-	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = procNameIndexTable.find(procName);
 
 	if (it != procNameIndexTable.end())
 	{
@@ -220,13 +228,13 @@ list<string> ProcTable::getProcedureUsing(string varName)
 
 bool ProcTable::isProcedureExist(string procName)
 {
-	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = procNameIndexTable.find(procName);
 	return it != procNameIndexTable.end();
 }
 
 list<int> ProcTable::getCallByProcName(string procName)
 {
-	unordered_map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = procNameIndexTable.find(procName);
 	list<int> results = list<int>();
 
 	if (it != procNameIndexTable.end())
@@ -263,7 +271,7 @@ list<string> ProcTable::getCalledProcNamesList()
 list<string> ProcTable::getProcedureList()
 {
 	list<string> results = list<string>();
-	unordered_map<string, int>::iterator it;
+	map<string, int>::iterator it;
 	for (it = procNameIndexTable.begin(); it != procNameIndexTable.end(); ++it)
 	{
 		results.push_back(it->first);

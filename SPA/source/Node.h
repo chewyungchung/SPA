@@ -1,17 +1,17 @@
 #pragma once
-#include <list>
-#include <algorithm>
+#include <vector>
 
 using namespace std;
 
 class Node
 {
 public:
+	Node();
 	Node(int);
 	void addNext(Node*);
-	list<Node*> getNextList();
+	vector<Node*> getNextList();
 	int getStmtnum();
 private:
 	int stmtnum;
-	list<Node*> nextList;
+	vector<Node*> nextList;
 };

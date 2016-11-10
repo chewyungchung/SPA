@@ -31,6 +31,7 @@ private:
 	string next_token;
 	string procName;
 	int stmtLine;
+	int curr_first_stmt_of_proc;
 
 	// Parent data	
 	stack<int> parentStack;

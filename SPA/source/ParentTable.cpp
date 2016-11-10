@@ -7,10 +7,10 @@ Parent* is computed by following the chain of parents until the NO_PARENT_FLAG i
 
 ParentTable::ParentTable()
 {
-	TableChildWise = unordered_map<int, int>();
-	TableParentWise = unordered_map<int, list<int> >();
-	TableParentWiseStar = unordered_map<int, list<int> >();
-	TableChildWiseStar = unordered_map<int, list<int> >();
+	TableChildWise = map<int, int>();
+	TableParentWise = map<int, list<int> >();
+	TableParentWiseStar = map<int, list<int> >();
+	TableChildWiseStar = map<int, list<int> >();
 }
 
 ParentTable::~ParentTable()
@@ -28,7 +28,7 @@ void ParentTable::addParent(int parent, int child)
 	TableChildWiseStar[child].push_back(parent);
 
 	// Because we have to keep track of parent-star relationships
-	unordered_map<int, int>::iterator it = TableChildWise.find(parent);
+	map<int, int>::iterator it = TableChildWise.find(parent);
 
 	while (it != TableChildWise.end())
 	{ // if the parent is itself a child
@@ -51,7 +51,7 @@ void ParentTable::addParentStar(int parentStar, int child)
 int ParentTable::getParentOf(int stmt)
 {
 	int res = -1;
-	unordered_map<int, int >::iterator it = TableChildWise.find(stmt);
+	map<int, int >::iterator it = TableChildWise.find(stmt);
 	if (it == TableChildWise.end())
 	{
 		return -1;
@@ -88,7 +88,7 @@ bool ParentTable::isParentOf(int parent, int child)
 	int flag = -1;
 	int res = flag;
 
-	unordered_map<int, int >::iterator it = TableChildWise.find(child);
+	map<int, int >::iterator it = TableChildWise.find(child);
 	if (it == TableChildWise.end())
 	{
 		return false;
@@ -108,7 +108,7 @@ bool ParentTable::isParentOf(int parent, int child)
 
 list<int> ParentTable::getParentStar(int stmt)
 {
-	unordered_map<int, list<int> >::iterator it = TableChildWiseStar.find(stmt);
+	map<int, list<int> >::iterator it = TableChildWiseStar.find(stmt);
 	list<int> res;
 
 	if (it == TableChildWiseStar.end())
@@ -123,7 +123,7 @@ list<int> ParentTable::getParentStar(int stmt)
 
 bool ParentTable::isParentStar(int parent, int child)
 {
-	unordered_map<int, list<int> >::iterator it = TableChildWiseStar.find(child);
+	map<int, list<int> >::iterator it = TableChildWiseStar.find(child);
 	bool res = false;
 
 	if (it != TableChildWiseStar.end())
@@ -139,7 +139,7 @@ bool ParentTable::isParentStar(int parent, int child)
 
 list<int> ParentTable::getChildStarOf(int stmt)
 {
-	unordered_map<int, list<int> >::iterator it = TableParentWiseStar.find(stmt);
+	map<int, list<int> >::iterator it = TableParentWiseStar.find(stmt);
 	list<int> results = list<int>();
 
 	if (it != TableParentWiseStar.end())
