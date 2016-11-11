@@ -17,538 +17,538 @@ PKB::~PKB()
 {
 }
 
-void PKB::addStmtLst(int stmt_list_first)
+void PKB::AddStmtLst(int stmt_list_first)
 {
-	all_stmtlst.push_back(stmt_list_first);
+	all_stmtlist_.push_back(stmt_list_first);
 }
 
-void PKB::addProcedureFirstStmt(int first_stmt_of_procedure)
+void PKB::AddProcedureFirstStmt(int first_stmt_of_procedure)
 {
-	procedure_first_stmts_list.push_back(first_stmt_of_procedure);
+	procedure_first_stmts_list_.push_back(first_stmt_of_procedure);
 }
 
-void PKB::addStmtProcBegin(int stmt_num, int proc_begin)
+void PKB::AddStmtProcBegin(int stmt_num, int proc_begin)
 {
-	stmt_to_proc_begin_table[stmt_num] = proc_begin;
+	stmt_to_proc_begin_table_[stmt_num] = proc_begin;
 }
 
 /***************** ParentTable ******************/
-void PKB::addParent(int lineOfParent, int lineNum)
+void PKB::AddParent(int parent_line, int line_num)
 {
-	P_Table.addParent(lineOfParent, lineNum);
+	parent_table_.AddParent(parent_line, line_num);
 }
 
-void PKB::addParentStar(int lineOfParentStar, int lineNum)
+void PKB::AddParentStar(int parent_star_line, int line_num)
 {
-	P_Table.addParentStar(lineOfParentStar, lineNum);
+	parent_table_.AddParentStar(parent_star_line, line_num);
 }
 
-int PKB::getParentOf(int stmt)
+int PKB::GetParentOf(int stmt)
 {
-	return P_Table.getParentOf(stmt);
+	return parent_table_.GetParentOf(stmt);
 }
 
-list<int> PKB::getParentStar(int stmt)
+list<int> PKB::GetParentStar(int stmt)
 {
-	return P_Table.getParentStar(stmt);
+	return parent_table_.GetParentStar(stmt);
 }
 
-list<int> PKB::getChildrenOf(int stmt)
+list<int> PKB::GetChildrenOf(int stmt)
 {
-	return P_Table.getChildrenOf(stmt);
+	return parent_table_.GetChildrenOf(stmt);
 }
 
-bool PKB::isParentEmpty()
+bool PKB::IsParentEmpty()
 {
-	return P_Table.isParentEmpty();
+	return parent_table_.IsParentEmpty();
 }
 
-bool PKB::isParentOf(int parentStmt, int childStmt)
+bool PKB::IsParentOf(int parent_stmt, int child_stmt)
 {
-	return P_Table.isParentOf(parentStmt, childStmt);
+	return parent_table_.IsParentOf(parent_stmt, child_stmt);
 }
 
-bool PKB::isParentStar(int parent, int child)
+bool PKB::IsParentStar(int parent, int child)
 {
-	return P_Table.isParentStar(parent, child);
+	return parent_table_.IsParentStar(parent, child);
 }
 
-list<int> PKB::getChildStarOf(int stmt)
+list<int> PKB::GetChildStarOf(int stmt)
 {
-	return P_Table.getChildStarOf(stmt);
+	return parent_table_.GetChildStarOf(stmt);
 }
 
 /***************** FollowsTable ******************/
-void PKB::addFollows(int lineNum, int nestingIndex)
+void PKB::AddFollows(int line_num, int nest_index)
 {
-	F_Table.addFollows(lineNum, nestingIndex);
+	follows_table_.AddFollows(line_num, nest_index);
 }
 
-int PKB::getFollowedFrom(int stmt)
+int PKB::GetFollowedFrom(int stmt)
 {
-	return F_Table.getFollowedFrom(stmt);
+	return follows_table_.GetFollowedFrom(stmt);
 }
 
-int PKB::getFollower(int stmt)
+int PKB::GetFollower(int stmt)
 {
-	return F_Table.getFollower(stmt);
+	return follows_table_.GetFollower(stmt);
 }
 
-list<int> PKB::getFollowedFromStar(int stmt)
+list<int> PKB::GetFollowedFromStar(int stmt)
 {
-	return F_Table.getFollowedFromStar(stmt);
+	return follows_table_.GetFollowedFromStar(stmt);
 }
 
-list<int> PKB::getFollowerStar(int stmt)
+list<int> PKB::GetFollowerStar(int stmt)
 {
-	return F_Table.getFollowerStar(stmt);
+	return follows_table_.GetFollowerStar(stmt);
 }
 
-bool PKB::isFollowEmpty()
+bool PKB::IsFollowEmpty()
 {
-	return F_Table.isFollowEmpty();
+	return follows_table_.IsFollowEmpty();
 }
 
-bool PKB::isValidFollows(int followedFrom, int follower)
+bool PKB::IsValidFollows(int followed_from, int follower)
 {
-	return F_Table.isValidFollows(followedFrom, follower);
+	return follows_table_.IsValidFollows(followed_from, follower);
 }
 
-bool PKB::isFollowsStar(int stmt1, int stmt2)
+bool PKB::IsFollowsStar(int stmt1, int stmt2)
 {
-	return F_Table.isFollowsStar(stmt1, stmt2);
+	return follows_table_.IsFollowsStar(stmt1, stmt2);
 }
 
 /***************** ModUsesTablebyStatement ******************/
-void PKB::addModifies(int stmtNum, string var)
+void PKB::AddModifies(int stmt_num, string var)
 {
-	M_U_TableByStmt.addModifies(stmtNum, var);
+	mod_uses_table_by_stmt_.AddModifies(stmt_num, var);
 }
 
-void PKB::addUses(int stmtNum, string var)
+void PKB::AddUses(int stmt_num, string var)
 {
-	M_U_TableByStmt.addUses(stmtNum, var);
+	mod_uses_table_by_stmt_.AddUses(stmt_num, var);
 }
 
-bool PKB::isModified(int stmtNum, string varName)
+bool PKB::IsModified(int stmt_num, string var_name)
 {
-	return M_U_TableByStmt.isModified(stmtNum, varName);
+	return mod_uses_table_by_stmt_.IsModified(stmt_num, var_name);
 }
 
-bool PKB::isUsed(int stmtNum, string varName)
+bool PKB::IsUsed(int stmt_num, string var_name)
 {
-	return M_U_TableByStmt.isUsed(stmtNum, varName);
+	return mod_uses_table_by_stmt_.IsUsed(stmt_num, var_name);
 }
 
-list<string> PKB::getModifiedBy(int stmtNum)
+list<string> PKB::GetModifiedBy(int stmt_num)
 {
-	return M_U_TableByStmt.getModifiedBy(stmtNum);
+	return mod_uses_table_by_stmt_.GetModifiedBy(stmt_num);
 }
 
-list<string> PKB::getUsedBy(int stmtNum)
+list<string> PKB::GetUsedBy(int stmt_num)
 {
-	return M_U_TableByStmt.getUsedBy(stmtNum);
+	return mod_uses_table_by_stmt_.GetUsedBy(stmt_num);
 }
 
 /***************** ModUsesTablebyVariable ******************/
-void PKB::addModifies(string var, int stmtNum)
+void PKB::AddModifies(string var, int stmt_num)
 {
-	M_U_TableByVar.addModifies(var, stmtNum);
+	mod_uses_table_by_var_.AddModifies(var, stmt_num);
 }
 
-void PKB::addUses(string var, int stmtNum)
+void PKB::AddUses(string var, int stmt_num)
 {
-	M_U_TableByVar.addUses(var, stmtNum);
+	mod_uses_table_by_var_.AddUses(var, stmt_num);
 }
 
-bool PKB::isValidVar(string varName)
+bool PKB::IsValidVar(string var_name)
 {
-	return M_U_TableByVar.isValidVar(varName);
+	return mod_uses_table_by_var_.IsValidVar(var_name);
 }
 
-list<int> PKB::getModifiedBy(string varName)
+list<int> PKB::GetModifiedBy(string var_name)
 {
-	return M_U_TableByVar.getModifiedBy(varName);
+	return mod_uses_table_by_var_.GetModifiedBy(var_name);
 }
 
-list<int> PKB::getUsedBy(string varName)
+list<int> PKB::GetUsedBy(string var_name)
 {
-	return M_U_TableByVar.getUsedBy(varName);
+	return mod_uses_table_by_var_.GetUsedBy(var_name);
 }
 
-list<string> PKB::getAllModVar()
+list<string> PKB::GetAllModVar()
 {
-	return M_U_TableByVar.getAllModVar();
+	return mod_uses_table_by_var_.GetAllModVar();
 }
 
-list<string> PKB::getAllUsedVar()
+list<string> PKB::GetAllUsedVar()
 {
-	return M_U_TableByVar.getAllUsedVar();
+	return mod_uses_table_by_var_.GetAllUsedVar();
 }
 
-list<string> PKB::getVarList()
+list<string> PKB::GetVarList()
 {
-	return M_U_TableByVar.getVarList();
+	return mod_uses_table_by_var_.GetVarList();
 }
 
 /***************** StatementTable ******************/
-void PKB::addStatement(int stmtNum, string stmtType)
+void PKB::AddStatement(int stmt_num, string stmt_type)
 {
-	S_Table.addStatement(stmtNum, stmtType);
+	stmt_table_.AddStatement(stmt_num, stmt_type);
 }
 
-void PKB::addStatement(int stmtNum, string stmtType, string ctrlvar)
+void PKB::AddStatement(int stmt_num, string stmt_type, string ctrl_var)
 {
-	S_Table.addStatement(stmtNum, stmtType, ctrlvar);
+	stmt_table_.AddStatement(stmt_num, stmt_type, ctrl_var);
 }
 
-list<int> PKB::getAssignList()
+list<int> PKB::GetAssignList()
 {
-	return S_Table.getAssignList();
+	return stmt_table_.GetAssignList();
 }
 
-list<int> PKB::getWhileList()
+list<int> PKB::GetWhileList()
 {
-	return S_Table.getWhileList();
+	return stmt_table_.GetWhileList();
 }
 
-list<int> PKB::getIfList()
+list<int> PKB::GetIfList()
 {
-	return S_Table.getIfList();
+	return stmt_table_.GetIfList();
 }
 
-list<int> PKB::getCallList()
+list<int> PKB::GetCallList()
 {
-	return S_Table.getCallList();
+	return stmt_table_.GetCallList();
 }
 
-string PKB::getProcNameByCallStmt(int callStmt)
+string PKB::GetProcNameByCallStmt(int call_stmt)
 {
-	return S_Table.getProcNameByCallStmt(callStmt);
+	return stmt_table_.GetProcNameByCallStmt(call_stmt);
 }
 
-list<int> PKB::getIfListWithControlVariable(string control_var)
+list<int> PKB::GetIfListWithControlVariable(string control_var)
 {
-	return S_Table.getIfListWithControlVariable(control_var);
+	return stmt_table_.GetIfListWithControlVariable(control_var);
 }
 
-list<int> PKB::getWhileListWithControlVariable(string control_var)
+list<int> PKB::GetWhileListWithControlVariable(string control_var)
 {
-	return S_Table.getWhileListWithControlVariable(control_var);
+	return stmt_table_.GetWhileListWithControlVariable(control_var);
 }
 
-string PKB::getControlVarWithStmt(int stmtNum)
+string PKB::GetControlVarWithStmt(int stmt_num)
 {
-	return S_Table.getControlVarWithStmt(stmtNum);
+	return stmt_table_.GetControlVarWithStmt(stmt_num);
 }
 
-bool PKB::isAssign(int stmtNum)
+bool PKB::IsAssign(int stmt_num)
 {
-	return S_Table.isAssign(stmtNum);
+	return stmt_table_.IsAssign(stmt_num);
 }
 
-list<int> PKB::getStmtList()
+list<int> PKB::GetStmtList()
 {
-	return S_Table.getStmtList();
+	return stmt_table_.GetStmtList();
 }
 
-int PKB::getStatementCount()
+int PKB::GetStatementCount()
 {
-	return S_Table.getStatementCount();
+	return stmt_table_.GetStatementCount();
 }
 
-bool PKB::isValidStmt(int stmtNum)
+bool PKB::IsValidStmt(int stmt_num)
 {
-	return S_Table.isValidStmt(stmtNum);
+	return stmt_table_.IsValidStmt(stmt_num);
 }
 
 /***************** ConstantTable ******************/
-void PKB::addConstant(int constant, int stmt)
+void PKB::AddConstant(int constant, int stmt)
 {
-	C_Table.addConstant(constant, stmt);
+	constant_table_.AddConstant(constant, stmt);
 }
 
-list<int> PKB::getConstantList()
+list<int> PKB::GetConstantList()
 {
-	return C_Table.getConstantList();;
+	return constant_table_.GetConstantList();;
 }
 
-list<int> PKB::getStmtlineByConstant(int c)
+list<int> PKB::GetStmtlineByConstant(int c)
 {
-	return C_Table.getStmtlineByConstant(c);
+	return constant_table_.GetStmtlineByConstant(c);
 }
 
 /***************** CallsTable ******************/
-void PKB::addCalls(string caller, string callee)
+void PKB::AddCalls(string caller, string callee)
 {
-	Calls_Table.addCalls(caller, callee);
+	calls_table_.AddCalls(caller, callee);
 }
 
-list<string> PKB::getCallee(string caller)
+list<string> PKB::GetCallee(string caller)
 {
-	return Calls_Table.getCallee(caller);
+	return calls_table_.GetCallee(caller);
 }
 
-list<string> PKB::getCaller(string callee)
+list<string> PKB::GetCaller(string callee)
 {
-	return Calls_Table.getCaller(callee);
+	return calls_table_.GetCaller(callee);
 }
 
-bool PKB::isCallExist()
+bool PKB::IsCallExist()
 {
-	return Calls_Table.isCallExist();
+	return calls_table_.IsCallExist();
 }
 
-bool PKB::isCall(string caller, string callee)
+bool PKB::IsCall(string caller, string callee)
 {
-	return Calls_Table.isCall(caller, callee);
+	return calls_table_.IsCall(caller, callee);
 }
 
-bool PKB::isCallStar(string caller, string callee)
+bool PKB::IsCallStar(string caller, string callee)
 {
-	return Calls_Table.isCallStar(caller, callee);
+	return calls_table_.IsCallStar(caller, callee);
 }
 
-list<string> PKB::getCalleeStar(string caller)
+list<string> PKB::GetCalleeStar(string caller)
 {
-	return Calls_Table.getCalleeStar(caller);
+	return calls_table_.GetCalleeStar(caller);
 }
 
-list<string> PKB::getCallerStar(string callee)
+list<string> PKB::GetCallerStar(string callee)
 {
-	return Calls_Table.getCallerStar(callee);
+	return calls_table_.GetCallerStar(callee);
 }
 
 /***************** CallsGraph ******************/
 
-void PKB::initializeCallsGraph(int vertexCount)
+void PKB::InitializeCallsGraph(int vertex_count)
 {
-	Calls_Graph.initializeCallsGraph(vertexCount);
+	calls_graph_.InitializeCallsGraph(vertex_count);
 }
 
-void PKB::addCallsGraphEdge(int i, int j)
+void PKB::AddCallsGraphEdge(int i, int j)
 {
-	Calls_Graph.addCallsGraphEdge(i, j);
+	calls_graph_.AddCallsGraphEdge(i, j);
 }
 
-bool PKB::hasArcCallsGraph(int i, int j)
+bool PKB::HasArcCallsGraph(int i, int j)
 {
-	return Calls_Graph.hasArcCallsGraph(i, j);
+	return calls_graph_.HasArcCallsGraph(i, j);
 }
 
-bool PKB::isCallsGraphCyclic()
+bool PKB::IsCallsGraphCyclic()
 {
-	return Calls_Graph.isCallsGraphCyclic();
+	return calls_graph_.IsCallsGraphCyclic();
 }
 
 /***************** ProcTable ******************/
-void PKB::addProc(string procName)
+void PKB::AddProc(string proc_name)
 {
-	Proc_Table.addProc(procName);
+	proc_table_.AddProc(proc_name);
 }
 
-void PKB::addProcMod(string procName, string var)
+void PKB::AddProcMod(string proc_name, string var)
 {
-	Proc_Table.addProcMod(procName, var);
+	proc_table_.AddProcMod(proc_name, var);
 }
 
-void PKB::addProcUses(string procName, string var)
+void PKB::AddProcUses(string proc_name, string var)
 {
-	Proc_Table.addProcUses(procName, var);
+	proc_table_.AddProcUses(proc_name, var);
 }
 
-void PKB::addProcCalledInStmt(string procName, int stmtLine)
+void PKB::AddProcCalledInStmt(string proc_name, int stmt_line)
 {
-	Proc_Table.addProcCalledInStmt(procName, stmtLine);
+	proc_table_.AddProcCalledInStmt(proc_name, stmt_line);
 }
 
-string PKB::getProcName(int procIndex)
+string PKB::GetProcName(int proc_index)
 {
-	return Proc_Table.getProcName(procIndex);
+	return proc_table_.GetProcName(proc_index);
 }
 
-int PKB::getProcIndex(string procName)
+int PKB::GetProcIndex(string proc_name)
 {
-	return Proc_Table.getProcIndex(procName);
+	return proc_table_.GetProcIndex(proc_name);
 }
 
-bool PKB::isModifiedByProc(string procName, string varName)
+bool PKB::IsModifiedByProc(string proc_name, string var_name)
 {
-	return Proc_Table.isModifiedByProc(procName, varName);
+	return proc_table_.IsModifiedByProc(proc_name, var_name);
 }
 
-bool PKB::isUsedByProc(string procName, string varName)
+bool PKB::IsUsedByProc(string proc_name, string var_name)
 {
-	return Proc_Table.isUsedByProc(procName, varName);
+	return proc_table_.IsUsedByProc(proc_name, var_name);
 }
 
-list<string> PKB::getModifiedByProc(string procName)
+list<string> PKB::GetModifiedByProc(string proc_name)
 {
-	return Proc_Table.getModifiedByProc(procName);
+	return proc_table_.GetModifiedByProc(proc_name);
 }
 
-list<string> PKB::getUsedByProc(string procName)
+list<string> PKB::GetUsedByProc(string proc_name)
 {
-	return Proc_Table.getUsedByProc(procName);
+	return proc_table_.GetUsedByProc(proc_name);
 }
 
-list<string> PKB::getProcedureModifying(string varName)
+list<string> PKB::GetProcedureModifying(string var_name)
 {
-	return Proc_Table.getProcedureModifying(varName);
+	return proc_table_.GetProcedureModifying(var_name);
 }
 
-list<string> PKB::getProcedureUsing(string varName)
+list<string> PKB::GetProcedureUsing(string var_name)
 {
-	return Proc_Table.getProcedureUsing(varName);
+	return proc_table_.GetProcedureUsing(var_name);
 }
 
-bool PKB::isProcedureExist(string procName)
+bool PKB::IsProcedureExist(string proc_name)
 {
-	return Proc_Table.isProcedureExist(procName);
+	return proc_table_.IsProcedureExist(proc_name);
 }
 
-list<int> PKB::getCallByProcName(string procName)
+list<int> PKB::GetCallByProcName(string proc_name)
 {
-	return Proc_Table.getCallByProcName(procName);
+	return proc_table_.GetCallByProcName(proc_name);
 }
 
-list<string> PKB::getCalledProcNamesList()
+list<string> PKB::GetCalledProcNamesList()
 {
-	return Proc_Table.getCalledProcNamesList();
+	return proc_table_.GetCalledProcNamesList();
 }
 
-list<string> PKB::getProcedureList()
+list<string> PKB::GetProcedureList()
 {
-	return Proc_Table.getProcedureList();
+	return proc_table_.GetProcedureList();
 }
 
 /***************** AST ******************/
-string PKB::makeExpr(string input)
+string PKB::MakeExpr(string input)
 {
-	return Ast.makeExpr(input);
+	return ast_.MakeExpr(input);
 }
 
-void PKB::addExpr(int stmt, string expr)
+void PKB::AddExpr(int stmt, string expr)
 {
-	Ast.addExpr(stmt, expr);
+	ast_.AddExpr(stmt, expr);
 }
 
-bool PKB::isExprExist(string expr)
+bool PKB::IsExprExist(string expr)
 {
-	return Ast.isExprExist(expr);
+	return ast_.IsExprExist(expr);
 }
 
-bool PKB::isSubExprExist(string subExpr)
+bool PKB::IsSubExprExist(string sub_expr)
 {
-	return Ast.isSubExprExist(subExpr);
+	return ast_.IsSubExprExist(sub_expr);
 }
 
-list<int> PKB::getAssignWithExpression(string expr)
+list<int> PKB::GetAssignWithExpression(string expr)
 {
-	return Ast.getAssignWithExpression(expr);
+	return ast_.GetAssignWithExpression(expr);
 }
 
-list<int> PKB::getAssignWithSubExpression(string subExpr)
+list<int> PKB::GetAssignWithSubExpression(string sub_expr)
 {
-	return Ast.getAssignWithSubExpression(subExpr);
+	return ast_.GetAssignWithSubExpression(sub_expr);
 }
 
 /***************** CFG ******************/
-void PKB::addProcCFG()
+void PKB::AddProcCFG()
 {
-	Cfg.addProcCFG();
+	cfg_.AddProcCFG();
 }
 
-void PKB::addStmtCFG(int stmtnum, string stmtType)
+void PKB::AddStmtCFG(int stmt_num, string stmt_type)
 {
-	Cfg.addStmtCFG(stmtnum, stmtType);
+	cfg_.AddStmtCFG(stmt_num, stmt_type);
 }
-void PKB::closeIfCFG()
+void PKB::CloseIfCFG()
 {
-	Cfg.closeIfCFG();
-}
-
-void PKB::closeElseCFG()
-{
-	Cfg.closeElseCFG();
+	cfg_.CloseIfCFG();
 }
 
-void PKB::closeWhileCFG()
+void PKB::CloseElseCFG()
 {
-	Cfg.closeWhileCFG();
+	cfg_.CloseElseCFG();
 }
 
-void PKB::buildCFGMatrix()
+void PKB::CloseWhileCFG()
 {
-	Cfg.buildCFGMatrix();
+	cfg_.CloseWhileCFG();
 }
 
-bool PKB::isNext(int n1, int n2)
+void PKB::BuildCFGMatrix()
 {
-	return Cfg.isNext(n1, n2);
+	cfg_.BuildCFGMatrix();
 }
 
-bool PKB::isNextStar(int n1, int n2)
+bool PKB::IsNext(int n1, int n2)
 {
-	return Cfg.isNextStar(n1, n2);
+	return cfg_.IsNext(n1, n2);
 }
 
-bool PKB::isNextEmpty()
+bool PKB::IsNextStar(int n1, int n2)
 {
-	return Cfg.isNextEmpty();
+	return cfg_.IsNextStar(n1, n2);
 }
 
-list<int> PKB::getExecutedBefore(int n)
+bool PKB::IsNextEmpty()
 {
-	return Cfg.getExecutedBefore(n);
+	return cfg_.IsNextEmpty();
 }
 
-list<int> PKB::getExecutedAfter(int n)
+list<int> PKB::GetExecutedBefore(int n)
 {
-	return Cfg.getExecutedAfter(n);
+	return cfg_.GetExecutedBefore(n);
 }
 
-list<int> PKB::getExecutedBeforeStar(int n)
+list<int> PKB::GetExecutedAfter(int n)
 {
-	return Cfg.getExecutedBeforeStar(n);
+	return cfg_.GetExecutedAfter(n);
 }
 
-list<int> PKB::getExecutedAfterStar(int n)
+list<int> PKB::GetExecutedBeforeStar(int n)
 {
-	return Cfg.getExecutedAfterStar(n);
+	return cfg_.GetExecutedBeforeStar(n);
 }
 
-string PKB::getStmtType(int stmtNum)
+list<int> PKB::GetExecutedAfterStar(int n)
 {
-	return S_Table.getStmtType(stmtNum);
+	return cfg_.GetExecutedAfterStar(n);
 }
 
-int PKB::getProcBeginStmt(int stmtNum)
+string PKB::GetStmtType(int stmt_num)
 {
-	if (stmt_to_proc_begin_table[stmtNum] != 0) {
-		return stmt_to_proc_begin_table[stmtNum];
+	return stmt_table_.GetStmtType(stmt_num);
+}
+
+int PKB::GetProcBeginStmt(int stmt_num)
+{
+	if (stmt_to_proc_begin_table_[stmt_num] != 0) {
+		return stmt_to_proc_begin_table_[stmt_num];
 	}
 	else {
 		return -1;
 	}
 }
 
-vector<int> PKB::getProcedureFirstStmtList()
+vector<int> PKB::GetProcedureFirstStmtList()
 {
-	return procedure_first_stmts_list;
+	return procedure_first_stmts_list_;
 }
 
-list<int> PKB::getAllStmtLst()
+list<int> PKB::GetAllStmtLst()
 {
-	return all_stmtlst;
+	return all_stmtlist_;
 }
 
-bool PKB::isAffects(int assign_stmt1, int assign_stmt2)
+bool PKB::IsAffects(int assign_stmt1, int assign_stmt2)
 {
 	set<pair<int, int>> affected_list;
 	map<string, set<int>> modifies_map;
-	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt1));
-	getAffectsBothSyn(affected_list, modifies_map, proc_begin_of_assign_stmt);
+	Node proc_begin_of_assign_stmt = cfg_.GetNodeByStmt(GetProcBeginStmt(assign_stmt1));
+	GetAffectsBothSyn(affected_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_pair : affected_list) {
 		if (affected_pair.first == assign_stmt1 && affected_pair.second == assign_stmt2) {
 			return true;
@@ -558,12 +558,12 @@ bool PKB::isAffects(int assign_stmt1, int assign_stmt2)
 	return false;
 }
 
-bool PKB::isAffectsStar(int assign_stmt1, int assign_stmt2)
+bool PKB::IsAffectsStar(int assign_stmt1, int assign_stmt2)
 {
 	set<pair<int, int>> affected_star_list;
 	map<string, set<int>> modifies_map;
-	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt1));
-	getAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt);
+	Node proc_begin_of_assign_stmt = cfg_.GetNodeByStmt(GetProcBeginStmt(assign_stmt1));
+	GetAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_star_pair : affected_star_list) {
 		if (affected_star_pair.first == assign_stmt1 && affected_star_pair.second == assign_stmt2) {
 			return true;
@@ -571,29 +571,13 @@ bool PKB::isAffectsStar(int assign_stmt1, int assign_stmt2)
 	}
 }
 
-list<int> PKB::GetAffectorStar(int assign_stmt)
-{
-	list<int> results;
-	set<pair<int, int>> affected_list;
-	map<string, set<int>> modifies_map;
-	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt));
-	getAffectsBothSyn(affected_list, modifies_map, proc_begin_of_assign_stmt);
-	for (auto &affected_pair : affected_list) {
-		if (affected_pair.first == assign_stmt) {
-			results.push_back(affected_pair.second);
-		}
-	}
-
-	return results;
-}
-
-list<int> PKB::getAffectedStar(int affector_stmt_num)
+list<int> PKB::GetAffectedStar(int affector_stmt_num)
 {
 	list<int> results;
 	set<pair<int, int>> affected_star_list;
 	map<string, set<int>> modifies_map;
-	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(affector_stmt_num));
-	getAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt);
+	Node proc_begin_of_assign_stmt = cfg_.GetNodeByStmt(GetProcBeginStmt(affector_stmt_num));
+	GetAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_star_pair : affected_star_list) {
 		if (affected_star_pair.first == affector_stmt_num) {
 			results.push_back(affected_star_pair.second);
@@ -603,13 +587,13 @@ list<int> PKB::getAffectedStar(int affector_stmt_num)
 	return results;
 }
 
-list<int> PKB::getAffector(int assign_stmt)
+list<int> PKB::GetAffector(int assign_stmt)
 {
 	list<int> results;
 	set<pair<int, int>> affected_list;
 	map<string, set<int>> modifies_map;
-	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt));
-	getAffectsBothSyn(affected_list, modifies_map, proc_begin_of_assign_stmt);
+	Node proc_begin_of_assign_stmt = cfg_.GetNodeByStmt(GetProcBeginStmt(assign_stmt));
+	GetAffectsBothSyn(affected_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_pair : affected_list) {
 		if (affected_pair.second == assign_stmt) {
 			results.push_back(affected_pair.first);
@@ -619,13 +603,12 @@ list<int> PKB::getAffector(int assign_stmt)
 	return results;
 }
 
-list<int> PKB::getAffectorStar(int assign_stmt)
-{
+list<int> PKB::GetAffectorStar(int assign_stmt) {
 	list<int> results;
 	set<pair<int, int>> affected_star_list;
 	map<string, set<int>> modifies_map;
-	Node proc_begin_of_assign_stmt = Cfg.getNodeByStmt(getProcBeginStmt(assign_stmt));
-	getAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt);
+	Node proc_begin_of_assign_stmt = cfg_.GetNodeByStmt(GetProcBeginStmt(assign_stmt));
+	GetAffectsStarBothSyn(affected_star_list, modifies_map, proc_begin_of_assign_stmt);
 	for (auto &affected_star_pair : affected_star_list) {
 		if (affected_star_pair.second == assign_stmt) {
 			results.push_back(affected_star_pair.first);
@@ -635,161 +618,161 @@ list<int> PKB::getAffectorStar(int assign_stmt)
 	return results;
 }
 
-list<pair<int, int>> PKB::getAffectsBothSyn(bool is_fill_cache)
+list<pair<int, int>> PKB::GetAffectsBothSyn(bool is_fill_cache)
 {
 	list<pair<int, int>> results;
-	set<pair<int, int>> affects_list;
-	map<string, set<int>> modifiesMap;
-	vector<int> startStmtList = getProcedureFirstStmtList();
+	set<pair<int, int>> result_list;
+	map<string, set<int>> modifies_map;
+	vector<int> start_stmt_list = GetProcedureFirstStmtList();
 
-	if (is_affects_cache_filled) {
-		for (auto &result_pair : affects_cache) {
+	if (is_affects_cache_filled_) {
+		for (auto &result_pair : affects_cache_) {
 			results.push_back(result_pair);
 		}
 		return results;
 	}
 	else {
-		for (vector<int>::iterator it = startStmtList.begin(); it != startStmtList.end(); ++it)
+		for (vector<int>::iterator it = start_stmt_list.begin(); it != start_stmt_list.end(); ++it)
 		{
 			set<pair<int, int>> affects_list;
-			Node currNode = Cfg.getNodeByStmt(*it);
-			getAffectsBothSyn(affects_list, modifiesMap, currNode);
+			Node curr_node = cfg_.GetNodeByStmt(*it);
+			GetAffectsBothSyn(affects_list, modifies_map, curr_node);
 			for (auto &result_pair : affects_list) {
 				results.push_back(result_pair);
-				if (is_fill_cache && !is_affects_cache_filled) {
-					affects_cache.insert(result_pair);
+				if (is_fill_cache && !is_affects_cache_filled_) {
+					affects_cache_.insert(result_pair);
 				}
 			}
 		}
 	}
 
 	if (is_fill_cache) {
-		is_affects_cache_filled = true;
+		is_affects_cache_filled_ = true;
 	}
 
 	return results;
 }
 
-map<string, set<int>> PKB::getAffectsBothSyn(set<pair<int, int>>& affectsList, map<string, set<int>> modifiesMap, Node currNode)
+map<string, set<int>> PKB::GetAffectsBothSyn(set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node)
 {
-	int currStmt = currNode.getStmtnum();
-	string nodeType = getStmtType(currStmt);
-	if (nodeType == "assign")
+	int curr_stmt_num = curr_node.GetStmtnum();
+	string curr_stmt_type = GetStmtType(curr_stmt_num);
+	if (curr_stmt_type == "assign")
 	{
 		// Get used vars of assign and check against mod_map
-		string curr_modified_var = getModifiedBy(currStmt).front();
-		list<string> curr_stmt_used_vars = getUsedBy(currStmt);
+		string curr_modified_var = GetModifiedBy(curr_stmt_num).front();
+		list<string> curr_stmt_used_vars = GetUsedBy(curr_stmt_num);
 		for (auto &used_var : curr_stmt_used_vars) {
-			if (modifiesMap.find(used_var) != modifiesMap.end()) {
-				for (auto &used_var_modified_stmt_num : modifiesMap[used_var]) {
-					affectsList.insert(pair<int, int>(used_var_modified_stmt_num, currStmt));
+			if (modifies_map.find(used_var) != modifies_map.end()) {
+				for (auto &used_var_modified_stmt_num : modifies_map[used_var]) {
+					result_list.insert(pair<int, int>(used_var_modified_stmt_num, curr_stmt_num));
 				}
 			}
 		}
-		modifiesMap[curr_modified_var] = set<int>();
-		modifiesMap[curr_modified_var].insert(currStmt);
+		modifies_map[curr_modified_var] = set<int>();
+		modifies_map[curr_modified_var].insert(curr_stmt_num);
 
 		// If got next node, recurse. Else, return map
-		if (currNode.getNextList().empty()) {
-			return modifiesMap;
+		if (curr_node.GetNextList().empty()) {
+			return modifies_map;
 		}
 		else {
-			Node next_node = *(currNode.getNextList().front());
-			int next_node_stmt_num = next_node.getStmtnum();
-			if (!while_stack.empty() && while_stack.top() == next_node_stmt_num) {
-				while_stack.pop();
-				return modifiesMap;
+			Node next_node = *(curr_node.GetNextList().front());
+			int next_node_stmt_num = next_node.GetStmtnum();
+			if (!while_stack_.empty() && while_stack_.top() == next_node_stmt_num) {
+				while_stack_.pop();
+				return modifies_map;
 			}
-			return getAffectsBothSyn(affectsList, modifiesMap, next_node);
+			return GetAffectsBothSyn(result_list, modifies_map, next_node);
 		}
 	}
-	else if (nodeType == "call")
+	else if (curr_stmt_type == "call")
 	{
 		// Update modifiesMap (delete modifiedVar that are modified by this call statement)
-		list<string> modifiedByCall = getModifiedBy(currStmt);
-		for (auto &modified_variable : modifiedByCall) {
-			if (modifiesMap.find(modified_variable) != modifiesMap.end()) {
-				modifiesMap.erase(modified_variable);
+		list<string> modified_by_call = GetModifiedBy(curr_stmt_num);
+		for (auto &modified_variable : modified_by_call) {
+			if (modifies_map.find(modified_variable) != modifies_map.end()) {
+				modifies_map.erase(modified_variable);
 			}
 		}
 
 		// Go next
-		if (currNode.getNextList().empty())
+		if (curr_node.GetNextList().empty())
 		{
-			return modifiesMap;
+			return modifies_map;
 		}
 		else
 		{
-			Node nextNode = *(currNode.getNextList().front());
-			int next_node_stmt_num = nextNode.getStmtnum();
-			if (!while_stack.empty() && while_stack.top() == next_node_stmt_num) {
-				while_stack.pop();
-				return modifiesMap;
+			Node next_node = *(curr_node.GetNextList().front());
+			int next_node_stmt_num = next_node.GetStmtnum();
+			if (!while_stack_.empty() && while_stack_.top() == next_node_stmt_num) {
+				while_stack_.pop();
+				return modifies_map;
 			}
-			return getAffectsBothSyn(affectsList, modifiesMap, nextNode);
+			return GetAffectsBothSyn(result_list, modifies_map, next_node);
 		}
 	}
-	else if (nodeType == "if")
+	else if (curr_stmt_type == "if")
 	{
-		Node if_then_node = *(currNode.getNextList().at(0));
-		Node else_node = *(currNode.getNextList().at(1));
+		Node if_then_node = *(curr_node.GetNextList().at(0));
+		Node else_node = *(curr_node.GetNextList().at(1));
 		map<string, set<int>> merged_map;
 
-		int if_then_node_stmt_num = if_then_node.getStmtnum();
-		int else_node_stmt_num = else_node.getStmtnum();
+		int if_then_node_stmt_num = if_then_node.GetStmtnum();
+		int else_node_stmt_num = else_node.GetStmtnum();
 
 		// Process the if and else chains separately, merge them later
-		map<string, set<int>> ifMap = getAffectsBothSyn(affectsList, modifiesMap, if_then_node);
-		map<string, set<int>> elseMap = getAffectsBothSyn(affectsList, modifiesMap, else_node);
+		map<string, set<int>> ifMap = GetAffectsBothSyn(result_list, modifies_map, if_then_node);
+		map<string, set<int>> elseMap = GetAffectsBothSyn(result_list, modifies_map, else_node);
 		UnionMap(merged_map, ifMap, elseMap);
 		// Go next
-		Node terminalNode = getTerminalNodeByStmt(currStmt);
-		if (terminalNode.getNextList().empty()) {
+		Node terminalNode = GetTerminalNodeByStmt(curr_stmt_num);
+		if (terminalNode.GetNextList().empty()) {
 			return merged_map;
 		}
 		else {
-			Node nextNode = *(terminalNode.getNextList().front());
-			int next_node_stmt_num = nextNode.getStmtnum();
-			if (!while_stack.empty() && while_stack.top() == next_node_stmt_num) {
-				while_stack.pop();
+			Node next_node = *(terminalNode.GetNextList().front());
+			int next_node_stmt_num = next_node.GetStmtnum();
+			if (!while_stack_.empty() && while_stack_.top() == next_node_stmt_num) {
+				while_stack_.pop();
 				return merged_map;
 			}
-			return getAffectsBothSyn(affectsList, merged_map, nextNode);
+			return GetAffectsBothSyn(result_list, merged_map, next_node);
 		}
 	}
-	else if (nodeType == "while")
+	else if (curr_stmt_type == "while")
 	{
-		bool has_out = currNode.getNextList().size() == 2;
-		Node into_while_node = *(currNode.getNextList().at(0));
+		bool has_out = curr_node.GetNextList().size() == 2;
+		Node into_while_node = *(curr_node.GetNextList().at(0));
 		Node out_of_while_node; 
 
 		if (has_out) {
-			out_of_while_node = *(currNode.getNextList().at(1));
+			out_of_while_node = *(curr_node.GetNextList().at(1));
 		}
 
 		map<string, set<int>> merged_set;
-		working_set_stack.push(modifiesMap);
-		while_stack.push(currStmt);
-		map<string, set<int>> into_while_set = getAffectsBothSyn(affectsList, modifiesMap, into_while_node);
-		map<string, set<int>> popped_set = working_set_stack.top();
-		working_set_stack.pop();
+		working_set_stack_.push(modifies_map);
+		while_stack_.push(curr_stmt_num);
+		map<string, set<int>> into_while_set = GetAffectsBothSyn(result_list, modifies_map, into_while_node);
+		map<string, set<int>> popped_set = working_set_stack_.top();
+		working_set_stack_.pop();
 		UnionMap(merged_set, popped_set, into_while_set);
 		while (IsMapEqual(popped_set, merged_set) == false) {
-			while_stack.push(currStmt);
-			working_set_stack.push(merged_set);
-			modifiesMap = getAffectsBothSyn(affectsList, merged_set, into_while_node);
-			popped_set = working_set_stack.top();
-			working_set_stack.pop();
-			UnionMap(merged_set, modifiesMap, popped_set);
+			while_stack_.push(curr_stmt_num);
+			working_set_stack_.push(merged_set);
+			modifies_map = GetAffectsBothSyn(result_list, merged_set, into_while_node);
+			popped_set = working_set_stack_.top();
+			working_set_stack_.pop();
+			UnionMap(merged_set, modifies_map, popped_set);
 		}
 
 		if (has_out) {
-			if (!while_stack.empty() && while_stack.top() == out_of_while_node.getStmtnum()) {
-				while_stack.pop();
+			if (!while_stack_.empty() && while_stack_.top() == out_of_while_node.GetStmtnum()) {
+				while_stack_.pop();
 				return merged_set;
 			}
 			else {
-				return getAffectsBothSyn(affectsList, merged_set, out_of_while_node);
+				return GetAffectsBothSyn(result_list, merged_set, out_of_while_node);
 			}
 		}
 		else {
@@ -798,52 +781,52 @@ map<string, set<int>> PKB::getAffectsBothSyn(set<pair<int, int>>& affectsList, m
 	}
 	else {
 		// Should only be terminal node
-		return modifiesMap;
+		return modifies_map;
 	}
 }
 
-list<pair<int, int>> PKB::getAffectsStarBothSyn(bool is_fill_cache)
+list<pair<int, int>> PKB::GetAffectsStarBothSyn(bool is_fill_cache)
 {
 	list<pair<int,int>> results;
 	map<string, set<int>> modifies_map;
-	vector<int> procedure_first_stmts_list = getProcedureFirstStmtList();
+	vector<int> procedure_first_stmts_list_ = GetProcedureFirstStmtList();
 
-	if (is_affects_star_cache_filled) {
-		for (auto &result_pair : affects_star_cache) {
+	if (is_affects_star_cache_filled_) {
+		for (auto &result_pair : affects_star_cache_) {
 			results.push_back(result_pair);
 		}
 		return results;
 	}
 	else {
-		for (auto &proc_first_stmt : procedure_first_stmts_list) {
+		for (auto &proc_first_stmt : procedure_first_stmts_list_) {
 			set<pair<int, int>> affected_star_list;
-			Node curr_node = Cfg.getNodeByStmt(proc_first_stmt);
-			getAffectsStarBothSyn(affected_star_list, modifies_map, curr_node);
+			Node curr_node = cfg_.GetNodeByStmt(proc_first_stmt);
+			GetAffectsStarBothSyn(affected_star_list, modifies_map, curr_node);
 			for (auto &result_pair : affected_star_list) {
 				results.push_back(result_pair);
-				if (is_fill_cache && !is_affects_star_cache_filled) {
-					affects_star_cache.insert(result_pair);
+				if (is_fill_cache && !is_affects_star_cache_filled_) {
+					affects_star_cache_.insert(result_pair);
 				}
 			}
 		}
 	}
 
 	if (is_fill_cache) {
-		is_affects_star_cache_filled = true;
+		is_affects_star_cache_filled_ = true;
 	}
 
 	return results;
 }
 
-map<string, set<int>> PKB::getAffectsStarBothSyn(set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node)
+map<string, set<int>> PKB::GetAffectsStarBothSyn(set<pair<int, int>>& result_list, map<string, set<int>> modifies_map, Node curr_node)
 {
-	int curr_stmt_num = curr_node.getStmtnum();
-	string curr_stmt_type = getStmtType(curr_stmt_num);
+	int curr_stmt_num = curr_node.GetStmtnum();
+	string curr_stmt_type = GetStmtType(curr_stmt_num);
 	if (curr_stmt_type == "assign") {
 		// Get used vars of assign and check against mod_map
-		string curr_modified_var = getModifiedBy(curr_stmt_num).front();
+		string curr_modified_var = GetModifiedBy(curr_stmt_num).front();
 		set<int> new_set_for_curr_modified_var;
-		list<string> curr_stmt_used_vars = getUsedBy(curr_stmt_num);
+		list<string> curr_stmt_used_vars = GetUsedBy(curr_stmt_num);
 		bool is_modified_being_used = find(curr_stmt_used_vars.begin(), curr_stmt_used_vars.end(), curr_modified_var) != curr_stmt_used_vars.end();
 
 		for (auto &used_var : curr_stmt_used_vars) {
@@ -865,72 +848,72 @@ map<string, set<int>> PKB::getAffectsStarBothSyn(set<pair<int, int>>& result_lis
 		modifies_map[curr_modified_var].insert(curr_stmt_num);
 
 		// If got next node, recurse. Else, return map
-		if (curr_node.getNextList().empty()) {
+		if (curr_node.GetNextList().empty()) {
 			return modifies_map;
 		}
 		else {
-			Node next_node = *(curr_node.getNextList().front());
-			int next_node_stmt_num = next_node.getStmtnum();
-			if (!while_stack.empty() && while_stack.top() == next_node_stmt_num) {
-				while_stack.pop();
+			Node next_node = *(curr_node.GetNextList().front());
+			int next_node_stmt_num = next_node.GetStmtnum();
+			if (!while_stack_.empty() && while_stack_.top() == next_node_stmt_num) {
+				while_stack_.pop();
 				return modifies_map;
 			}
-			return getAffectsStarBothSyn(result_list, modifies_map, next_node);
+			return GetAffectsStarBothSyn(result_list, modifies_map, next_node);
 		}
 	}
 	else if (curr_stmt_type == "if") {
-		Node if_then_node = *(curr_node.getNextList().at(0));
-		Node else_node = *(curr_node.getNextList().at(1));
+		Node if_then_node = *(curr_node.GetNextList().at(0));
+		Node else_node = *(curr_node.GetNextList().at(1));
 		map<string, set<int>> merged_set;
-		map<string, set<int>> if_then_map = getAffectsStarBothSyn(result_list, modifies_map, if_then_node);
-		map<string, set<int>> else_map = getAffectsStarBothSyn(result_list, modifies_map, else_node);
+		map<string, set<int>> if_then_map = GetAffectsStarBothSyn(result_list, modifies_map, if_then_node);
+		map<string, set<int>> else_map = GetAffectsStarBothSyn(result_list, modifies_map, else_node);
 		UnionMap(merged_set, if_then_map, else_map);
-		Node terminal_node = getTerminalNodeByStmt(curr_stmt_num);
-		if (terminal_node.getNextList().empty()) {
+		Node terminal_node = GetTerminalNodeByStmt(curr_stmt_num);
+		if (terminal_node.GetNextList().empty()) {
 			return merged_set;
 		}
 		else {
-			Node next_node = *(terminal_node.getNextList().front());
-			int next_node_stmt_num = next_node.getStmtnum();
-			if (!while_stack.empty() && while_stack.top() == next_node_stmt_num) {
-				while_stack.pop();
+			Node next_node = *(terminal_node.GetNextList().front());
+			int next_node_stmt_num = next_node.GetStmtnum();
+			if (!while_stack_.empty() && while_stack_.top() == next_node_stmt_num) {
+				while_stack_.pop();
 				return merged_set;
 			}
-			return getAffectsStarBothSyn(result_list, merged_set, next_node);
+			return GetAffectsStarBothSyn(result_list, merged_set, next_node);
 		}
 	}
 	else if (curr_stmt_type == "while") {
-		bool has_out = curr_node.getNextList().size() == 2;
-		Node into_while_node = *(curr_node.getNextList().at(0));
+		bool has_out = curr_node.GetNextList().size() == 2;
+		Node into_while_node = *(curr_node.GetNextList().at(0));
 		Node out_of_while_node;
 
 		if (has_out) {
-			out_of_while_node = *(curr_node.getNextList().at(1));
+			out_of_while_node = *(curr_node.GetNextList().at(1));
 		}
 
 		map<string, set<int>> merged_set;
-		working_set_stack.push(modifies_map);
-		while_stack.push(curr_stmt_num);
-		map<string, set<int>> into_while_set = getAffectsStarBothSyn(result_list, modifies_map, into_while_node);
-		map<string, set<int>> popped_set = working_set_stack.top();
-		working_set_stack.pop();
+		working_set_stack_.push(modifies_map);
+		while_stack_.push(curr_stmt_num);
+		map<string, set<int>> into_while_set = GetAffectsStarBothSyn(result_list, modifies_map, into_while_node);
+		map<string, set<int>> popped_set = working_set_stack_.top();
+		working_set_stack_.pop();
 		UnionMap(merged_set, popped_set, into_while_set);
 		while (IsMapEqual(popped_set, merged_set) == false) {
-			while_stack.push(curr_stmt_num);
-			working_set_stack.push(merged_set);
-			modifies_map = getAffectsStarBothSyn(result_list, merged_set, into_while_node);
-			popped_set = working_set_stack.top();
-			working_set_stack.pop();
+			while_stack_.push(curr_stmt_num);
+			working_set_stack_.push(merged_set);
+			modifies_map = GetAffectsStarBothSyn(result_list, merged_set, into_while_node);
+			popped_set = working_set_stack_.top();
+			working_set_stack_.pop();
 			UnionMap(merged_set, modifies_map, popped_set);
 		}
 
 		if (has_out) {
-			if (!while_stack.empty() && while_stack.top() == out_of_while_node.getStmtnum()) {
-				while_stack.pop();
+			if (!while_stack_.empty() && while_stack_.top() == out_of_while_node.GetStmtnum()) {
+				while_stack_.pop();
 				return merged_set;
 			}
 			else {
-				return getAffectsStarBothSyn(result_list, merged_set, out_of_while_node);
+				return GetAffectsStarBothSyn(result_list, merged_set, out_of_while_node);
 			}
 		}
 		else {
@@ -938,7 +921,7 @@ map<string, set<int>> PKB::getAffectsStarBothSyn(set<pair<int, int>>& result_lis
 		}
 	}
 	else if (curr_stmt_type == "call") {
-		list<string> curr_modified_vars = getModifiedBy(curr_stmt_num);
+		list<string> curr_modified_vars = GetModifiedBy(curr_stmt_num);
 		for (auto &modified_var : curr_modified_vars) {
 			if (modifies_map.find(modified_var) != modifies_map.end()) {
 				modifies_map.erase(modified_var);
@@ -946,17 +929,17 @@ map<string, set<int>> PKB::getAffectsStarBothSyn(set<pair<int, int>>& result_lis
 		}
 
 		// If got next node, recurse. Else, return map
-		if (curr_node.getNextList().empty()) {
+		if (curr_node.GetNextList().empty()) {
 			return modifies_map;
 		}
 		else {
-			Node next_node = *(curr_node.getNextList().front());
-			int next_node_stmt_num = next_node.getStmtnum();
-			if (!while_stack.empty() && while_stack.top() == next_node_stmt_num) {
-				while_stack.pop();
+			Node next_node = *(curr_node.GetNextList().front());
+			int next_node_stmt_num = next_node.GetStmtnum();
+			if (!while_stack_.empty() && while_stack_.top() == next_node_stmt_num) {
+				while_stack_.pop();
 				return modifies_map;
 			}
-			return getAffectsStarBothSyn(result_list, modifies_map, next_node);
+			return GetAffectsStarBothSyn(result_list, modifies_map, next_node);
 		}
 	}
 	else {
@@ -965,9 +948,9 @@ map<string, set<int>> PKB::getAffectsStarBothSyn(set<pair<int, int>>& result_lis
 	}
 }
 
-Node PKB::getTerminalNodeByStmt(int if_stmt_num)
+Node PKB::GetTerminalNodeByStmt(int if_stmt_num)
 {
-	return Cfg.getTerminalNodeByStmt(if_stmt_num);
+	return cfg_.GetTerminalNodeByStmt(if_stmt_num);
 }
 
 void PKB::UnionMap(map<string, set<int>>& main_map, map<string, set<int>>& if_then_map, map<string, set<int>>& else_map)

@@ -2,15 +2,15 @@
 using namespace std;
 
 AST::AST() {
-	ASTTable = unordered_map<int, string>();
+	ast_table_ = unordered_map<int, string>();
 }
 
-void AST::addExpr(int stmt, string expr) {
-	ASTTable.insert({ stmt, expr });
+void AST::AddExpr(int stmt, string expr) {
+	ast_table_.insert({ stmt, expr });
 }
 
-bool AST::isExprExist(string expr) {
-	for (auto pair : ASTTable) {
+bool AST::IsExprExist(string expr) {
+	for (auto pair : ast_table_) {
 		if (pair.second == expr) {
 			return true;
 		}
@@ -18,20 +18,20 @@ bool AST::isExprExist(string expr) {
 	return false;
 }
 
-bool AST::isSubExprExist(string subExpr) {
-	for (auto pair : ASTTable) {
-		if (pair.second.find(subExpr) != string::npos) {
+bool AST::IsSubExprExist(string sub_expr) {
+	for (auto pair : ast_table_) {
+		if (pair.second.find(sub_expr) != string::npos) {
 			return true;
 		}
 	}
 	return false;
 }
 
-list<int> AST::getAssignWithExpression(string expr)
+list<int> AST::GetAssignWithExpression(string expr)
 {
 	list<int> output;
-	expr = makeExpr(expr);
-	for (auto pair : ASTTable) {
+	expr = MakeExpr(expr);
+	for (auto pair : ast_table_) {
 		if (pair.second == expr) {
 			output.push_back(pair.first);
 		}
@@ -39,11 +39,11 @@ list<int> AST::getAssignWithExpression(string expr)
 	return output;
 }
 
-list<int> AST::getAssignWithSubExpression(string subExpr)
+list<int> AST::GetAssignWithSubExpression(string subExpr)
 {
 	list<int> output;
-	subExpr = makeExpr(subExpr);
-	for (auto pair : ASTTable) {
+	subExpr = MakeExpr(subExpr);
+	for (auto pair : ast_table_) {
 		if (pair.second.find(subExpr) != string::npos) {
 			output.push_back(pair.first);
 		}
@@ -51,7 +51,7 @@ list<int> AST::getAssignWithSubExpression(string subExpr)
 	return output;
 }
 
-string AST::makeExpr(string infix) {
+string AST::MakeExpr(string infix) {
 	std::stringstream postfix;
 	std::stack<char> stack;
 	stack.push('(');
@@ -69,9 +69,9 @@ string AST::makeExpr(string infix) {
 			stack.push(current);
 		}
 
-		else if (isOperator(current)) {
+		else if (IsOperator(current)) {
 			char rightOperator = current;
-			while (!stack.empty() && isOperator(stack.top()) && precedence(stack.top(), rightOperator)) {
+			while (!stack.empty() && IsOperator(stack.top()) && Precedence(stack.top(), rightOperator)) {
 				postfix << ' ' << stack.top();
 				stack.pop();
 			}
@@ -111,8 +111,8 @@ string AST::makeExpr(string infix) {
 	return " " + postfix.str() + " ";
 }
 
-bool AST::isOperator(char currentChar) {
-	switch (currentChar) {
+bool AST::IsOperator(char current_char) {
+	switch (current_char) {
 	case '+':
 	case '-':
 	case '*':
@@ -122,11 +122,11 @@ bool AST::isOperator(char currentChar) {
 	}
 }
 
-bool AST::precedence(char leftOperator, char rightOperator) {
-	if (leftOperator == '*') {
+bool AST::Precedence(char left_operator, char right_operator) {
+	if (left_operator == '*') {
 		return true;
 	}
-	else if (rightOperator == '*') {
+	else if (right_operator == '*') {
 		return false;
 	}
 	return true;

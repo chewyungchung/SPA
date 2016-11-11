@@ -13,25 +13,25 @@ public:
 	ProcTable();
 	~ProcTable();
 
-	void addProc(string procName);
-	void addProcMod(string procName, string var);
-	void addProcUses(string procName, string var);
-	void addProcCalledInStmt(string procName, int stmtLine);
+	void AddProc(string proc_name);
+	void AddProcMod(string proc_name, string var);
+	void AddProcUses(string proc_name, string var);
+	void AddProcCalledInStmt(string proc_name, int stmtLine);
 
-	string getProcName(int procIndex);
-	int getProcIndex(string procName);
+	string GetProcName(int proc_index);
+	int GetProcIndex(string proc_name);
 
-	bool isModifiedByProc(string procName, string varName);
-	bool isUsedByProc(string procName, string varName);
-	list<string> getModifiedByProc(string procName);
-	list<string> getUsedByProc(string procName);
-	list<string> getProcedureModifying(string varName);
-	list<string> getProcedureUsing(string varName);
+	bool IsModifiedByProc(string proc_name, string var_name);
+	bool IsUsedByProc(string proc_name, string var_name);
+	list<string> GetModifiedByProc(string proc_name);
+	list<string> GetUsedByProc(string proc_name);
+	list<string> GetProcedureModifying(string var_name);
+	list<string> GetProcedureUsing(string var_name);
 
-	bool isProcedureExist(string procName);
-	list<int> getCallByProcName(string procName);
-	list<string> getCalledProcNamesList();
-	list<string> getProcedureList();
+	bool IsProcedureExist(string proc_name);
+	list<int> GetCallByProcName(string proc_name);
+	list<string> GetCalledProcNamesList();
+	list<string> GetProcedureList();
 
 private:
 	int PROCDATA_COLSIZE = 4;
@@ -40,7 +40,7 @@ private:
 	int USEVAR_COL = 2;
 	int CALLED_IN_STMT_COL = 3;
 
-	map<string, int> procNameIndexTable; //key: procName; value: internal index (0, 1, 2, ..)
-	vector<vector<list<string>>> procDataTable; // for every procIndex: col_1: procName; col_2: modified var, col_3: used var, col_4: called in stmtLine
-	int maxProcIndex;
+	map<string, int> proc_name_index_table_; //key: procName; value: internal index (0, 1, 2, ..)
+	vector<vector<list<string>>> proc_data_table_; // for every procIndex: col_1: procName; col_2: modified var, col_3: used var, col_4: called in stmtLine
+	int max_proc_index_;
 };

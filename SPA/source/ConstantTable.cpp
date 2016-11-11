@@ -3,35 +3,35 @@ using namespace std;
 
 ConstantTable::ConstantTable()
 {
-	constantList = list<int>();
-	constantTable = map<int, list<int>>();
+	constant_list_ = list<int>();
+	constant_table_ = map<int, list<int>>();
 }
 
-void ConstantTable::addConstant(int constant, int stmtline)
+void ConstantTable::AddConstant(int constant, int stmtline)
 {
-	map<int, list<int>>::iterator index = constantTable.find(constant);
-	if (index != constantTable.end())
+	map<int, list<int>>::iterator index = constant_table_.find(constant);
+	if (index != constant_table_.end())
 	{
 		index->second.push_back(stmtline);
 	}
 	else
 	{
-		constantList.push_back(constant);
+		constant_list_.push_back(constant);
 		list<int> x = list<int>();
 		x.push_back(stmtline);
-		constantTable.insert(pair<int, list<int>>(constant, x));
+		constant_table_.insert(pair<int, list<int>>(constant, x));
 	}
 }
 
-list<int> ConstantTable::getConstantList(void)
+list<int> ConstantTable::GetConstantList(void)
 {
-	return constantList;
+	return constant_list_;
 }
 
-list<int> ConstantTable::getStmtlineByConstant(int constant)
+list<int> ConstantTable::GetStmtlineByConstant(int constant)
 {
-	map<int, list<int>>::iterator index = constantTable.find(constant);
-	if (index != constantTable.end())
+	map<int, list<int>>::iterator index = constant_table_.find(constant);
+	if (index != constant_table_.end())
 	{
 		return index->second;
 	}

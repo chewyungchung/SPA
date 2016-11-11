@@ -4,39 +4,39 @@ using namespace std;
 
 ModUsesTablebyStmt::ModUsesTablebyStmt()
 {
-	modifiesTable = map<int, list<string>>();
-	usesTable = map<int, list<string>>();
+	modifies_table_ = map<int, list<string>>();
+	uses_table_ = map<int, list<string>>();
 }
 
 ModUsesTablebyStmt::~ModUsesTablebyStmt()
 {
 }
 
-map<int, list<string>> ModUsesTablebyStmt::getModTable()
+map<int, list<string>> ModUsesTablebyStmt::GetModTable()
 {
-	return modifiesTable;
+	return modifies_table_;
 }
 
-map<int, list<string>> ModUsesTablebyStmt::getUsesTable()
+map<int, list<string>> ModUsesTablebyStmt::GetUsesTable()
 {
-	return usesTable;
+	return uses_table_;
 }
 
-void ModUsesTablebyStmt::addModifies(int stmtNum, string var)
+void ModUsesTablebyStmt::AddModifies(int stmtNum, string var)
 {
-	map<int, list<string>>::iterator it = modifiesTable.find(stmtNum);
-	list<string> mVarList;
+	map<int, list<string>>::iterator it = modifies_table_.find(stmtNum);
+	list<string> mod_var_list;
 
 	/* if key is not found, add key-pair into modifiesTable */
-	if (it == modifiesTable.end())
+	if (it == modifies_table_.end())
 	{
-		mVarList.push_back(var);
-		modifiesTable.insert(pair<int, list<string>>(stmtNum, mVarList));
+		mod_var_list.push_back(var);
+		modifies_table_.insert(pair<int, list<string>>(stmtNum, mod_var_list));
 	}
 	else
 	{
-		mVarList = it->second;
-		bool found = find(mVarList.begin(), mVarList.end(), var) != mVarList.end();
+		mod_var_list = it->second;
+		bool found = find(mod_var_list.begin(), mod_var_list.end(), var) != mod_var_list.end();
 		if (!found)
 		{
 			it->second.push_back(var);
@@ -44,33 +44,33 @@ void ModUsesTablebyStmt::addModifies(int stmtNum, string var)
 	}
 }
 
-void ModUsesTablebyStmt::addUses(int stmtNum, string var)
+void ModUsesTablebyStmt::AddUses(int stmtNum, string var)
 {
-	map<int, list<string>>::iterator it = usesTable.find(stmtNum);
-	list<string> uVarList;
+	map<int, list<string>>::iterator it = uses_table_.find(stmtNum);
+	list<string> use_var_list;
 
 	/* if key is not found, add key-value pair into usesTable */
-	if (it == usesTable.end())
+	if (it == uses_table_.end())
 	{
-		uVarList.push_back(var);
-		usesTable.insert(pair<int, list<string>>(stmtNum, uVarList));
+		use_var_list.push_back(var);
+		uses_table_.insert(pair<int, list<string>>(stmtNum, use_var_list));
 	}
 	else
 	{
-		uVarList = it->second;
-		bool found = find(uVarList.begin(), uVarList.end(), var) != uVarList.end();
-		if (!found)
+		use_var_list = it->second;
+		bool is_found = find(use_var_list.begin(), use_var_list.end(), var) != use_var_list.end();
+		if (!is_found)
 		{
 			it->second.push_back(var);
 		}
 	}
 }
 
-bool ModUsesTablebyStmt::isModified(int stmtNum, string varName)
+bool ModUsesTablebyStmt::IsModified(int stmtNum, string varName)
 {
-	map<int, list<string>>::iterator it = modifiesTable.find(stmtNum);
+	map<int, list<string>>::iterator it = modifies_table_.find(stmtNum);
 
-	if (it != modifiesTable.end())
+	if (it != modifies_table_.end())
 	{
 		list<string> varModified = it->second;
 		return find(varModified.begin(), varModified.end(), varName) != varModified.end();
@@ -81,14 +81,14 @@ bool ModUsesTablebyStmt::isModified(int stmtNum, string varName)
 	}
 }
 
-bool ModUsesTablebyStmt::isUsed(int stmtNum, string varName)
+bool ModUsesTablebyStmt::IsUsed(int stmtNum, string varName)
 {
-	map<int, list<string>>::iterator it = usesTable.find(stmtNum);
+	map<int, list<string>>::iterator it = uses_table_.find(stmtNum);
 
-	if (it != usesTable.end())
+	if (it != uses_table_.end())
 	{
-		list<string> varUsed = it->second;
-		return find(varUsed.begin(), varUsed.end(), varName) != varUsed.end();
+		list<string> used_var_list = it->second;
+		return find(used_var_list.begin(), used_var_list.end(), varName) != used_var_list.end();
 	}
 	else
 	{
@@ -96,15 +96,15 @@ bool ModUsesTablebyStmt::isUsed(int stmtNum, string varName)
 	}
 }
 
-list<string> ModUsesTablebyStmt::getModifiedBy(int stmtNum)
+list<string> ModUsesTablebyStmt::GetModifiedBy(int stmtNum)
 {
-	map<int, list<string>>::iterator it = modifiesTable.find(stmtNum);
-	list<string> mVarList;
+	map<int, list<string>>::iterator it = modifies_table_.find(stmtNum);
+	list<string> mod_var_list;
 
-	if (it != modifiesTable.end())
+	if (it != modifies_table_.end())
 	{
-		mVarList = it->second;
-		return mVarList;
+		mod_var_list = it->second;
+		return mod_var_list;
 	}
 	else
 	{
@@ -112,15 +112,15 @@ list<string> ModUsesTablebyStmt::getModifiedBy(int stmtNum)
 	}
 }
 
-list<string> ModUsesTablebyStmt::getUsedBy(int stmtNum)
+list<string> ModUsesTablebyStmt::GetUsedBy(int stmtNum)
 {
-	map<int, list<string>>::iterator it = usesTable.find(stmtNum);
-	list<string> uVarList;
+	map<int, list<string>>::iterator it = uses_table_.find(stmtNum);
+	list<string> use_var_list;
 
-	if (it != usesTable.end())
+	if (it != uses_table_.end())
 	{
-		uVarList = it->second;
-		return uVarList;
+		use_var_list = it->second;
+		return use_var_list;
 	}
 	else
 	{

@@ -8,19 +8,19 @@ class DesignExtractor
 {
 public:
 	DesignExtractor();
-	DesignExtractor(PKB& pkb, int numProcs);
+	DesignExtractor(PKB& pkb, int num_procs);
 	~DesignExtractor();
 
-	void buildCallsGraph(int vertexCount);
-	void updateAllProcModUses();
-	void updateAllCallStmtModUses();
+	void BuildCallsGraph(int vertex_count);
+	void UpdateAllProcModUses();
+	void UpdateAllCallStmtModUses();
 
 private:
-	PKB* _pkb;
-	int vertexCount;
+	PKB* pkb_;
+	int vertex_count_;
 
-	void revDFSAndUpdate(int v);
-	void updateParentProc(int parent, int child);
-	void addAllModVar(int parent, int child);
-	void addAllUsedVar(int parent, int child);
+	void RevDFSAndUpdate(int v);
+	void UpdateParentProc(int parent, int child);
+	void AddAllModVar(int parent, int child);
+	void AddAllUsedVar(int parent, int child);
 };

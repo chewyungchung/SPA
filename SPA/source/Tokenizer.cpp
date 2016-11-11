@@ -18,12 +18,12 @@ Tokenizer::Tokenizer() {
 }
 
 // Overloaded constructor
-Tokenizer::Tokenizer(string filename) {
+Tokenizer::Tokenizer(string file_name) {
 	vector<string> specials(arr, arr + sizeof(arr) / sizeof(arr[0]));
 	char whitespace = ' ';
 	char tab = '\t';
 
-	ifstream infile(filename);
+	ifstream infile(file_name);
 	string line;
 	string token;
 	while (getline(infile, line)) {
@@ -33,18 +33,18 @@ Tokenizer::Tokenizer(string filename) {
 			string str(iLine);
 			if (find(specials.begin(), specials.end(), iLine) != specials.end()) {
 				if (token.length() != 0) {
-					tokens.push_back(token);
+					tokens_.push_back(token);
 				}
 
 				stringstream ss;
 				ss << line[i];
 				ss >> token;
-				tokens.push_back(token);
+				tokens_.push_back(token);
 				token = "";
 			}
 			else if (line[i] == whitespace || line[i] == tab) {
 				if (token.length() != 0) {
-					tokens.push_back(token);
+					tokens_.push_back(token);
 				}
 				token = "";
 			}
@@ -55,13 +55,13 @@ Tokenizer::Tokenizer(string filename) {
 	}
 }
 
-string Tokenizer::getNextToken() {
-	if (tokens.empty()) {
+string Tokenizer::GetNextToken() {
+	if (tokens_.empty()) {
 		return "";
 	}
 	else {
-		string output = tokens.front();
-		tokens.pop_front();
+		string output = tokens_.front();
+		tokens_.pop_front();
 		return output;
 	}
 }

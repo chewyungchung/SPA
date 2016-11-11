@@ -5,25 +5,25 @@ using namespace std;
 
 StatementTable::StatementTable()
 {
-	list<int> assignList;
-	list<int> whileList;
-	list<int> allStmtList;
-	list<int> ifList;
-	list<int> callList;
-	map<int, string> callProcList; // key: callstmt#, value: associated procName
-	map<int, string> ctrlvarList;
+	list<int> assign_list_;
+	list<int> while_list_;
+	list<int> all_stmt_list_;
+	list<int> if_list_;
+	list<int> call_list_;
+	map<int, string> call_proc_list_; // key: callstmt#, value: associated procName
+	map<int, string> ctrl_var_list_;
 }
 
 StatementTable::~StatementTable()
 {
 }
 
-void StatementTable::addStatement(int stmtNum, string stmtType)
+void StatementTable::AddStatement(int stmt_num, string stmt_type)
 {
-	if (stmtType == "assign")
+	if (stmt_type == "assign")
 	{
-		assignList.push_back(stmtNum);
-		allStmtList.insert(pair<int, string>(stmtNum, stmtType));
+		assign_list_.push_back(stmt_num);
+		all_stmt_list_.insert(pair<int, string>(stmt_num, stmt_type));
 	}
 	else
 	{
@@ -31,30 +31,30 @@ void StatementTable::addStatement(int stmtNum, string stmtType)
 	}
 }
 
-void StatementTable::addStatement(int stmtNum, string stmtType, string ctrlVar_or_procName)
+void StatementTable::AddStatement(int stmt_num, string stmt_type, string ctrl_var_or_proc_name)
 {
-	if (stmtType == "assign")
+	if (stmt_type == "assign")
 	{
-		assignList.push_back(stmtNum);
-		allStmtList.insert(pair<int, string>(stmtNum, stmtType));
+		assign_list_.push_back(stmt_num);
+		all_stmt_list_.insert(pair<int, string>(stmt_num, stmt_type));
 	}
-	else if (stmtType == "call")
+	else if (stmt_type == "call")
 	{
-		callList.push_back(stmtNum);
-		allStmtList.insert(pair<int, string>(stmtNum, stmtType));
-		callProcList.insert(pair<int, string>(stmtNum, ctrlVar_or_procName));
+		call_list_.push_back(stmt_num);
+		all_stmt_list_.insert(pair<int, string>(stmt_num, stmt_type));
+		call_proc_list_.insert(pair<int, string>(stmt_num, ctrl_var_or_proc_name));
 	}
-	else if (stmtType == "while")
+	else if (stmt_type == "while")
 	{
-		whileList.push_back(stmtNum);
-		allStmtList.insert(pair<int, string>(stmtNum, stmtType));
-		ctrlvarList.insert(pair<int, string>(stmtNum, ctrlVar_or_procName));
+		while_list_.push_back(stmt_num);
+		all_stmt_list_.insert(pair<int, string>(stmt_num, stmt_type));
+		ctrl_var_list_.insert(pair<int, string>(stmt_num, ctrl_var_or_proc_name));
 	}
-	else if (stmtType == "if")
+	else if (stmt_type == "if")
 	{
-		ifList.push_back(stmtNum);
-		allStmtList.insert(pair<int, string>(stmtNum, stmtType));
-		ctrlvarList.insert(pair<int, string>(stmtNum, ctrlVar_or_procName));
+		if_list_.push_back(stmt_num);
+		all_stmt_list_.insert(pair<int, string>(stmt_num, stmt_type));
+		ctrl_var_list_.insert(pair<int, string>(stmt_num, ctrl_var_or_proc_name));
 	}
 	else
 	{
@@ -62,32 +62,32 @@ void StatementTable::addStatement(int stmtNum, string stmtType, string ctrlVar_o
 	}
 }
 
-list<int> StatementTable::getAssignList()
+list<int> StatementTable::GetAssignList()
 {
-	return assignList;
+	return assign_list_;
 }
 
-list<int> StatementTable::getWhileList()
+list<int> StatementTable::GetWhileList()
 {
-	return whileList;
+	return while_list_;
 }
 
-list<int> StatementTable::getIfList()
+list<int> StatementTable::GetIfList()
 {
-	return ifList;
+	return if_list_;
 }
 
-list<int> StatementTable::getCallList()
+list<int> StatementTable::GetCallList()
 {
-	return callList;
+	return call_list_;
 }
 
-string StatementTable::getProcNameByCallStmt(int callStmt)
+string StatementTable::GetProcNameByCallStmt(int call_stmt)
 {
 	string result = "";
-	for (const auto& i : callProcList)
+	for (const auto& i : call_proc_list_)
 	{
-		if (i.first == callStmt && (find(callList.begin(), callList.end(), i.first) != callList.end()))
+		if (i.first == call_stmt && (find(call_list_.begin(), call_list_.end(), i.first) != call_list_.end()))
 		{
 			result = i.second;
 			break;
@@ -96,61 +96,61 @@ string StatementTable::getProcNameByCallStmt(int callStmt)
 	return result;
 }
 
-list<int> StatementTable::getIfListWithControlVariable(string ctrlvar)
+list<int> StatementTable::GetIfListWithControlVariable(string ctrl_var)
 {
-	list<int> iflist;
-	for (const auto& i : ctrlvarList)
+	list<int> if_list;
+	for (const auto& i : ctrl_var_list_)
 	{
-		if (i.second == ctrlvar && (find(ifList.begin(), ifList.end(), i.first) != ifList.end()))
+		if (i.second == ctrl_var && (find(if_list_.begin(), if_list_.end(), i.first) != if_list_.end()))
 		{
-			iflist.push_back(i.first);
+			if_list.push_back(i.first);
 		}
 	}
-	return iflist;
+	return if_list;
 }
 
-list<int> StatementTable::getWhileListWithControlVariable(string ctrlvar)
+list<int> StatementTable::GetWhileListWithControlVariable(string ctrl_var)
 {
-	list<int> whilelist;
-	for (const auto& i : ctrlvarList)
+	list<int> while_list;
+	for (const auto& i : ctrl_var_list_)
 	{
-		if (i.second == ctrlvar && (find(whileList.begin(), whileList.end(), i.first) != whileList.end()))
+		if (i.second == ctrl_var && (find(while_list_.begin(), while_list_.end(), i.first) != while_list_.end()))
 		{
-			whilelist.push_back(i.first);
+			while_list.push_back(i.first);
 		}
 	}
-	return whilelist;
+	return while_list;
 }
 
-string StatementTable::getControlVarWithStmt(int stmtNum)
+string StatementTable::GetControlVarWithStmt(int stmt_num)
 {
-	string ctrlVar = "";
-	if (ctrlvarList[stmtNum] != "") {
-		ctrlVar = ctrlvarList[stmtNum];
+	string ctrl_var = "";
+	if (ctrl_var_list_[stmt_num] != "") {
+		ctrl_var = ctrl_var_list_[stmt_num];
 	}
-	return ctrlVar;
+	return ctrl_var;
 }
 
-list<int> StatementTable::getStmtList()
+list<int> StatementTable::GetStmtList()
 {
 	list<int> results = list<int>();
 	map<int, string>::iterator it;
-	for (it = allStmtList.begin(); it != allStmtList.end(); ++it)
+	for (it = all_stmt_list_.begin(); it != all_stmt_list_.end(); ++it)
 	{
 		results.push_back(it->first);
 	}
 	return results;
 }
 
-int StatementTable::getStatementCount()
+int StatementTable::GetStatementCount()
 {
-	return allStmtList.size();
+	return all_stmt_list_.size();
 }
 
-bool StatementTable::isValidStmt(int stmtNum)
+bool StatementTable::IsValidStmt(int stmt_num)
 {
-	map<int, string>::iterator it = allStmtList.find(stmtNum);
-	if (it != allStmtList.end())
+	map<int, string>::iterator it = all_stmt_list_.find(stmt_num);
+	if (it != all_stmt_list_.end())
 	{
 		return true;
 	}
@@ -160,12 +160,12 @@ bool StatementTable::isValidStmt(int stmtNum)
 	}
 }
 
-string StatementTable::getStmtType(int stmtNum)
+string StatementTable::GetStmtType(int stmt_num)
 {
 	string result = "";
-	map<int, string>::iterator it = allStmtList.find(stmtNum);
+	map<int, string>::iterator it = all_stmt_list_.find(stmt_num);
 
-	if (it != allStmtList.end())
+	if (it != all_stmt_list_.end())
 	{
 		result = it->second;
 		return result;
@@ -176,7 +176,7 @@ string StatementTable::getStmtType(int stmtNum)
 	}
 }
 
-bool StatementTable::isAssign(int stmtNum)
+bool StatementTable::IsAssign(int stmt_num)
 {
-	return find(assignList.begin(), assignList.end(), stmtNum) != assignList.end();
+	return find(assign_list_.begin(), assign_list_.end(), stmt_num) != assign_list_.end();
 }

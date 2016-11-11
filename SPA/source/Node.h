@@ -8,10 +8,10 @@ class Node
 public:
 	Node();
 	Node(int);
-	void addNext(Node*);
-	vector<Node*> getNextList();
-	int getStmtnum();
+	void AddNext(Node*);
+	vector<Node*> GetNextList();
+	int GetStmtnum();
 private:
-	int stmtnum;
-	vector<Node*> nextList;
+	int stmt_num_;
+	vector<Node*> next_list_;
 };

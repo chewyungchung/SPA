@@ -11,138 +11,138 @@ col_1: procName; col_2: modified var, col_3: used var, col_4: called in stmtLine
 
 ProcTable::ProcTable()
 {
-	procNameIndexTable = map<string, int>();
-	procDataTable = vector<vector<list<string>>>();
-	maxProcIndex = 0;
+	proc_name_index_table_ = map<string, int>();
+	proc_data_table_ = vector<vector<list<string>>>();
+	max_proc_index_ = 0;
 }
 
 ProcTable::~ProcTable()
 {
-	procNameIndexTable.clear();
-	procDataTable.clear();
+	proc_name_index_table_.clear();
+	proc_data_table_.clear();
 }
 
-void ProcTable::addProc(string procName)
+void ProcTable::AddProc(string proc_name)
 {
-	if (procNameIndexTable.find(procName) != procNameIndexTable.end()) {
+	if (proc_name_index_table_.find(proc_name) != proc_name_index_table_.end()) {
 		return;
 	}
-	procNameIndexTable.insert(pair<string, int>(procName, maxProcIndex));
+	proc_name_index_table_.insert(pair<string, int>(proc_name, max_proc_index_));
 
-	vector<list<string>> newProc(PROCDATA_COLSIZE);
+	vector<list<string>> new_proc(PROCDATA_COLSIZE);
 
-	list<string> procNameList = list<string>();
-	procNameList.push_back(procName);
-	newProc[PROCNAME_COL] = procNameList;
+	list<string> proc_name_list = list<string>();
+	proc_name_list.push_back(proc_name);
+	new_proc[PROCNAME_COL] = proc_name_list;
 
-	list<string> modVarList = list<string>();
-	newProc[MODVAR_COL] = modVarList;
+	list<string> mod_var_list = list<string>();
+	new_proc[MODVAR_COL] = mod_var_list;
 
-	list<string> usesVarList = list<string>();
-	newProc[USEVAR_COL] = usesVarList;
+	list<string> use_var_list = list<string>();
+	new_proc[USEVAR_COL] = use_var_list;
 
-	list<string> calledInStmtList = list<string>();
-	newProc[CALLED_IN_STMT_COL] = calledInStmtList;
+	list<string> called_in_stmt_list = list<string>();
+	new_proc[CALLED_IN_STMT_COL] = called_in_stmt_list;
 	
-	procDataTable.push_back(newProc);
-	maxProcIndex++;
+	proc_data_table_.push_back(new_proc);
+	max_proc_index_++;
 }
 
-void ProcTable::addProcMod(string procName, string var)
+void ProcTable::AddProcMod(string proc_name, string var)
 {
-	map<string, int>::iterator it = procNameIndexTable.find(procName);
-	list<string> modVarList;
+	map<string, int>::iterator it = proc_name_index_table_.find(proc_name);
+	list<string> mod_var_list;
 
-	if (it != procNameIndexTable.end())
+	if (it != proc_name_index_table_.end())
 	{
-		modVarList = procDataTable[it->second][MODVAR_COL];
-		bool foundDup = find(modVarList.begin(), modVarList.end(), var) != modVarList.end();
-		if (!foundDup)
+		mod_var_list = proc_data_table_[it->second][MODVAR_COL];
+		bool is_found_dup = find(mod_var_list.begin(), mod_var_list.end(), var) != mod_var_list.end();
+		if (!is_found_dup)
 		{
-			procDataTable[it->second][MODVAR_COL].push_back(var);
+			proc_data_table_[it->second][MODVAR_COL].push_back(var);
 		}
 	}
 }
 
-void ProcTable::addProcUses(string procName, string var)
+void ProcTable::AddProcUses(string proc_name, string var)
 {
-	map<string, int>::iterator it = procNameIndexTable.find(procName);
-	list<string> usesVarList;
+	map<string, int>::iterator it = proc_name_index_table_.find(proc_name);
+	list<string> use_var_list;
 
-	if (it != procNameIndexTable.end())
+	if (it != proc_name_index_table_.end())
 	{
-		usesVarList = procDataTable[it->second][USEVAR_COL];
-		bool foundDup = find(usesVarList.begin(), usesVarList.end(), var) != usesVarList.end();
-		if (!foundDup)
+		use_var_list = proc_data_table_[it->second][USEVAR_COL];
+		bool is_found_dup = find(use_var_list.begin(), use_var_list.end(), var) != use_var_list.end();
+		if (!is_found_dup)
 		{
-			procDataTable[it->second][USEVAR_COL].push_back(var);
+			proc_data_table_[it->second][USEVAR_COL].push_back(var);
 		}
 	}
 }
 
-void ProcTable::addProcCalledInStmt(string procName, int stmtLine)
+void ProcTable::AddProcCalledInStmt(string proc_name, int stmt_line)
 {
-	map<string, int>::iterator it = procNameIndexTable.find(procName);
-	list<string> calledInVarList;
+	map<string, int>::iterator it = proc_name_index_table_.find(proc_name);
+	list<string> called_in_var_list;
 
-	if (it != procNameIndexTable.end())
+	if (it != proc_name_index_table_.end())
 	{
-		calledInVarList = procDataTable[it->second][CALLED_IN_STMT_COL];
-		bool foundDup = find(calledInVarList.begin(), calledInVarList.end(), to_string(stmtLine)) != calledInVarList.end();
-		if (!foundDup)
+		called_in_var_list = proc_data_table_[it->second][CALLED_IN_STMT_COL];
+		bool is_found_dup = find(called_in_var_list.begin(), called_in_var_list.end(), to_string(stmt_line)) != called_in_var_list.end();
+		if (!is_found_dup)
 		{
-			procDataTable[it->second][CALLED_IN_STMT_COL].push_back(to_string(stmtLine));
+			proc_data_table_[it->second][CALLED_IN_STMT_COL].push_back(to_string(stmt_line));
 		}
 	}
 	else {
-		addProc(procName);
-		map<string, int>::iterator it = procNameIndexTable.find(procName);
-		procDataTable[it->second][CALLED_IN_STMT_COL].push_back(to_string(stmtLine));
+		AddProc(proc_name);
+		map<string, int>::iterator it = proc_name_index_table_.find(proc_name);
+		proc_data_table_[it->second][CALLED_IN_STMT_COL].push_back(to_string(stmt_line));
 	}
 }
 
 // Return empty string if procIndex does not exist
-string ProcTable::getProcName(int procIndex)
+string ProcTable::GetProcName(int proc_index)
 {
-	string procName = "";
-	for (map<string, int>::iterator it = procNameIndexTable.begin(); it != procNameIndexTable.end(); ++it)
+	string proc_name = "";
+	for (map<string, int>::iterator it = proc_name_index_table_.begin(); it != proc_name_index_table_.end(); ++it)
 	{
-		if (it->second == procIndex)
+		if (it->second == proc_index)
 		{
-			procName = it->first;
-			return procName;
+			proc_name = it->first;
+			return proc_name;
 		}
 	}
-	return procName;
+	return proc_name;
 }
 
 // Return -1 if procName does not exist
-int ProcTable::getProcIndex(string procName)
+int ProcTable::GetProcIndex(string proc_name)
 {
-	int procIndex = -1;
-	map<string, int>::iterator it = procNameIndexTable.find(procName);
+	int proc_index = -1;
+	map<string, int>::iterator it = proc_name_index_table_.find(proc_name);
 
-	if (it != procNameIndexTable.end())
+	if (it != proc_name_index_table_.end())
 	{
-		procIndex = it->second;
-		return procIndex;
+		proc_index = it->second;
+		return proc_index;
 	}
 	else
 	{
-		return procIndex;
+		return proc_index;
 	}
 }
 
 // Also return false if procName doesn not exist
-bool ProcTable::isModifiedByProc(string procName, string varName)
+bool ProcTable::IsModifiedByProc(string proc_name, string var_name)
 {
-	map<string, int>::iterator it = procNameIndexTable.find(procName);
-	list<string> modVarList;
+	map<string, int>::iterator it = proc_name_index_table_.find(proc_name);
+	list<string> mod_var_list;
 	
-	if (it != procNameIndexTable.end())
+	if (it != proc_name_index_table_.end())
 	{
-		modVarList = procDataTable[it->second][MODVAR_COL];
-		return find(modVarList.begin(), modVarList.end(), varName) != modVarList.end();
+		mod_var_list = proc_data_table_[it->second][MODVAR_COL];
+		return find(mod_var_list.begin(), mod_var_list.end(), var_name) != mod_var_list.end();
 	}
 	else
 	{
@@ -150,15 +150,15 @@ bool ProcTable::isModifiedByProc(string procName, string varName)
 	}
 }
 
-bool ProcTable::isUsedByProc(string procName, string varName)
+bool ProcTable::IsUsedByProc(string proc_name, string var_name)
 {
-	map<string, int>::iterator it = procNameIndexTable.find(procName);
-	list<string> usesVarList;
+	map<string, int>::iterator it = proc_name_index_table_.find(proc_name);
+	list<string> use_var_list;
 
-	if (it != procNameIndexTable.end())
+	if (it != proc_name_index_table_.end())
 	{
-		usesVarList = procDataTable[it->second][USEVAR_COL];
-		return find(usesVarList.begin(), usesVarList.end(), varName) != usesVarList.end();
+		use_var_list = proc_data_table_[it->second][USEVAR_COL];
+		return find(use_var_list.begin(), use_var_list.end(), var_name) != use_var_list.end();
 	}
 	else
 	{
@@ -166,13 +166,13 @@ bool ProcTable::isUsedByProc(string procName, string varName)
 	}
 }
 
-list<string> ProcTable::getModifiedByProc(string procName)
+list<string> ProcTable::GetModifiedByProc(string proc_name)
 {
-	map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = proc_name_index_table_.find(proc_name);
 
-	if (it != procNameIndexTable.end())
+	if (it != proc_name_index_table_.end())
 	{
-		return procDataTable[it->second][MODVAR_COL];
+		return proc_data_table_[it->second][MODVAR_COL];
 	}
 	else
 	{
@@ -180,13 +180,13 @@ list<string> ProcTable::getModifiedByProc(string procName)
 	}
 }
 
-list<string> ProcTable::getUsedByProc(string procName)
+list<string> ProcTable::GetUsedByProc(string proc_name)
 {
-	map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = proc_name_index_table_.find(proc_name);
 
-	if (it != procNameIndexTable.end())
+	if (it != proc_name_index_table_.end())
 	{
-		return procDataTable[it->second][USEVAR_COL];
+		return proc_data_table_[it->second][USEVAR_COL];
 	}
 	else
 	{
@@ -194,52 +194,52 @@ list<string> ProcTable::getUsedByProc(string procName)
 	}
 }
 
-list<string> ProcTable::getProcedureModifying(string varName)
+list<string> ProcTable::GetProcedureModifying(string var_name)
 {
 	list<string> results = list<string>();
 
-	for (unsigned i = 0; i < procDataTable.size(); i++)
+	for (unsigned i = 0; i < proc_data_table_.size(); i++)
 	{
-		list<string> currModVarList = procDataTable[i][MODVAR_COL];
-		bool foundVar = find(currModVarList.begin(), currModVarList.end(), varName) != currModVarList.end();
-		if (foundVar)
+		list<string> curr_mod_var_list = proc_data_table_[i][MODVAR_COL];
+		bool is_found_var = find(curr_mod_var_list.begin(), curr_mod_var_list.end(), var_name) != curr_mod_var_list.end();
+		if (is_found_var)
 		{
-			results.push_back(procDataTable[i][PROCNAME_COL].back());
+			results.push_back(proc_data_table_[i][PROCNAME_COL].back());
 		}
 	}
 	return results;
 }
 
-list<string> ProcTable::getProcedureUsing(string varName)
+list<string> ProcTable::GetProcedureUsing(string var_name)
 {
 	list<string> results = list<string>();
 
-	for (unsigned i = 0; i < procDataTable.size(); i++)
+	for (unsigned i = 0; i < proc_data_table_.size(); i++)
 	{
-		list<string> currUsesVarList = procDataTable[i][USEVAR_COL];
-		bool foundVar = find(currUsesVarList.begin(), currUsesVarList.end(), varName) != currUsesVarList.end();
-		if (foundVar)
+		list<string> curr_use_var_list = proc_data_table_[i][USEVAR_COL];
+		bool is_found_var = find(curr_use_var_list.begin(), curr_use_var_list.end(), var_name) != curr_use_var_list.end();
+		if (is_found_var)
 		{
-			results.push_back(procDataTable[i][PROCNAME_COL].back());
+			results.push_back(proc_data_table_[i][PROCNAME_COL].back());
 		}
 	}
 	return results;
 }
 
-bool ProcTable::isProcedureExist(string procName)
+bool ProcTable::IsProcedureExist(string proc_name)
 {
-	map<string, int>::iterator it = procNameIndexTable.find(procName);
-	return it != procNameIndexTable.end();
+	map<string, int>::iterator it = proc_name_index_table_.find(proc_name);
+	return it != proc_name_index_table_.end();
 }
 
-list<int> ProcTable::getCallByProcName(string procName)
+list<int> ProcTable::GetCallByProcName(string proc_name)
 {
-	map<string, int>::iterator it = procNameIndexTable.find(procName);
+	map<string, int>::iterator it = proc_name_index_table_.find(proc_name);
 	list<int> results = list<int>();
 
-	if (it != procNameIndexTable.end())
+	if (it != proc_name_index_table_.end())
 	{
-		list<string> s_results = procDataTable[it->second][CALLED_IN_STMT_COL];
+		list<string> s_results = proc_data_table_[it->second][CALLED_IN_STMT_COL];
 		list<string>::iterator it;
 		for (it = s_results.begin(); it != s_results.end(); ++it)
 		{
@@ -253,26 +253,26 @@ list<int> ProcTable::getCallByProcName(string procName)
 	}
 }
 
-list<string> ProcTable::getCalledProcNamesList()
+list<string> ProcTable::GetCalledProcNamesList()
 {
 	list<string> results = list<string>();
 
-	for (unsigned i = 0; i < procDataTable.size(); i++)
+	for (unsigned i = 0; i < proc_data_table_.size(); i++)
 	{
-		list<string> currCalledInStmtList = procDataTable[i][CALLED_IN_STMT_COL];
-		if (!currCalledInStmtList.empty())
+		list<string> curr_called_in_stmt_list = proc_data_table_[i][CALLED_IN_STMT_COL];
+		if (!curr_called_in_stmt_list.empty())
 		{
-			results.push_back(procDataTable[i][PROCNAME_COL].back());
+			results.push_back(proc_data_table_[i][PROCNAME_COL].back());
 		}
 	}
 	return results;
 }
 
-list<string> ProcTable::getProcedureList()
+list<string> ProcTable::GetProcedureList()
 {
 	list<string> results = list<string>();
 	map<string, int>::iterator it;
-	for (it = procNameIndexTable.begin(); it != procNameIndexTable.end(); ++it)
+	for (it = proc_name_index_table_.begin(); it != proc_name_index_table_.end(); ++it)
 	{
 		results.push_back(it->first);
 	}

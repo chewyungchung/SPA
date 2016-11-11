@@ -9,11 +9,11 @@ class ConstantTable
 {
 public:
 	ConstantTable();
-	void addConstant(int constant, int stmtline);
-	list<int> getConstantList();
-	list<int> getStmtlineByConstant(int constant); //input: constant, output: stmtline
+	void AddConstant(int constant, int stmt_line);
+	list<int> GetConstantList();
+	list<int> GetStmtlineByConstant(int constant); //input: constant, output: stmtline
 
 private:
-	map<int, list<int>> constantTable;
-	list<int> constantList;
+	map<int, list<int>> constant_table_;
+	list<int> constant_list_;
 };

@@ -18,26 +18,26 @@ using namespace std;
 Parser::Parser() {
 }
 
-Parser::Parser(string fileName)
+Parser::Parser(string file_name)
 {
-	_pkb = PKB();
-	_tk = Tokenizer(fileName);
-	stmtLine = 1;
-	parentStack.push(NO_PARENT_FLAG);
-	followsMaxNestingLevel = 1;
-	followsStack.push(followsMaxNestingLevel);
+	pkb_ = PKB();
+	tokenizer_ = Tokenizer(file_name);
+	curr_stmt_line_ = 1;
+	parent_stack_.push(NO_PARENT_FLAG);
+	follows_max_nest_lvl_ = 1;
+	follows_stack_.push(follows_max_nest_lvl_);
 }
 
-PKB Parser::process() {
-	parseProgram();
-	return _pkb;
+PKB Parser::Process() {
+	ParseProgram();
+	return pkb_;
 }
 
-void Parser::match(string token)
+void Parser::Match(string token)
 {
-	if (next_token == token)
+	if (next_token_ == token)
 	{
-		next_token = _tk.getNextToken();
+		next_token_ = tokenizer_.GetNextToken();
 	}
 	else
 	{
@@ -45,340 +45,340 @@ void Parser::match(string token)
 	}
 }
 
-void Parser::parseProgram()
+void Parser::ParseProgram()
 {
-	next_token = _tk.getNextToken();
-	parseProcedure();
+	next_token_ = tokenizer_.GetNextToken();
+	ParseProcedure();
 
 	/******** Program parsed ********/
 	// Postfixing -> setup design extractor
-	list<string> procList = _pkb.getProcedureList();
-	int procCount = procList.size();
-	_de = DesignExtractor(_pkb, procCount);
+	list<string> proc_list = pkb_.GetProcedureList();
+	int proc_count = proc_list.size();
+	design_extractor_ = DesignExtractor(pkb_, proc_count);
 	// Check cyclic call
-	_de.buildCallsGraph(procCount);
+	design_extractor_.BuildCallsGraph(proc_count);
 	// Update mod/uses for all procedures if acyclic
-	if (!_pkb.isCallsGraphCyclic())
+	if (!pkb_.IsCallsGraphCyclic())
 	{
-		_de.updateAllProcModUses();
+		design_extractor_.UpdateAllProcModUses();
 	}
 	else
 	{
 		throw invalid_argument("SIMPLE syntax error, recursive calls");
 	}
 	// Now update callStmts for Mod/Uses as well as all parentStar of the callStmts
-	_de.updateAllCallStmtModUses();
+	design_extractor_.UpdateAllCallStmtModUses();
 
 	// build CFG matrix
-    _pkb.buildCFGMatrix();
+    pkb_.BuildCFGMatrix();
 }
 
-void Parser::parseProcedure()
+void Parser::ParseProcedure()
 {
 	// Add first stmt of proc
-	curr_first_stmt_of_proc = stmtLine;
-	_pkb.addProcedureFirstStmt(curr_first_stmt_of_proc);
+	curr_first_stmt_of_proc_ = curr_stmt_line_;
+	pkb_.AddProcedureFirstStmt(curr_first_stmt_of_proc_);
 
 	// Add stmt lst first stmt
-	_pkb.addStmtLst(stmtLine);
+	pkb_.AddStmtLst(curr_stmt_line_);
 
-	match(PROCEDURE_FLAG);
-	procName = next_token;
+	Match(PROCEDURE_FLAG);
+	proc_name_ = next_token_;
 
-	_pkb.addProc(procName);
-	_pkb.addProcCFG();
+	pkb_.AddProc(proc_name_);
+	pkb_.AddProcCFG();
 
-	match(procName);
-	match(LEFT_BRACES);
-	parseStmtLst();
-	match(RIGHT_BRACES);
+	Match(proc_name_);
+	Match(LEFT_BRACES);
+	ParseStmtLst();
+	Match(RIGHT_BRACES);
 	// _pkb.closeProcCFG();
-	if (next_token == PROCEDURE_FLAG)
+	if (next_token_ == PROCEDURE_FLAG)
 	{
 		// Entering into new procedure,
 		// thus enter into a new (highest) nestingLevel
 		// ParentStack would rightly have only NO_PARENT_FLAG at this point
-		followsMaxNestingLevel++;
-		followsStack.pop();
-		followsStack.push(followsMaxNestingLevel);
+		follows_max_nest_lvl_++;
+		follows_stack_.pop();
+		follows_stack_.push(follows_max_nest_lvl_);
 
-		parseProcedure();
+		ParseProcedure();
 	}
 }
 
-void Parser::parseStmtLst()
+void Parser::ParseStmtLst()
 {
-	if (next_token == WHILE_FLAG)
+	if (next_token_ == WHILE_FLAG)
 	{
-		parseWhileStmt();
+		ParseWhileStmt();
 	}
-	else if (next_token == IF_FLAG)
+	else if (next_token_ == IF_FLAG)
 	{
-		parseIfStmt();
-		match(ELSE_FLAG);
-		parseElseStmt();
+		ParseIfStmt();
+		Match(ELSE_FLAG);
+		ParseElseStmt();
 	}
-	else if (next_token == CALL_FLAG)
+	else if (next_token_ == CALL_FLAG)
 	{
-		parseCallStmt();
-		match(SEMICOLON_FLAG);
-		stmtLine++;
+		ParseCallStmt();
+		Match(SEMICOLON_FLAG);
+		curr_stmt_line_++;
 	}
 	else
 	{
-		parseAssignStmt();
-		match(SEMICOLON_FLAG);
-		stmtLine++;
+		ParseAssignStmt();
+		Match(SEMICOLON_FLAG);
+		curr_stmt_line_++;
 	}
 
-	if (next_token == RIGHT_BRACES)
+	if (next_token_ == RIGHT_BRACES)
 	{
 		return;
 	}
 	else
 	{
-		parseStmtLst();
+		ParseStmtLst();
 	}
 }
 
-void Parser::parseWhileStmt()
+void Parser::ParseWhileStmt()
 {
 	// Update stmt_to_proc_begin_table
-	_pkb.addStmtProcBegin(stmtLine, curr_first_stmt_of_proc);
+	pkb_.AddStmtProcBegin(curr_stmt_line_, curr_first_stmt_of_proc_);
 
 	// Populate CFG
-	_pkb.addStmtCFG(stmtLine, WHILE_FLAG);
+	pkb_.AddStmtCFG(curr_stmt_line_, WHILE_FLAG);
 
 	// Populate ParentTable for current while stmt and set current while stmt as current parent
-	_pkb.addParent(parentStack.top(), stmtLine);
-	addAllParentsOfCurrStmt(stmtLine);
-	parentStack.push(stmtLine);
+	pkb_.AddParent(parent_stack_.top(), curr_stmt_line_);
+	AddAllParentsOfCurrStmt(curr_stmt_line_);
+	parent_stack_.push(curr_stmt_line_);
 
 	// Populate FollowsTable for current while stmt and enter into new nesting level
-	_pkb.addFollows(stmtLine, followsStack.top());
-	followsMaxNestingLevel++;
-	followsStack.push(followsMaxNestingLevel);
+	pkb_.AddFollows(curr_stmt_line_, follows_stack_.top());
+	follows_max_nest_lvl_++;
+	follows_stack_.push(follows_max_nest_lvl_);
 
 	// Populate UsesTable for control variable
 	// This involves adding current stmtLine as well as any parent/parent* stmtLines
-	match(WHILE_FLAG);
-	string controlVar = next_token;
-	_pkb.addUses(controlVar, stmtLine);
-	_pkb.addUses(stmtLine, controlVar);
-	addAllParentsOfUsedVariable(controlVar);
+	Match(WHILE_FLAG);
+	string controlVar = next_token_;
+	pkb_.AddUses(controlVar, curr_stmt_line_);
+	pkb_.AddUses(curr_stmt_line_, controlVar);
+	AddAllParentsOfUsedVariable(controlVar);
 
 	// Populate ProcModUsesTable
-	_pkb.addProcUses(procName, controlVar);
+	pkb_.AddProcUses(proc_name_, controlVar);
 
 	// Populate StatementTable
-	_pkb.addStatement(stmtLine, WHILE_FLAG, controlVar);
+	pkb_.AddStatement(curr_stmt_line_, WHILE_FLAG, controlVar);
 	
 	// Recurse on stmtLst
-	match(controlVar);
-	match(LEFT_BRACES);
-	stmtLine++;
+	Match(controlVar);
+	Match(LEFT_BRACES);
+	curr_stmt_line_++;
 
 	// Add stmtlst first stmt
-	_pkb.addStmtLst(stmtLine);
+	pkb_.AddStmtLst(curr_stmt_line_);
 
-	parseStmtLst();
-	match(RIGHT_BRACES);
+	ParseStmtLst();
+	Match(RIGHT_BRACES);
 	//stmtLine++;
 
 	// Exiting from while loop: remove from current parent and exit nesting level
 	// As well inform CFG of exit
-	parentStack.pop();
-	followsStack.pop();
-	_pkb.closeWhileCFG();
+	parent_stack_.pop();
+	follows_stack_.pop();
+	pkb_.CloseWhileCFG();
 }
 
-void Parser::parseIfStmt()
+void Parser::ParseIfStmt()
 {
 	// Update stmt_to_proc_begin_table
-	_pkb.addStmtProcBegin(stmtLine, curr_first_stmt_of_proc);
+	pkb_.AddStmtProcBegin(curr_stmt_line_, curr_first_stmt_of_proc_);
 
 	// Populate CFG
-	_pkb.addStmtCFG(stmtLine, IF_FLAG);
+	pkb_.AddStmtCFG(curr_stmt_line_, IF_FLAG);
 
 	// Populate ParentTable for current if stmt and set current if stmt as current parent
-	_pkb.addParent(parentStack.top(), stmtLine);
-	addAllParentsOfCurrStmt(stmtLine);
-	parentStack.push(stmtLine);
+	pkb_.AddParent(parent_stack_.top(), curr_stmt_line_);
+	AddAllParentsOfCurrStmt(curr_stmt_line_);
+	parent_stack_.push(curr_stmt_line_);
 
 	// Populate FollowsTable for current while stmt and enter into new nesting level
-	_pkb.addFollows(stmtLine, followsStack.top());
-	followsMaxNestingLevel++;
-	followsStack.push(followsMaxNestingLevel);
+	pkb_.AddFollows(curr_stmt_line_, follows_stack_.top());
+	follows_max_nest_lvl_++;
+	follows_stack_.push(follows_max_nest_lvl_);
 
 	// Populate UsesTable for control variable
 	// This involves adding current stmtLine as well as any parent/parent* stmtLines
-	match(IF_FLAG);
-	string controlVar = next_token;
-	_pkb.addUses(controlVar, stmtLine);
-	_pkb.addUses(stmtLine, controlVar);
-	addAllParentsOfUsedVariable(controlVar);
+	Match(IF_FLAG);
+	string ctrl_var = next_token_;
+	pkb_.AddUses(ctrl_var, curr_stmt_line_);
+	pkb_.AddUses(curr_stmt_line_, ctrl_var);
+	AddAllParentsOfUsedVariable(ctrl_var);
 
 	// Populate ProcModUsesTable
-	_pkb.addProcUses(procName, controlVar);
+	pkb_.AddProcUses(proc_name_, ctrl_var);
 
 	// Populate StatementTable
-	_pkb.addStatement(stmtLine, IF_FLAG, controlVar);
+	pkb_.AddStatement(curr_stmt_line_, IF_FLAG, ctrl_var);
 
 	// Recurse on stmtLst
-	match(controlVar);
-	match(THEN_FLAG);
-	match(LEFT_BRACES);
-	stmtLine++;
+	Match(ctrl_var);
+	Match(THEN_FLAG);
+	Match(LEFT_BRACES);
+	curr_stmt_line_++;
 
 	// Add stmt lst first stmt
-	_pkb.addStmtLst(stmtLine);
+	pkb_.AddStmtLst(curr_stmt_line_);
 
-	parseStmtLst();
-	match(RIGHT_BRACES);
+	ParseStmtLst();
+	Match(RIGHT_BRACES);
 
 	// Exiting from if: exit nesting level
 	// As well inform CFG of exit
-	followsStack.pop();
-	_pkb.closeIfCFG();
+	follows_stack_.pop();
+	pkb_.CloseIfCFG();
 }
 
-void Parser::parseElseStmt()
+void Parser::ParseElseStmt()
 {
-	match(LEFT_BRACES);
+	Match(LEFT_BRACES);
 
 	// Enter into new nestingLevel
-	followsMaxNestingLevel++;
-	followsStack.push(followsMaxNestingLevel);
+	follows_max_nest_lvl_++;
+	follows_stack_.push(follows_max_nest_lvl_);
 
 	// Add stmtLst first stmt
-	_pkb.addStmtLst(stmtLine);
+	pkb_.AddStmtLst(curr_stmt_line_);
 
-	parseStmtLst();
-	match(RIGHT_BRACES);
+	ParseStmtLst();
+	Match(RIGHT_BRACES);
 
 	// Exiting else, pop if parent, exit nestingLevel, updateCFG
-	parentStack.pop();
-	followsStack.pop();
-	_pkb.closeElseCFG();
+	parent_stack_.pop();
+	follows_stack_.pop();
+	pkb_.CloseElseCFG();
 }
 
-void Parser::parseCallStmt()
+void Parser::ParseCallStmt()
 {
 	// Update stmt_to_proc_begin_table
-	_pkb.addStmtProcBegin(stmtLine, curr_first_stmt_of_proc);
+	pkb_.AddStmtProcBegin(curr_stmt_line_, curr_first_stmt_of_proc_);
 
 	// Populate ParentTable and FollowsTable for this call stmt
-	_pkb.addParent(parentStack.top(), stmtLine);
-	addAllParentsOfCurrStmt(stmtLine);
-	_pkb.addFollows(stmtLine, followsStack.top());
+	pkb_.AddParent(parent_stack_.top(), curr_stmt_line_);
+	AddAllParentsOfCurrStmt(curr_stmt_line_);
+	pkb_.AddFollows(curr_stmt_line_, follows_stack_.top());
 
 	// Populate CFG
-	_pkb.addStmtCFG(stmtLine, CALL_FLAG);
+	pkb_.AddStmtCFG(curr_stmt_line_, CALL_FLAG);
 
-	match(CALL_FLAG);
+	Match(CALL_FLAG);
 
-	string caller = procName;
-	string callee = next_token;
+	string caller = proc_name_;
+	string callee = next_token_;
 
 	// Populate ProcTable
-	_pkb.addProcCalledInStmt(callee, stmtLine);
+	pkb_.AddProcCalledInStmt(callee, curr_stmt_line_);
 
 	// Populate StatementTable
-	_pkb.addStatement(stmtLine, CALL_FLAG, callee);
+	pkb_.AddStatement(curr_stmt_line_, CALL_FLAG, callee);
 
-	match(callee);
+	Match(callee);
 
 	// Populate CallTable
-	_pkb.addCalls(caller, callee);
+	pkb_.AddCalls(caller, callee);
 }
 
-void Parser::parseAssignStmt()
+void Parser::ParseAssignStmt()
 {
 	// Update stmt_to_proc_begin_table
-	_pkb.addStmtProcBegin(stmtLine, curr_first_stmt_of_proc);
+	pkb_.AddStmtProcBegin(curr_stmt_line_, curr_first_stmt_of_proc_);
 
 	// Populate StatementTable
-	_pkb.addStatement(stmtLine, ASSIGN_FLAG);
+	pkb_.AddStatement(curr_stmt_line_, ASSIGN_FLAG);
 
 	// Populate CFG
-	_pkb.addStmtCFG(stmtLine, ASSIGN_FLAG);
+	pkb_.AddStmtCFG(curr_stmt_line_, ASSIGN_FLAG);
 
 	// Populate ParentTable and FollowsTable for this assign stmt
-	_pkb.addParent(parentStack.top(), stmtLine);
-	addAllParentsOfCurrStmt(stmtLine);
-	_pkb.addFollows(stmtLine, followsStack.top());
+	pkb_.AddParent(parent_stack_.top(), curr_stmt_line_);
+	AddAllParentsOfCurrStmt(curr_stmt_line_);
+	pkb_.AddFollows(curr_stmt_line_, follows_stack_.top());
 
 	// Populate mod table with LHS variable
 	// This involves adding current stmtLine as well as any parent/parent* stmtLines
-	string LHS = next_token;
-	_pkb.addModifies(LHS, stmtLine);
-	_pkb.addModifies(stmtLine, LHS);
-	addAllParentsOfModifiedVariable(LHS);
+	string LHS = next_token_;
+	pkb_.AddModifies(LHS, curr_stmt_line_);
+	pkb_.AddModifies(curr_stmt_line_, LHS);
+	AddAllParentsOfModifiedVariable(LHS);
 
 	// Populate ProcTable
-	_pkb.addProcMod(procName, LHS);
+	pkb_.AddProcMod(proc_name_, LHS);
 
 	// Move to RHS and populate uses(var)/const table accordingly
 	// Involves adding current stmtLine as well as any parent/parent* stmtLines
-	match(LHS);
-	match(EQUAL_FLAG);
-	currRHS = "";
-	parseExpression();
+	Match(LHS);
+	Match(EQUAL_FLAG);
+	curr_rhs_ = "";
+	ParseExpression();
 	//parseAssignRHS();
 	// Check brackets are correct
-	if (!bracketStack.empty())
+	if (!bracket_stack_.empty())
 	{
 		throw invalid_argument("SIMPLE syntax error, check parenthesis");
 	}
-	string postFixRHS = _pkb.makeExpr(currRHS);
-	_pkb.addExpr(stmtLine, postFixRHS);
+	string postFixRHS = pkb_.MakeExpr(curr_rhs_);
+	pkb_.AddExpr(curr_stmt_line_, postFixRHS);
 }
 
-void Parser::parseAssignRHS()
+void Parser::ParseAssignRHS()
 {
-	string RHS = next_token;
-	currRHS += RHS;
-	currRHS += " ";
+	string RHS = next_token_;
+	curr_rhs_ += RHS;
+	curr_rhs_ += " ";
 
-	if (isConstant(RHS))
+	if (IsConstant(RHS))
 	{
 		int RHSConstant = stoi(RHS);
-		_pkb.addConstant(RHSConstant, stmtLine);
+		pkb_.AddConstant(RHSConstant, curr_stmt_line_);
 		//addAllParentsOfUsedConstant(RHSConstant);
 	}
 	else
 	{
-		_pkb.addUses(RHS, stmtLine);
-		_pkb.addUses(stmtLine, RHS);
-		addAllParentsOfUsedVariable(RHS);
+		pkb_.AddUses(RHS, curr_stmt_line_);
+		pkb_.AddUses(curr_stmt_line_, RHS);
+		AddAllParentsOfUsedVariable(RHS);
 
-		_pkb.addProcUses(procName, RHS);
+		pkb_.AddProcUses(proc_name_, RHS);
 	}
-	match(RHS);
-	if (next_token == PLUS_FLAG || next_token == MINUS_FLAG || next_token == TIMES_FLAG)
+	Match(RHS);
+	if (next_token_ == PLUS_FLAG || next_token_ == MINUS_FLAG || next_token_ == TIMES_FLAG)
 	{
-		currRHS += next_token;
-		currRHS += " ";
-		match(next_token);
-		parseAssignRHS();
+		curr_rhs_ += next_token_;
+		curr_rhs_ += " ";
+		Match(next_token_);
+		ParseAssignRHS();
 	}
-	else if (next_token == LEFT_PARENTHESIS)
+	else if (next_token_ == LEFT_PARENTHESIS)
 	{
-		bracketStack.push(next_token);
-		currRHS += next_token;
-		currRHS += " ";
-		match(next_token);
-		parseAssignRHS();
+		bracket_stack_.push(next_token_);
+		curr_rhs_ += next_token_;
+		curr_rhs_ += " ";
+		Match(next_token_);
+		ParseAssignRHS();
 	}
-	else if (next_token == RIGHT_PARENTHESIS)
+	else if (next_token_ == RIGHT_PARENTHESIS)
 	{
-		if (!bracketStack.empty())
+		if (!bracket_stack_.empty())
 		{
-			bracketStack.pop();
-			currRHS += next_token;
-			currRHS += " ";
-			match(next_token);
-			parseAssignRHS();
+			bracket_stack_.pop();
+			curr_rhs_ += next_token_;
+			curr_rhs_ += " ";
+			Match(next_token_);
+			ParseAssignRHS();
 		}
 		else
 		{
@@ -392,60 +392,60 @@ void Parser::parseAssignRHS()
 	}
 }
 
-void Parser::parseExpression()
+void Parser::ParseExpression()
 {
-	if (next_token == PLUS_FLAG || next_token == MINUS_FLAG) {
-		currRHS += next_token;
-		match(next_token);
+	if (next_token_ == PLUS_FLAG || next_token_ == MINUS_FLAG) {
+		curr_rhs_ += next_token_;
+		Match(next_token_);
 	}
-	parseTerm();
-	while (next_token == PLUS_FLAG || next_token == MINUS_FLAG) {
-		currRHS += next_token;
-		match(next_token);
-		parseTerm();
+	ParseTerm();
+	while (next_token_ == PLUS_FLAG || next_token_ == MINUS_FLAG) {
+		curr_rhs_ += next_token_;
+		Match(next_token_);
+		ParseTerm();
 	}
 }
 
-void Parser::parseTerm()
+void Parser::ParseTerm()
 {
-	parseFactor();
-	while (next_token == TIMES_FLAG) {
-		currRHS += TIMES_FLAG;
-		match(TIMES_FLAG);
-		parseFactor();
+	ParseFactor();
+	while (next_token_ == TIMES_FLAG) {
+		curr_rhs_ += TIMES_FLAG;
+		Match(TIMES_FLAG);
+		ParseFactor();
 	}
 
 }
 
-void Parser::parseFactor()
+void Parser::ParseFactor()
 {
-	if (isConstant(next_token) == true) {
+	if (IsConstant(next_token_) == true) {
 		// INT
-		currRHS += next_token;
-		int RHSConstant = stoi(next_token);
-		_pkb.addConstant(RHSConstant, stmtLine);
-		match(next_token);
+		curr_rhs_ += next_token_;
+		int RHSConstant = stoi(next_token_);
+		pkb_.AddConstant(RHSConstant, curr_stmt_line_);
+		Match(next_token_);
 	}
-	else if (next_token == LEFT_PARENTHESIS) {
+	else if (next_token_ == LEFT_PARENTHESIS) {
 		// (
-		currRHS += LEFT_PARENTHESIS;
-		match(LEFT_PARENTHESIS);
-		parseExpression();
-		currRHS += RIGHT_PARENTHESIS;
-		match(RIGHT_PARENTHESIS);
+		curr_rhs_ += LEFT_PARENTHESIS;
+		Match(LEFT_PARENTHESIS);
+		ParseExpression();
+		curr_rhs_ += RIGHT_PARENTHESIS;
+		Match(RIGHT_PARENTHESIS);
 	}
 	else {
 		// IDENT
-		currRHS += next_token;
-		_pkb.addUses(next_token, stmtLine);
-		_pkb.addUses(stmtLine, next_token);
-		addAllParentsOfUsedVariable(next_token);
-		_pkb.addProcUses(procName, next_token);
-		match(next_token);
+		curr_rhs_ += next_token_;
+		pkb_.AddUses(next_token_, curr_stmt_line_);
+		pkb_.AddUses(curr_stmt_line_, next_token_);
+		AddAllParentsOfUsedVariable(next_token_);
+		pkb_.AddProcUses(proc_name_, next_token_);
+		Match(next_token_);
 	}
 }
 
-bool Parser::isConstant(string s)
+bool Parser::IsConstant(string s)
 {
 	if (isdigit(s.at(0))) {
 		return true;
@@ -453,80 +453,80 @@ bool Parser::isConstant(string s)
 	return false;
 }
 
-void Parser::addAllParentsOfCurrStmt(int stmtLine)
+void Parser::AddAllParentsOfCurrStmt(int stmtLine)
 {
-	stack<int> tempStack;
+	stack<int> temp_stack;
 	int temp;
-	while (parentStack.top() != NO_PARENT_FLAG)
+	while (parent_stack_.top() != NO_PARENT_FLAG)
 	{
-		temp = parentStack.top();
-		_pkb.addParentStar(temp, stmtLine);
-		parentStack.pop();
-		tempStack.push(temp);
+		temp = parent_stack_.top();
+		pkb_.AddParentStar(temp, stmtLine);
+		parent_stack_.pop();
+		temp_stack.push(temp);
 	}
-	while (!tempStack.empty())
+	while (!temp_stack.empty())
 	{
-		temp = tempStack.top();
-		parentStack.push(temp);
-		tempStack.pop();
+		temp = temp_stack.top();
+		parent_stack_.push(temp);
+		temp_stack.pop();
 	}
 }
 
-void Parser::addAllParentsOfUsedVariable(string v)
+void Parser::AddAllParentsOfUsedVariable(string v)
 {
-	stack<int> tempStack;
+	stack<int> temp_stack;
 	int temp;
-	while (parentStack.top() != NO_PARENT_FLAG)
+	while (parent_stack_.top() != NO_PARENT_FLAG)
 	{
-		temp = parentStack.top();
-		_pkb.addUses(v, temp);
-		_pkb.addUses(temp, v);
-		parentStack.pop();
-		tempStack.push(temp);
+		temp = parent_stack_.top();
+		pkb_.AddUses(v, temp);
+		pkb_.AddUses(temp, v);
+		parent_stack_.pop();
+		temp_stack.push(temp);
 	}
-	while (!tempStack.empty())
+	while (!temp_stack.empty())
 	{
-		temp = tempStack.top();
-		parentStack.push(temp);
-		tempStack.pop();
+		temp = temp_stack.top();
+		parent_stack_.push(temp);
+		temp_stack.pop();
 	}
 }
 
-void Parser::addAllParentsOfModifiedVariable(string v)
+void Parser::AddAllParentsOfModifiedVariable(string v)
 {
-	stack<int> tempStack;
+	stack<int> temp_stack;
 	int temp;
-	while (parentStack.top() != NO_PARENT_FLAG)
+	while (parent_stack_.top() != NO_PARENT_FLAG)
 	{
-		temp = parentStack.top();
-		_pkb.addModifies(v, temp);
-		_pkb.addModifies(temp, v);
-		parentStack.pop();
-		tempStack.push(temp);
+		temp = parent_stack_.top();
+		pkb_.AddModifies(v, temp);
+		pkb_.AddModifies(temp, v);
+		parent_stack_.pop();
+		temp_stack.push(temp);
 	}
-	while (!tempStack.empty())
+	while (!temp_stack.empty())
 	{
-		temp = tempStack.top();
-		parentStack.push(temp);
-		tempStack.pop();
+		temp = temp_stack.top();
+		parent_stack_.push(temp);
+		temp_stack.pop();
 	}
 }
 
-void Parser::addAllParentsOfUsedConstant(int c)
+void Parser::AddAllParentsOfUsedConstant(int c)
 {
-	stack<int> tempStack;
+	stack<int> temp_stack;
 	int temp;
-	while (parentStack.top() != NO_PARENT_FLAG)
+	while (parent_stack_.top() != NO_PARENT_FLAG)
 	{
-		temp = parentStack.top();
-		_pkb.addConstant(c, temp);
-		parentStack.pop();
-		tempStack.push(temp);
+		temp = parent_stack_.top();
+		pkb_.AddConstant(c, temp);
+		parent_stack_.pop();
+		temp_stack.push(temp);
 	}
-	while (!tempStack.empty())
+	while (!temp_stack.empty())
 	{
-		temp = tempStack.top();
-		parentStack.push(temp);
-		tempStack.pop();
+		temp = temp_stack.top();
+		parent_stack_.push(temp);
+		temp_stack.pop();
 	}
 }

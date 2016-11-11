@@ -348,10 +348,10 @@ void QueryValidator::MatchFollow() {
 	}
 
 	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> followsArg({ arg1.second,arg2.second });
-		vector<string> followsArgType({ arg1_type,arg2_type });
-		Clause followsRelation("follows", followsArg, followsArgType, GetClausePriority("follows"));
-		query_table_.AddSuchThatClause(followsRelation);
+		vector<string> follows_arg({ arg1.second,arg2.second });
+		vector<string> folllows_arg_type({ arg1_type,arg2_type });
+		Clause follows_clause("follows", follows_arg, folllows_arg_type, GetClausePriority("follows"));
+		query_table_.AddSuchThatClause(follows_clause);
 
 	}
 	else {
@@ -402,10 +402,10 @@ void QueryValidator::MatchFollowStar() {
 	}
 
 	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> followsStarArg({ arg1.second,arg2.second });
-		vector<string> followsStarArgType({ arg1_type,arg2_type });
-		Clause followsStarRel("follows*", followsStarArg, followsStarArgType, GetClausePriority("follows*"));
-		query_table_.AddSuchThatClause(followsStarRel);
+		vector<string> follows_star_arg({ arg1.second,arg2.second });
+		vector<string> follows_star_arg_type({ arg1_type,arg2_type });
+		Clause follows_star_clause("follows*", follows_star_arg, follows_star_arg_type, GetClausePriority("follows*"));
+		query_table_.AddSuchThatClause(follows_star_clause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for follows*"));
@@ -454,10 +454,10 @@ void QueryValidator::MatchParent() {
 	}
 
 	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> parentArg({ arg1.second,arg2.second });
-		vector<string> parentArgType({ arg1_type,arg2_type });
-		Clause parentRel("parent", parentArg, parentArgType, GetClausePriority("parent"));
-		query_table_.AddSuchThatClause(parentRel);
+		vector<string> parent_arg({ arg1.second,arg2.second });
+		vector<string> parent_arg_type({ arg1_type,arg2_type });
+		Clause parent_clause("parent", parent_arg, parent_arg_type, GetClausePriority("parent"));
+		query_table_.AddSuchThatClause(parent_clause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for parent"));
@@ -506,10 +506,10 @@ void QueryValidator::MatchParentStar() {
 	}
 
 	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> parentStarArg({ arg1.second,arg2.second });
-		vector<string> parentStarArgType({ arg1_type,arg2_type });
-		Clause parentStarRel("parent*", parentStarArg, parentStarArgType, GetClausePriority("parent*"));
-		query_table_.AddSuchThatClause(parentStarRel);
+		vector<string> parent_star_arg({ arg1.second,arg2.second });
+		vector<string> parent_star_arg_type({ arg1_type,arg2_type });
+		Clause parent_star_clause("parent*", parent_star_arg, parent_star_arg_type, GetClausePriority("parent*"));
+		query_table_.AddSuchThatClause(parent_star_clause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for parent*"));
@@ -561,10 +561,10 @@ void QueryValidator::MatchModifies() {
 	}
 
 	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> modifiesArg({ arg1.second,arg2.second });
-		vector<string> modifiesArgType({ arg1_type,arg2_type });
-		Clause modifiesRel("modifies", modifiesArg, modifiesArgType, GetClausePriority("modifies"));
-		query_table_.AddSuchThatClause(modifiesRel);
+		vector<string> modifies_arg({ arg1.second,arg2.second });
+		vector<string> modifies_arg_type({ arg1_type,arg2_type });
+		Clause modifies_clause("modifies", modifies_arg, modifies_arg_type, GetClausePriority("modifies"));
+		query_table_.AddSuchThatClause(modifies_clause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for modifies"));
@@ -618,10 +618,10 @@ void QueryValidator::MatchUses() {
 	}
 
 	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> usesArg({ arg1.second,arg2.second });
-		vector<string> usesArgType({ arg1_type,arg2_type });
-		Clause usesRel("uses", usesArg, usesArgType, GetClausePriority("uses"));
-		query_table_.AddSuchThatClause(usesRel);
+		vector<string> uses_arg({ arg1.second,arg2.second });
+		vector<string> uses_arg_type({ arg1_type,arg2_type });
+		Clause uses_clause("uses", uses_arg, uses_arg_type, GetClausePriority("uses"));
+		query_table_.AddSuchThatClause(uses_clause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for uses"));
@@ -682,10 +682,10 @@ void QueryValidator::MatchCalls() {
 	}
 	*/
 	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> callsArg({ arg1.second,arg2.second });
-		vector<string> callsArgType({ arg1_type,arg2_type });
-		Clause callsRel("calls", callsArg, callsArgType, GetClausePriority("call"));
-		query_table_.AddSuchThatClause(callsRel);
+		vector<string> calls_arg({ arg1.second,arg2.second });
+		vector<string> calls_arg_type({ arg1_type,arg2_type });
+		Clause calls_clause("calls", calls_arg, calls_arg_type, GetClausePriority("call"));
+		query_table_.AddSuchThatClause(calls_clause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for calls"));
@@ -785,10 +785,10 @@ void QueryValidator::MatchNext() {
 	}
 
 	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> nextArg({ arg1.second,arg2.second });
-		vector<string> nextArgType({ arg1_type,arg2_type });
-		Clause nextRel("next", nextArg, nextArgType,GetClausePriority("next"));
-		query_table_.AddSuchThatClause(nextRel);
+		vector<string> next_arg({ arg1.second,arg2.second });
+		vector<string> next_arg_type({ arg1_type,arg2_type });
+		Clause next_clause("next", next_arg, next_arg_type,GetClausePriority("next"));
+		query_table_.AddSuchThatClause(next_clause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for next"));
@@ -837,10 +837,10 @@ void QueryValidator::MatchNextStar() {
 	}
 
 	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> nextStarArg({ arg1.second,arg2.second });
-		vector<string> nextStarArgType({ arg1_type,arg2_type });
-		Clause nextStarRel("next*", nextStarArg, nextStarArgType,GetClausePriority("next*"));
-		query_table_.AddSuchThatClause(nextStarRel);
+		vector<string> next_star_arg({ arg1.second,arg2.second });
+		vector<string> next_star_arg_type({ arg1_type,arg2_type });
+		Clause next_star_clause("next*", next_star_arg, next_star_arg_type,GetClausePriority("next*"));
+		query_table_.AddSuchThatClause(next_star_clause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for nextStar"));
@@ -889,10 +889,10 @@ void QueryValidator::MatchAffects()
 	}
 
 	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> affectsArg({ arg1.second,arg2.second });
-		vector<string> affectsArgType({ arg1_type,arg2_type });
-		Clause affectsRel("affects", affectsArg, affectsArgType, GetClausePriority("affects"));
-		query_table_.AddSuchThatClause(affectsRel);
+		vector<string> affects_arg({ arg1.second,arg2.second });
+		vector<string> affects_arg_type({ arg1_type,arg2_type });
+		Clause affects_clause("affects", affects_arg, affects_arg_type, GetClausePriority("affects"));
+		query_table_.AddSuchThatClause(affects_clause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for Affects"));
@@ -941,10 +941,10 @@ void QueryValidator::MatchAffectsStar()
 	}
 
 	if (is_arg1_valid == true && is_arg2_valid == true) {
-		vector<string> affectsStarArg({ arg1.second,arg2.second });
-		vector<string> affectsStarArgType({ arg1_type,arg2_type });
-		Clause affectsStarRel("affects*", affectsStarArg, affectsStarArgType, GetClausePriority("affects*"));
-		query_table_.AddSuchThatClause(affectsStarRel);
+		vector<string> affects_star_arg({ arg1.second,arg2.second });
+		vector<string> affects_star_arg_type({ arg1_type,arg2_type });
+		Clause affects_star_clause("affects*", affects_star_arg, affects_star_arg_type, GetClausePriority("affects*"));
+		query_table_.AddSuchThatClause(affects_star_clause);
 	}
 	else {
 		throw(QueryException("Invalid Query : Unexpected arguments for Affects*"));

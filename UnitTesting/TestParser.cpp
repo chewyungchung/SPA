@@ -39,7 +39,7 @@ namespace UnitTesting
 			list<string>::iterator it = expectedList.begin();
 
 			for (; it != expectedList.end(); ++it) {
-				string token = tk.getNextToken();
+				string token = tk.GetNextToken();
 				Assert::AreEqual(*it, token);
 			}
 		}
@@ -60,7 +60,7 @@ namespace UnitTesting
 			list<string>::iterator it = expectedList.begin();
 
 			for (; it != expectedList.end(); ++it) {
-				string token = tk.getNextToken();
+				string token = tk.GetNextToken();
 				Assert::AreEqual(*it, token);
 			}
 		}
@@ -83,7 +83,7 @@ namespace UnitTesting
 			list<string>::iterator it = expectedList.begin();
 
 			for (; it != expectedList.end(); ++it) {
-				string token = tk.getNextToken();
+				string token = tk.GetNextToken();
 				Assert::AreEqual(*it, token);
 			}
 		}
@@ -134,7 +134,7 @@ namespace UnitTesting
 			list<string>::iterator it = expectedList.begin();
 
 			for (; it != expectedList.end(); ++it) {
-				string token = tk.getNextToken();
+				string token = tk.GetNextToken();
 				Assert::AreEqual(*it, token);
 			}
 		}

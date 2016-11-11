@@ -7,95 +7,95 @@ Parent* is computed by following the chain of parents until the NO_PARENT_FLAG i
 
 ParentTable::ParentTable()
 {
-	TableChildWise = map<int, int>();
-	TableParentWise = map<int, list<int> >();
-	TableParentWiseStar = map<int, list<int> >();
-	TableChildWiseStar = map<int, list<int> >();
+	table_child_wise_ = map<int, int>();
+	table_parent_wise_ = map<int, list<int> >();
+	table_parent_wise_star_ = map<int, list<int> >();
+	table_child_wise_star_ = map<int, list<int> >();
 }
 
 ParentTable::~ParentTable()
 {
 }
 
-void ParentTable::addParent(int parent, int child)
+void ParentTable::AddParent(int parent, int child)
 {	
 	if (parent == NO_PARENT_FLAG)
 	{
 		return;
 	}
-	TableChildWise[child] = parent;
-	TableParentWise[parent].push_back(child);
-	TableChildWiseStar[child].push_back(parent);
+	table_child_wise_[child] = parent;
+	table_parent_wise_[parent].push_back(child);
+	table_child_wise_star_[child].push_back(parent);
 
 	// Because we have to keep track of parent-star relationships
-	map<int, int>::iterator it = TableChildWise.find(parent);
+	map<int, int>::iterator it = table_child_wise_.find(parent);
 
-	while (it != TableChildWise.end())
+	while (it != table_child_wise_.end())
 	{ // if the parent is itself a child
-		int parentOfParent = it->second;
-		TableChildWiseStar[child].push_back(parentOfParent); // parent-star has been found; track it
-		it = TableChildWise.find(parentOfParent);
+		int parent_of_parent = it->second;
+		table_child_wise_star_[child].push_back(parent_of_parent); // parent-star has been found; track it
+		it = table_child_wise_.find(parent_of_parent);
 	}
 }
 
 // The parser will populate for each child stmt all the parents in the stack (i.e. Parser will call appropriately)
-void ParentTable::addParentStar(int parentStar, int child)
+void ParentTable::AddParentStar(int parentStar, int child)
 {
 	if (parentStar == NO_PARENT_FLAG)
 	{
 		return;
 	}
-	TableParentWiseStar[parentStar].push_back(child);
+	table_parent_wise_star_[parentStar].push_back(child);
 }
 
-int ParentTable::getParentOf(int stmt)
+int ParentTable::GetParentOf(int stmt)
 {
 	int res = -1;
-	map<int, int >::iterator it = TableChildWise.find(stmt);
-	if (it == TableChildWise.end())
+	map<int, int >::iterator it = table_child_wise_.find(stmt);
+	if (it == table_child_wise_.end())
 	{
 		return -1;
 	}
 	else
 	{
-		return TableChildWise.at(stmt);
+		return table_child_wise_.at(stmt);
 	}
 }
 
-list<int> ParentTable::getChildrenOf(int stmt)
+list<int> ParentTable::GetChildrenOf(int stmt)
 {
 	list<int> res;
-	list<int> emptyList;
+	list<int> empty_list;
 
-	list<int> test = TableParentWise[stmt];
+	list<int> test = table_parent_wise_[stmt];
 	if (test.empty() == true)
 	{
 		return res;
 	}
 	else
 	{
-		return TableParentWise.at(stmt);
+		return table_parent_wise_.at(stmt);
 	}
 }
 
-bool ParentTable::isParentEmpty() {
-	return TableChildWise.empty();
+bool ParentTable::IsParentEmpty() {
+	return table_child_wise_.empty();
 }
 
-bool ParentTable::isParentOf(int parent, int child)
+bool ParentTable::IsParentOf(int parent, int child)
 {
 	bool r = false;
 	int flag = -1;
 	int res = flag;
 
-	map<int, int >::iterator it = TableChildWise.find(child);
-	if (it == TableChildWise.end())
+	map<int, int >::iterator it = table_child_wise_.find(child);
+	if (it == table_child_wise_.end())
 	{
 		return false;
 	}
 	else
 	{
-		if (TableChildWise.at(child) == parent)
+		if (table_child_wise_.at(child) == parent)
 		{
 			return true;
 		}
@@ -106,12 +106,12 @@ bool ParentTable::isParentOf(int parent, int child)
 	}
 }
 
-list<int> ParentTable::getParentStar(int stmt)
+list<int> ParentTable::GetParentStar(int stmt)
 {
-	map<int, list<int> >::iterator it = TableChildWiseStar.find(stmt);
+	map<int, list<int> >::iterator it = table_child_wise_star_.find(stmt);
 	list<int> res;
 
-	if (it == TableChildWiseStar.end())
+	if (it == table_child_wise_star_.end())
 	{
 		return res;
 	}
@@ -121,12 +121,12 @@ list<int> ParentTable::getParentStar(int stmt)
 	}
 }
 
-bool ParentTable::isParentStar(int parent, int child)
+bool ParentTable::IsParentStar(int parent, int child)
 {
-	map<int, list<int> >::iterator it = TableChildWiseStar.find(child);
+	map<int, list<int> >::iterator it = table_child_wise_star_.find(child);
 	bool res = false;
 
-	if (it != TableChildWiseStar.end())
+	if (it != table_child_wise_star_.end())
 	{
 		list<int>::iterator lIt = find(it->second.begin(), it->second.end(), parent); // does the argumnent 'parent' exist as a parent-star?
 		if (lIt != it->second.end())
@@ -137,12 +137,12 @@ bool ParentTable::isParentStar(int parent, int child)
 	return res;
 }
 
-list<int> ParentTable::getChildStarOf(int stmt)
+list<int> ParentTable::GetChildStarOf(int stmt)
 {
-	map<int, list<int> >::iterator it = TableParentWiseStar.find(stmt);
+	map<int, list<int> >::iterator it = table_parent_wise_star_.find(stmt);
 	list<int> results = list<int>();
 
-	if (it != TableParentWiseStar.end())
+	if (it != table_parent_wise_star_.end())
 	{
 		results = it->second;
 		return results;

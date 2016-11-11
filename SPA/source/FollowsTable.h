@@ -12,17 +12,17 @@ public:
 	FollowsTable();
 	~FollowsTable();
 
-	void addFollows(int stmt, int nestingIndex);
+	void AddFollows(int stmt, int nest_index);
 
-	int getFollowedFrom(int stmt);
-	int getFollower(int stmt);
-	bool isFollowEmpty();
-	bool isValidFollows(int from, int to);
-	bool isFollowsStar(int from, int to);
-	list<int> getFollowedFromStar(int stmt);
-	list<int> getFollowerStar(int stmt);
+	int GetFollowedFrom(int stmt);
+	int GetFollower(int stmt);
+	bool IsFollowEmpty();
+	bool IsValidFollows(int from, int to);
+	bool IsFollowsStar(int from, int to);
+	list<int> GetFollowedFromStar(int stmt);
+	list<int> GetFollowerStar(int stmt);
 
 private:
-	map<int, int> tableStmtWise; // key: stmt; value: nesting index
-	map<int, vector<int> > tableNestingWise; // key: nesting index; value: stmt	
+	map<int, int> table_stmt_wise_; // key: stmt; value: nesting index
+	map<int, vector<int> > table_nesting_wise_; // key: nesting index; value: stmt	
 };

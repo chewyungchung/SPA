@@ -11,18 +11,18 @@ class ModUsesTablebyStmt
 public:
 	ModUsesTablebyStmt();
 	~ModUsesTablebyStmt();
-	map<int, list<string>> getModTable();
-	map<int, list<string>> getUsesTable();
-	void addModifies(int stmtNum, string var);
-	void addUses(int stmtNum, string var);
-	bool isModified(int stmtNum, string varName);
-	bool isUsed(int stmtNum, string varName);
-	list<string> getModifiedBy(int stmtNum);
-	list<string> getUsedBy(int stmtNum);
+	map<int, list<string>> GetModTable();
+	map<int, list<string>> GetUsesTable();
+	void AddModifies(int stmt_num, string var);
+	void AddUses(int stmt_num, string var);
+	bool IsModified(int stmt_num, string var_name);
+	bool IsUsed(int stmt_num, string var_name);
+	list<string> GetModifiedBy(int stmt_num);
+	list<string> GetUsedBy(int stmt_num);
 
 private:
-	map<int, list<string>> modifiesTable;
-	map<int, list<string>> usesTable;
+	map<int, list<string>> modifies_table_;
+	map<int, list<string>> uses_table_;
 };
 
 

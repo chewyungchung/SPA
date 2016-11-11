@@ -9,32 +9,30 @@ using namespace std;
 class StatementTable
 {
 private:
-	list<int> assignList;
-	list<int> whileList;
-	map<int, string> allStmtList;
-	list<int> ifList;
-	list<int> callList;
-	map<int, string> callProcList; // key: callstmt#, value: associated procName
-	map<int, string> ctrlvarList;
+	list<int> assign_list_;
+	list<int> while_list_;
+	map<int, string> all_stmt_list_;
+	list<int> if_list_;
+	list<int> call_list_;
+	map<int, string> call_proc_list_; // key: callstmt#, value: associated procName
+	map<int, string> ctrl_var_list_;
 
 	public:
 	StatementTable();
 	~StatementTable();
-	void addStatement(int stmtNum, string stmtType);
-	void addStatement(int stmtNum, string stmtType, string ctrlvar);
-	list<int> getAssignList();
-	list<int> getWhileList();
-	list<int> getIfList();
-	list<int> getCallList();
-	string getProcNameByCallStmt(int callStmt);
-	list<int> getIfListWithControlVariable(string ctrlvar);
-	list<int> getWhileListWithControlVariable(string ctrlvar);
-	string getControlVarWithStmt(int stmtNum);
-	list<int> getStmtList();
-	int getStatementCount();
-	bool isValidStmt(int stmtNum);
-	string getStmtType(int stmtNum);
-	bool isAssign(int stmtNum);
-
-private:
+	void AddStatement(int stmt_num, string stmt_type);
+	void AddStatement(int stmt_num, string stmt_type, string ctrl_var);
+	list<int> GetAssignList();
+	list<int> GetWhileList();
+	list<int> GetIfList();
+	list<int> GetCallList();
+	string GetProcNameByCallStmt(int call_stmt);
+	list<int> GetIfListWithControlVariable(string ctrl_var);
+	list<int> GetWhileListWithControlVariable(string ctrl_var);
+	string GetControlVarWithStmt(int stmt_num);
+	list<int> GetStmtList();
+	int GetStatementCount();
+	bool IsValidStmt(int stmt_num);
+	string GetStmtType(int stmt_num);
+	bool IsAssign(int stmt_num);
 };

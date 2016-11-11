@@ -24,7 +24,7 @@ void TestWrapper::parse(std::string filename) {
 	cout << "Start parsing!" << endl;
 	parser_ = Parser(filename);
 	cout << "File initialized" << endl;
-	pkb_ = parser_.process();
+	pkb_ = parser_.Process();
 	cout << "SRC code parsing complete" << endl;
 }
 

@@ -11,40 +11,40 @@ Follows(s1, s2) holds if the above conditions are satisfied AND additionally s1 
 
 FollowsTable::FollowsTable()
 {
-	tableStmtWise = map<int, int>();
-	tableNestingWise = map<int, vector<int> >();
+	table_stmt_wise_ = map<int, int>();
+	table_nesting_wise_ = map<int, vector<int> >();
 }
 
 FollowsTable::~FollowsTable()
 {
-	tableStmtWise.clear();
-	tableNestingWise.clear();
+	table_stmt_wise_.clear();
+	table_nesting_wise_.clear();
 }
 
-void FollowsTable::addFollows(int stmt, int nestingIndex)
+void FollowsTable::AddFollows(int stmt, int nestingIndex)
 {
-	map<int, int>::iterator it = tableStmtWise.find(stmt);
+	map<int, int>::iterator it = table_stmt_wise_.find(stmt);
 
-	if (it != tableStmtWise.end())
+	if (it != table_stmt_wise_.end())
 	{
 		throw logic_error("statement already exists");
 	}
 	else 
 	{
-		tableStmtWise[stmt] = nestingIndex;
-		tableNestingWise[nestingIndex].push_back(stmt);
+		table_stmt_wise_[stmt] = nestingIndex;
+		table_nesting_wise_[nestingIndex].push_back(stmt);
 	}
 }
 
-int FollowsTable::getFollowedFrom(int stmt)
+int FollowsTable::GetFollowedFrom(int stmt)
 {
 	vector<int> stmts;
-	list<int> emptyList;
-	int tableStmtWiseLvl = tableStmtWise[stmt];
+	list<int> empty_list;
+	int table_stmt_wise_lvl = table_stmt_wise_[stmt];
 
-	if (tableStmtWiseLvl != 0)
+	if (table_stmt_wise_lvl != 0)
 	{
-		stmts = tableNestingWise[tableStmtWiseLvl];
+		stmts = table_nesting_wise_[table_stmt_wise_lvl];
 		if (stmts.empty())
 		{
 			return -1;
@@ -53,9 +53,9 @@ int FollowsTable::getFollowedFrom(int stmt)
 		
 	vector<int> r;
 		
-	for (auto& iterValue : stmts) {
-		if (this->isValidFollows(iterValue, stmt)) {
-			r.push_back(iterValue);
+	for (auto& iter_value : stmts) {
+		if (this->IsValidFollows(iter_value, stmt)) {
+			r.push_back(iter_value);
 		}
 	}
 
@@ -66,14 +66,14 @@ int FollowsTable::getFollowedFrom(int stmt)
 	return r.at(0);
 }
 
-int FollowsTable::getFollower(int stmt)
+int FollowsTable::GetFollower(int stmt)
 {
 	vector<int> stmts;
-	list<int> emptyList;
-	int tableStmtWiseLvl = tableStmtWise[stmt];
+	list<int> empty_list;
+	int table_stmt_wise_lvl = table_stmt_wise_[stmt];
 
-	if (tableStmtWiseLvl != 0) {
-		stmts = tableNestingWise[tableStmtWiseLvl];
+	if (table_stmt_wise_lvl != 0) {
+		stmts = table_nesting_wise_[table_stmt_wise_lvl];
 		if (stmts.empty() == true) {
 			return -1;
 		}
@@ -81,9 +81,9 @@ int FollowsTable::getFollower(int stmt)
 
 	vector<int> r;
 
-	for (auto& iterValue : stmts) {
-		if (this->isValidFollows(stmt, iterValue)) {
-			r.push_back(iterValue);
+	for (auto& iter_value : stmts) {
+		if (this->IsValidFollows(stmt, iter_value)) {
+			r.push_back(iter_value);
 		}
 	}
 
@@ -94,26 +94,26 @@ int FollowsTable::getFollower(int stmt)
 	return r.at(0);
 }
 
-bool FollowsTable::isFollowEmpty()
+bool FollowsTable::IsFollowEmpty()
 {
-	return tableStmtWise.empty();
+	return table_stmt_wise_.empty();
 }
 
-bool FollowsTable::isValidFollows(int from, int to)
+bool FollowsTable::IsValidFollows(int from, int to)
 {
 	if (from >= to) {
 		return false;
 	}
 
-	int nestingAtFrom = tableStmtWise[from];
-	int nestingAtTo = tableStmtWise[to];
+	int nesting_at_from = table_stmt_wise_[from];
+	int nesting_at_to = table_stmt_wise_[to];
 
-	if (nestingAtFrom == 0 || nestingAtTo == 0)
+	if (nesting_at_from == 0 || nesting_at_to == 0)
 	{
 		return false;
 	}
 
-	if (nestingAtFrom == nestingAtTo)
+	if (nesting_at_from == nesting_at_to)
 	{
 		if (from + 1 == to)
 		{
@@ -121,15 +121,15 @@ bool FollowsTable::isValidFollows(int from, int to)
 		}
 		else
 		{
-			int subsequentStmt = from + 1;
-			map<int, int>::iterator i = tableStmtWise.find(subsequentStmt);
-			if (i == tableStmtWise.end())
+			int subsequent_stmt = from + 1;
+			map<int, int>::iterator i = table_stmt_wise_.find(subsequent_stmt);
+			if (i == table_stmt_wise_.end())
 			{
 				return false;
 			}
-			for (map<int, int>::iterator iter = i; iter != tableStmtWise.find(to); ++iter)
+			for (map<int, int>::iterator iter = i; iter != table_stmt_wise_.find(to); ++iter)
 			{
-				if (iter->second == nestingAtFrom)
+				if (iter->second == nesting_at_from)
 				{
 					return false;
 				}
@@ -143,7 +143,7 @@ bool FollowsTable::isValidFollows(int from, int to)
 	}
 }
 
-bool FollowsTable::isFollowsStar(int from, int to)
+bool FollowsTable::IsFollowsStar(int from, int to)
 {
 	if (from >= to)
 	{
@@ -151,12 +151,12 @@ bool FollowsTable::isFollowsStar(int from, int to)
 	}
 		/*int nestingAtFrom = tableStmtWise.at(from);
 		int nestingAtTo = tableStmtWise.at(to);*/
-	int nestingAtFrom = tableStmtWise[from];
-	int nestingAtTo = tableStmtWise[to];
+	int nesting_at_from = table_stmt_wise_[from];
+	int nesting_at_to = table_stmt_wise_[to];
 
-	if (nestingAtFrom != 0 && nestingAtTo != 0)
+	if (nesting_at_from != 0 && nesting_at_to != 0)
 	{
-		if (nestingAtFrom == nestingAtTo)
+		if (nesting_at_from == nesting_at_to)
 		{
 			return true;
 		}
@@ -171,55 +171,55 @@ bool FollowsTable::isFollowsStar(int from, int to)
 	}
 }
 
-list<int> FollowsTable::getFollowedFromStar(int stmt)
+list<int> FollowsTable::GetFollowedFromStar(int stmt)
 {
 	vector<int> stmts;
-	list<int> emptyList;
-	int tableStmtWiseLvl = tableStmtWise[stmt];
+	list<int> empty_list;
+	int table_stmt_wise_lvl = table_stmt_wise_[stmt];
 	
-	if (tableStmtWiseLvl != 0)
+	if (table_stmt_wise_lvl != 0)
 	{
-		stmts = tableNestingWise[tableStmtWiseLvl];
+		stmts = table_nesting_wise_[table_stmt_wise_lvl];
 		if (stmts.empty() == true)
 		{
-			return emptyList;
+			return empty_list;
 		}
 	}
 
 	list<int> r = list<int>();
 
-	for (auto& iterValue : stmts)
+	for (auto& iter_value : stmts)
 	{
-		if (this->isFollowsStar(iterValue, stmt))
+		if (this->IsFollowsStar(iter_value, stmt))
 		{
-			r.push_back(iterValue);
+			r.push_back(iter_value);
 		}
 	}
 	return r;
 }
 
-list<int> FollowsTable::getFollowerStar(int stmt)
+list<int> FollowsTable::GetFollowerStar(int stmt)
 {
 	vector<int> stmts;
-	list<int> emptyList;
-	int tableStmtWiseLvl = tableStmtWise[stmt];
+	list<int> empty_list;
+	int table_stmt_wise_lvl = table_stmt_wise_[stmt];
 
-	if (tableStmtWiseLvl != 0)
+	if (table_stmt_wise_lvl != 0)
 	{
-		stmts = tableNestingWise[tableStmtWiseLvl];
+		stmts = table_nesting_wise_[table_stmt_wise_lvl];
 		if (stmts.empty() == true)
 		{
-			return emptyList;
+			return empty_list;
 		}
 	}
 
 	list<int> r;
 
-	for (auto& iterValue : stmts)
+	for (auto& iter_value : stmts)
 	{
-		if (this->isFollowsStar(stmt, iterValue))
+		if (this->IsFollowsStar(stmt, iter_value))
 		{
-			r.push_back(iterValue);
+			r.push_back(iter_value);
 		}
 	}
 	return r;

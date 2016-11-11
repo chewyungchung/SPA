@@ -4,40 +4,40 @@
 
 CallsTable::CallsTable()
 {
-	callsTable = map<string, list<string>>();
+	calls_table_ = map<string, list<string>>();
 }
 
 CallsTable::~CallsTable()
 {
-	callsTable.clear();
+	calls_table_.clear();
 }
 
-void CallsTable::addCalls(string caller, string callee)
+void CallsTable::AddCalls(string caller, string callee)
 {
-	map<string, list<string>>::iterator it = callsTable.find(caller);
-	list<string> calleeList;
+	map<string, list<string>>::iterator it = calls_table_.find(caller);
+	list<string> callee_list;
 
-	if (it != callsTable.end())
+	if (it != calls_table_.end())
 	{
-		calleeList = it->second;
-		bool foundDup = find(calleeList.begin(), calleeList.end(), callee) != calleeList.end();
-		if (!foundDup)
+		callee_list = it->second;
+		bool is_found_dup = find(callee_list.begin(), callee_list.end(), callee) != callee_list.end();
+		if (!is_found_dup)
 		{
 			it->second.push_back(callee);
 		}
 	}
 	else
 	{
-		calleeList.push_back(callee);
-		callsTable.insert(pair<string, list<string>>(caller, calleeList));
+		callee_list.push_back(callee);
+		calls_table_.insert(pair<string, list<string>>(caller, callee_list));
 	}
 }
 
-list<string> CallsTable::getCallee(string caller)
+list<string> CallsTable::GetCallee(string caller)
 {
-	map<string, list<string>>::iterator it = callsTable.find(caller);
+	map<string, list<string>>::iterator it = calls_table_.find(caller);
 
-	if (it != callsTable.end())
+	if (it != calls_table_.end())
 	{
 		return it->second;
 	}
@@ -47,27 +47,27 @@ list<string> CallsTable::getCallee(string caller)
 	}
 }
 
-list<string> CallsTable::getCaller(string callee)
+list<string> CallsTable::GetCaller(string callee)
 {
-	list<string> callerList = list<string>();
+	list<string> caller_list = list<string>();
 
-	for (map<string, list<string>>::iterator callerIndex = callsTable.begin(); callerIndex != callsTable.end(); ++callerIndex)
+	for (map<string, list<string>>::iterator caller_index = calls_table_.begin(); caller_index != calls_table_.end(); ++caller_index)
 	{
-		for (list<string>::iterator calleeIndex = callerIndex->second.begin(); calleeIndex != callerIndex->second.end(); ++calleeIndex)
+		for (list<string>::iterator callee_index = caller_index->second.begin(); callee_index != caller_index->second.end(); ++callee_index)
 		{
-			if (*calleeIndex == callee)
+			if (*callee_index == callee)
 			{
-				callerList.push_back(callerIndex->first);
+				caller_list.push_back(caller_index->first);
 			}
 
 		}
 	}
-	return callerList;
+	return caller_list;
 }
 
-bool CallsTable::isCallExist()
+bool CallsTable::IsCallExist()
 {
-	if (callsTable.empty() == false) {
+	if (calls_table_.empty() == false) {
 		return true;
 	}
 	else {
@@ -75,15 +75,15 @@ bool CallsTable::isCallExist()
 	}
 }
 
-bool CallsTable::isCall(string caller, string callee)
+bool CallsTable::IsCall(string caller, string callee)
 {
-	map<string, list<string>>::iterator it = callsTable.find(caller);
+	map<string, list<string>>::iterator it = calls_table_.find(caller);
 
-	if (it != callsTable.end())
+	if (it != calls_table_.end())
 	{
-		list<string> calleeListIt = it->second;
-		bool isCalleeFound = find(calleeListIt.begin(), calleeListIt.end(), callee) != calleeListIt.end();
-		return isCalleeFound;
+		list<string> callee_list_it = it->second;
+		bool is_callee_found = find(callee_list_it.begin(), callee_list_it.end(), callee) != callee_list_it.end();
+		return is_callee_found;
 	}
 	else
 	{
@@ -91,36 +91,36 @@ bool CallsTable::isCall(string caller, string callee)
 	}
 }
 
-bool CallsTable::isCallStar(string caller, string callee)
+bool CallsTable::IsCallStar(string caller, string callee)
 {
-	callsStarHelperChecked = list<string>();
-	return isCallsStarHelper(caller, callee);
+	calls_star_helper_checked_list_ = list<string>();
+	return IsCallsStarHelper(caller, callee);
 }
 
-bool CallsTable::isCallsStarHelper(string caller, string callee)
+bool CallsTable::IsCallsStarHelper(string caller, string callee)
 {
-	map<string, list<string>>::iterator it = callsTable.find(caller);
+	map<string, list<string>>::iterator it = calls_table_.find(caller);
 
-	if (it != callsTable.end())
+	if (it != calls_table_.end())
 	{
-		list<string> directCalleeList = it->second;
+		list<string> direct_call_list = it->second;
 
 		// Mark the current caller as checked
-		callsStarHelperChecked.push_back(caller);
+		calls_star_helper_checked_list_.push_back(caller);
 
-		for (list<string>::iterator calleeIt = directCalleeList.begin(); calleeIt != directCalleeList.end(); ++calleeIt)
+		for (list<string>::iterator callee_list_it = direct_call_list.begin(); callee_list_it != direct_call_list.end(); ++callee_list_it)
 		{
 			// firstly if the current procedure is the original callee, then return true immediately
-			if (*calleeIt == callee)
+			if (*callee_list_it == callee)
 			{
 				return true;
 			}
 			else // otherwise we have to calls* into this procedure
 			{
-				bool checkedBefore = find(callsStarHelperChecked.begin(), callsStarHelperChecked.end(), *calleeIt) != callsStarHelperChecked.end();
-				if (!checkedBefore)
+				bool is_checked_before = find(calls_star_helper_checked_list_.begin(), calls_star_helper_checked_list_.end(), *callee_list_it) != calls_star_helper_checked_list_.end();
+				if (!is_checked_before)
 				{
-					return isCallsStarHelper(*calleeIt, callee);
+					return IsCallsStarHelper(*callee_list_it, callee);
 				}
 			}
 		}
@@ -132,30 +132,30 @@ bool CallsTable::isCallsStarHelper(string caller, string callee)
 	}
 }
 
-list<string> CallsTable::getCalleeStar(string caller)
+list<string> CallsTable::GetCalleeStar(string caller)
 {
-	getCalleesStarHelperList = list<string>();
-	getCalleesStarHelper(caller);
-	return getCalleesStarHelperList;
+	get_callees_star_helper_list_ = list<string>();
+	GetCalleesStarHelper(caller);
+	return get_callees_star_helper_list_;
 }
 
 /* DFS method of searching for callees */
-void CallsTable::getCalleesStarHelper(string caller)
+void CallsTable::GetCalleesStarHelper(string caller)
 {
-	map<string, list<string>>::iterator it = callsTable.find(caller);
+	map<string, list<string>>::iterator it = calls_table_.find(caller);
 
-	if (it != callsTable.end())
+	if (it != calls_table_.end())
 	{
-		list<string> directCalleeList = it->second;
+		list<string> direct_callee_it = it->second;
 
-		for (list<string>::iterator calleeIt = directCalleeList.begin(); calleeIt != directCalleeList.end(); ++calleeIt)
+		for (list<string>::iterator calleeIt = direct_callee_it.begin(); calleeIt != direct_callee_it.end(); ++calleeIt)
 		{
-			bool checkedBefore = find(getCalleesStarHelperList.begin(), getCalleesStarHelperList.end(), *calleeIt) != getCalleesStarHelperList.end();
-			if (!checkedBefore)
+			bool is_checked_before = find(get_callees_star_helper_list_.begin(), get_callees_star_helper_list_.end(), *calleeIt) != get_callees_star_helper_list_.end();
+			if (!is_checked_before)
 			{
 				// Push this callee into the list and search into it
-				getCalleesStarHelperList.push_back(*calleeIt);
-				getCalleesStarHelper(*calleeIt);
+				get_callees_star_helper_list_.push_back(*calleeIt);
+				GetCalleesStarHelper(*calleeIt);
 			}
 		}
 	}
@@ -165,26 +165,26 @@ void CallsTable::getCalleesStarHelper(string caller)
 	}
 }
 
-list<string> CallsTable::getCallerStar(string callee)
+list<string> CallsTable::GetCallerStar(string callee)
 {
-	getCallersStarHelperList = list<string>();
-	getCallersStarHelper(callee);
-	getCalleesStarHelperList.sort();
-	getCallersStarHelperList.unique();
-	return getCallersStarHelperList;
+	get_callers_star_helper_list_ = list<string>();
+	GetCallersStarHelper(callee);
+	get_callees_star_helper_list_.sort();
+	get_callers_star_helper_list_.unique();
+	return get_callers_star_helper_list_;
 }
 
 /* DFS search for all Callers, (because dont have a callee-keyed table, runtime here could be bad, pending further testing */
-void CallsTable::getCallersStarHelper(string callee)
+void CallsTable::GetCallersStarHelper(string callee)
 {
-	for (map<string, list<string>>::iterator callerIndex = callsTable.begin(); callerIndex != callsTable.end(); ++callerIndex)
+	for (map<string, list<string>>::iterator caller_index = calls_table_.begin(); caller_index != calls_table_.end(); ++caller_index)
 	{
-		for (list<string>::iterator calleeIndex = callerIndex->second.begin(); calleeIndex != callerIndex->second.end(); ++calleeIndex)
+		for (list<string>::iterator callee_index = caller_index->second.begin(); callee_index != caller_index->second.end(); ++callee_index)
 		{
-			if (*calleeIndex == callee)
+			if (*callee_index == callee)
 			{
-				getCallersStarHelperList.push_back(callerIndex->first);
-				getCallersStarHelper(callerIndex->first);
+				get_callers_star_helper_list_.push_back(caller_index->first);
+				GetCallersStarHelper(caller_index->first);
 				//bool checkedBefore = find(getCallersStarHelperList.begin(), getCallersStarHelperList.end(), *calleeIndex) != getCallersStarHelperList.end();
 				//if (!checkedBefore)
 				//{

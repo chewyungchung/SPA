@@ -11,27 +11,27 @@ class CFG
 {
 public:
 	CFG();
-	void addProcCFG();
-	void addStmtCFG(int stmtnum, string stmtType);
-	void closeIfCFG();
-	void closeElseCFG();
-	void closeWhileCFG();
-	void buildCFGMatrix();
+	void AddProcCFG();
+	void AddStmtCFG(int stmt_num, string stmt_type);
+	void CloseIfCFG();
+	void CloseElseCFG();
+	void CloseWhileCFG();
+	void BuildCFGMatrix();
 
-	bool isNext(int n1, int n2);
-	bool isNextStar(int n1, int n2);
-	bool isNextEmpty();
-	list<int> getExecutedBefore(int n);
-	list<int> getExecutedAfter(int n);
-	list<int> getExecutedBeforeStar(int n);
-	list<int> getExecutedAfterStar(int n);
-	Node getNodeByStmt(int stmtNum);
-	Node getTerminalNodeByStmt(int if_stmt_num);
+	bool IsNext(int n1, int n2);
+	bool IsNextStar(int n1, int n2);
+	bool IsNextEmpty();
+	list<int> GetExecutedBefore(int n);
+	list<int> GetExecutedAfter(int n);
+	list<int> GetExecutedBeforeStar(int n);
+	list<int> GetExecutedAfterStar(int n);
+	Node GetNodeByStmt(int stmt_num);
+	Node GetTerminalNodeByStmt(int if_stmt_num);
 
 private:
-	unordered_map<int, Node*> nodeTable;
-	unordered_map<int, Node*> if_to_terminal_table;
-	stack<Node*> stack;
-	Node *ptr;
-	int** matrix;
+	unordered_map<int, Node*> node_table_;
+	unordered_map<int, Node*> if_to_terminal_table_;
+	stack<Node*> node_stack_;
+	Node *curr_node_ptr_;
+	int** cfg_matrix_;
 };

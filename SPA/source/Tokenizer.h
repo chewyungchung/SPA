@@ -13,10 +13,10 @@ class Tokenizer
 {
 public:
 	Tokenizer();
-	Tokenizer(string fileName);
-	string getNextToken();
+	Tokenizer(string file_name);
+	string GetNextToken();
 
 private:
-	deque<string> tokens;
+	deque<string> tokens_;
 };
 

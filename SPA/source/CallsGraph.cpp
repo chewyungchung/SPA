@@ -20,46 +20,46 @@ CallsGraph::~CallsGraph()
 	delete[] adjM;*/
 }
 
-void CallsGraph::initializeCallsGraph(int vertexCount)
+void CallsGraph::InitializeCallsGraph(int vertex_count)
 {
-	this->vertexCount = vertexCount;
-	adjM = new int*[vertexCount];
-	for (int i = 0; i < vertexCount; i++)
+	this->vertex_count_ = vertex_count;
+	adjacency_matrix_ = new int*[vertex_count];
+	for (int i = 0; i < vertex_count; i++)
 	{
-		adjM[i] = new int[vertexCount];
-		for (int j = 0; j < vertexCount; j++)
+		adjacency_matrix_[i] = new int[vertex_count];
+		for (int j = 0; j < vertex_count; j++)
 		{
-			adjM[i][j] = 0;
+			adjacency_matrix_[i][j] = 0;
 		}
 	}
 }
 
-void CallsGraph::addCallsGraphEdge(int i, int j)
+void CallsGraph::AddCallsGraphEdge(int i, int j)
 {
-	adjM[i][j] = 1;
+	adjacency_matrix_[i][j] = 1;
 }
 
-bool CallsGraph::hasArcCallsGraph(int i, int j)
+bool CallsGraph::HasArcCallsGraph(int i, int j)
 {
-	if (adjM[i][j] == 1) {
+	if (adjacency_matrix_[i][j] == 1) {
 		return true;
 	}
 	return false;
 }
 
-bool CallsGraph::isCallsGraphCyclic()
+bool CallsGraph::IsCallsGraphCyclic()
 {
-	bool *visited = new bool[vertexCount];
-	bool *recStack = new bool[vertexCount];
-	for (int i = 0; i < vertexCount; i++)
+	bool *visited = new bool[vertex_count_];
+	bool *rec_stack = new bool[vertex_count_];
+	for (int i = 0; i < vertex_count_; i++)
 	{
 		visited[i] = false;
-		recStack[i] = false;
+		rec_stack[i] = false;
 	}
 
-	for (int i = 0; i < vertexCount; i++)
+	for (int i = 0; i < vertex_count_; i++)
 	{
-		if (isCyclicHelper(i, visited, recStack))
+		if (IsCyclicHelper(i, visited, rec_stack))
 		{
 			return true;
 		}
@@ -67,29 +67,29 @@ bool CallsGraph::isCallsGraphCyclic()
 	return false;
 }
 
-bool CallsGraph::isCyclicHelper(int v, bool visited[], bool* recStack)
+bool CallsGraph::IsCyclicHelper(int v, bool visited[], bool* rec_stack)
 {
 	if (visited[v] == false)
 	{
 		visited[v] = true;
-		recStack[v] = true;
+		rec_stack[v] = true;
 
 		// Recur for all the vertices adjacent to this vertex
-		for (int j = 0; j < vertexCount; j++)
+		for (int j = 0; j < vertex_count_; j++)
 		{
-			if (adjM[v][j] == 1)
+			if (adjacency_matrix_[v][j] == 1)
 			{
-				if (!visited[j] && isCyclicHelper(j, visited, recStack))
+				if (!visited[j] && IsCyclicHelper(j, visited, rec_stack))
 				{
 					return true;
 				}
-				else if (recStack[j])
+				else if (rec_stack[j])
 				{
 					return true;
 				}
 			}
 		}
 	}
-	recStack[v] = false;
+	rec_stack[v] = false;
 	return false;
 }

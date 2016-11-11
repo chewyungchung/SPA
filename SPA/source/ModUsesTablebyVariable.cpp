@@ -4,41 +4,41 @@ using namespace std;
 
 ModUsesTablebyVariable::ModUsesTablebyVariable()
 {
-	varModTable = map<string, list<int>>();
-	varUsesTable = map<string, list<int>>();
+	var_mod_table_ = map<string, list<int>>();
+	var_uses_table_ = map<string, list<int>>();
 }
 
 ModUsesTablebyVariable::~ModUsesTablebyVariable()
 {
 }
 
-map<string, list<int>> ModUsesTablebyVariable::getModTable()
+map<string, list<int>> ModUsesTablebyVariable::GetModTable()
 {
-	return varModTable;
+	return var_mod_table_;
 }
 
-map<string, list<int>> ModUsesTablebyVariable::getUsesTable()
+map<string, list<int>> ModUsesTablebyVariable::GetUsesTable()
 {
-	return varUsesTable;
+	return var_uses_table_;
 }
 
 
-void ModUsesTablebyVariable::addModifies(string varName, int stmtNum)
+void ModUsesTablebyVariable::AddModifies(string varName, int stmtNum)
 {
-	map<string, list<int>>::iterator it = varModTable.find(varName);
-	list<int> mStmtList;
+	map<string, list<int>>::iterator it = var_mod_table_.find(varName);
+	list<int> mod_stmt_list;
 
 	/* if key is not found, add key-value pair into modifiesTable */
-	if (it == varModTable.end())
+	if (it == var_mod_table_.end())
 	{
-		mStmtList.push_back(stmtNum);
-		varModTable.insert(pair<string, list<int>>(varName, mStmtList));
+		mod_stmt_list.push_back(stmtNum);
+		var_mod_table_.insert(pair<string, list<int>>(varName, mod_stmt_list));
 	}
 	else
 	{
-		mStmtList = it->second;
-		bool found = find(mStmtList.begin(), mStmtList.end(), stmtNum) != mStmtList.end();
-		if (found == false)
+		mod_stmt_list = it->second;
+		bool is_found = find(mod_stmt_list.begin(), mod_stmt_list.end(), stmtNum) != mod_stmt_list.end();
+		if (is_found == false)
 		{
 			it->second.push_back(stmtNum);
 		}
@@ -46,34 +46,34 @@ void ModUsesTablebyVariable::addModifies(string varName, int stmtNum)
 }
 
 
-void ModUsesTablebyVariable::addUses(string varName, int stmtNum)
+void ModUsesTablebyVariable::AddUses(string varName, int stmtNum)
 {
-	map<string, list<int>>::iterator it = varUsesTable.find(varName);
-	list<int> uStmtList;
+	map<string, list<int>>::iterator it = var_uses_table_.find(varName);
+	list<int> use_stmt_list;
 
 	/* if key is not found, add key-value pair into modifiesTable */
-	if (it == varUsesTable.end())
+	if (it == var_uses_table_.end())
 	{
-		uStmtList.push_back(stmtNum);
-		varUsesTable.insert(pair<string, list<int>>(varName, uStmtList));
+		use_stmt_list.push_back(stmtNum);
+		var_uses_table_.insert(pair<string, list<int>>(varName, use_stmt_list));
 	}
 	else
 	{
-		uStmtList = it->second;
-		bool found = find(uStmtList.begin(), uStmtList.end(), stmtNum) != uStmtList.end();
-		if (found == false)
+		use_stmt_list = it->second;
+		bool is_found = find(use_stmt_list.begin(), use_stmt_list.end(), stmtNum) != use_stmt_list.end();
+		if (is_found == false)
 		{
 			it->second.push_back(stmtNum);
 		}
 	}
 }
 
-bool ModUsesTablebyVariable::isValidVar(string varName)
+bool ModUsesTablebyVariable::IsValidVar(string varName)
 {
-	map<string, list<int>>::iterator it1 = varUsesTable.find(varName);
-	map<string, list<int>>::iterator it2 = varModTable.find(varName);
+	map<string, list<int>>::iterator it1 = var_uses_table_.find(varName);
+	map<string, list<int>>::iterator it2 = var_mod_table_.find(varName);
 
-	if (it1 != varUsesTable.end() || it2 != varModTable.end())
+	if (it1 != var_uses_table_.end() || it2 != var_mod_table_.end())
 	{
 		return true;
 	}
@@ -83,13 +83,13 @@ bool ModUsesTablebyVariable::isValidVar(string varName)
 	}
 }
 
-list<int> ModUsesTablebyVariable::getModifiedBy(string varName)
+list<int> ModUsesTablebyVariable::GetModifiedBy(string varName)
 {
-	map<string, list<int>>::iterator it = varModTable.find(varName);
+	map<string, list<int>>::iterator it = var_mod_table_.find(varName);
 
-	if (it != varModTable.end())
+	if (it != var_mod_table_.end())
 	{
-		return varModTable.at(varName);
+		return var_mod_table_.at(varName);
 	}
 	else
 	{
@@ -97,76 +97,76 @@ list<int> ModUsesTablebyVariable::getModifiedBy(string varName)
 	}
 }
 
-list<int> ModUsesTablebyVariable::getUsedBy(string varName)
+list<int> ModUsesTablebyVariable::GetUsedBy(string varName)
 {
-	map<string, list<int>>::iterator it = varUsesTable.find(varName);
-	list<int> empty;
-	if (it != varUsesTable.end())
+	map<string, list<int>>::iterator it = var_uses_table_.find(varName);
+	list<int> empty_list;
+	if (it != var_uses_table_.end())
 	{
-		return varUsesTable.at(varName);
+		return var_uses_table_.at(varName);
 	}
 	else
 	{
-		return empty;
+		return empty_list;
 	}
 }
 
-list<string> ModUsesTablebyVariable::getAllModVar()
+list<string> ModUsesTablebyVariable::GetAllModVar()
 {
 	map<string, list<int>>::iterator it;
-	list<string> allModVarList;
+	list<string> all_mod_var_list;
 
-	if (varModTable.empty())
+	if (var_mod_table_.empty())
 	{
 		return list<string>();
 	}
 
-	for (it = varModTable.begin(); it != varModTable.end(); ++it)
+	for (it = var_mod_table_.begin(); it != var_mod_table_.end(); ++it)
 	{
-		allModVarList.push_back(it->first);
+		all_mod_var_list.push_back(it->first);
 	}
-	allModVarList.sort();
-	allModVarList.unique();
-	return allModVarList;
+	all_mod_var_list.sort();
+	all_mod_var_list.unique();
+	return all_mod_var_list;
 }
 
-list<string> ModUsesTablebyVariable::getAllUsedVar()
+list<string> ModUsesTablebyVariable::GetAllUsedVar()
 {
 	map<string, list<int>>::iterator it;
-	list<string> allUsedVarList;
+	list<string> all_used_var_list;
 
-	if (varUsesTable.empty())
+	if (var_uses_table_.empty())
 	{
 		return list<string>();
 	}
 
-	for (it = varUsesTable.begin(); it != varUsesTable.end(); ++it)
+	for (it = var_uses_table_.begin(); it != var_uses_table_.end(); ++it)
 	{
-		allUsedVarList.push_back(it->first);
+		all_used_var_list.push_back(it->first);
 	}
-	allUsedVarList.sort();
-	allUsedVarList.unique();
-	return allUsedVarList;
+	all_used_var_list.sort();
+	all_used_var_list.unique();
+	return all_used_var_list;
 }
 
-list<string> ModUsesTablebyVariable::getVarList()
+list<string> ModUsesTablebyVariable::GetVarList()
 {
 	map<string, list<int>>::iterator it1;
 	map<string, list<int>>::iterator it2;
-	list<string> allVarList;
+	list<string> all_var_list;
 
-	for (it1 = varModTable.begin(); it1 != varModTable.end(); ++it1)
+	for (it1 = var_mod_table_.begin(); it1 != var_mod_table_.end(); ++it1)
 	{
-		allVarList.push_back(it1->first);
+		all_var_list.push_back(it1->first);
 	}
 
-	for (it2 = varUsesTable.begin(); it2 != varUsesTable.end(); ++it2)
+	for (it2 = var_uses_table_.begin(); it2 != var_uses_table_.end(); ++it2)
 	{
-		allVarList.push_back(it2->first);
+		all_var_list.push_back(it2->first);
 	}
 
-	allVarList.sort();
-	allVarList.unique();
+	all_var_list.sort();
+	all_var_list.unique();
 
-	return allVarList;
+	return all_var_list;
 }

@@ -27,161 +27,161 @@ namespace UnitTesting
 
 		TEST_METHOD(TestModUsesbyStmtFunction_IT1)
 		{
-			PKB _pkb;
+			PKB pkb_;
 			/* addModUsesbyStmt */
-			_pkb.addModifies(1, "a");
-			_pkb.addModifies(2, "b");
-			_pkb.addModifies(2, "c");
-			_pkb.addModifies(2, "z");
-			_pkb.addModifies(3, "a");
-			_pkb.addModifies(4, "xyz");
+			pkb_.AddModifies(1, "a");
+			pkb_.AddModifies(2, "b");
+			pkb_.AddModifies(2, "c");
+			pkb_.AddModifies(2, "z");
+			pkb_.AddModifies(3, "a");
+			pkb_.AddModifies(4, "xyz");
 
-			_pkb.addUses(1, "a");
-			_pkb.addUses(1, "i");
-			_pkb.addUses(2, "d");
-			_pkb.addUses(2, "i");
-			_pkb.addUses(5, "e");
-			_pkb.addUses(5, "a");
+			pkb_.AddUses(1, "a");
+			pkb_.AddUses(1, "i");
+			pkb_.AddUses(2, "d");
+			pkb_.AddUses(2, "i");
+			pkb_.AddUses(5, "e");
+			pkb_.AddUses(5, "a");
 
 			list<string> actual, expected;
 
-			actual = _pkb.getModifiedBy(1);
+			actual = pkb_.GetModifiedBy(1);
 			expected = { "a" };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getModifiedBy(2);
+			actual = pkb_.GetModifiedBy(2);
 			expected = { "b", "c", "z" };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getModifiedBy(4);
+			actual = pkb_.GetModifiedBy(4);
 			expected = { "xyz" };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getUsedBy(1);
+			actual = pkb_.GetUsedBy(1);
 			expected = { "a", "i" };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getUsedBy(2);
+			actual = pkb_.GetUsedBy(2);
 			expected = { "d", "i" };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getUsedBy(5);
+			actual = pkb_.GetUsedBy(5);
 			expected = { "e", "a" };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getUsedBy(10);
+			actual = pkb_.GetUsedBy(10);
 			expected = {};
 			Assert::IsTrue(actual == expected);
 
-			Assert::IsTrue(_pkb.isModified(1, "a"));
-			Assert::IsTrue(_pkb.isModified(2, "b"));
-			Assert::IsTrue(_pkb.isModified(2, "c"));
-			Assert::IsTrue(_pkb.isModified(2, "z"));
-			Assert::IsTrue(_pkb.isModified(4, "xyz"));
+			Assert::IsTrue(pkb_.IsModified(1, "a"));
+			Assert::IsTrue(pkb_.IsModified(2, "b"));
+			Assert::IsTrue(pkb_.IsModified(2, "c"));
+			Assert::IsTrue(pkb_.IsModified(2, "z"));
+			Assert::IsTrue(pkb_.IsModified(4, "xyz"));
 			/* -1 is not a existent statement statement no(key)*/
-			Assert::IsFalse(_pkb.isModified(-1, "a"));
+			Assert::IsFalse(pkb_.IsModified(-1, "a"));
 			/* "xyz" exist, but stmt 2 is not its corresponding key*/
-			Assert::IsFalse(_pkb.isModified(2, "xyz"));
+			Assert::IsFalse(pkb_.IsModified(2, "xyz"));
 			/* "_xyz_" does not exist in the modTable*/
-			Assert::IsFalse(_pkb.isModified(4, "_xyz_"));
+			Assert::IsFalse(pkb_.IsModified(4, "_xyz_"));
 
-			Assert::IsTrue(_pkb.isUsed(1, "a"));
-			Assert::IsTrue(_pkb.isUsed(1, "i"));
-			Assert::IsTrue(_pkb.isUsed(2, "d"));
-			Assert::IsTrue(_pkb.isUsed(5, "e"));
-			Assert::IsFalse(_pkb.isUsed(-1, "a"));
-			Assert::IsFalse(_pkb.isUsed(5, "i"));
+			Assert::IsTrue(pkb_.IsUsed(1, "a"));
+			Assert::IsTrue(pkb_.IsUsed(1, "i"));
+			Assert::IsTrue(pkb_.IsUsed(2, "d"));
+			Assert::IsTrue(pkb_.IsUsed(5, "e"));
+			Assert::IsFalse(pkb_.IsUsed(-1, "a"));
+			Assert::IsFalse(pkb_.IsUsed(5, "i"));
 		}
 
 		TEST_METHOD(TestModUsesbyVarFunction_IT1)
 		{
-			PKB _pkb;
+			PKB pkb_;
 			/* addModUsesbyVar */
-			_pkb.addModifies("a", 1);
-			_pkb.addModifies("a", 3);
-			_pkb.addModifies("b", 2);
-			_pkb.addModifies("c", 2);
-			_pkb.addModifies("z", 2);
-			_pkb.addModifies("xyz", 4);
+			pkb_.AddModifies("a", 1);
+			pkb_.AddModifies("a", 3);
+			pkb_.AddModifies("b", 2);
+			pkb_.AddModifies("c", 2);
+			pkb_.AddModifies("z", 2);
+			pkb_.AddModifies("xyz", 4);
 
-			_pkb.addUses("a", 1);
-			_pkb.addUses("a", 5);
-			_pkb.addUses("i", 1);
-			_pkb.addUses("i", 2);
-			_pkb.addUses("d", 2);
-			_pkb.addUses("e", 5);
+			pkb_.AddUses("a", 1);
+			pkb_.AddUses("a", 5);
+			pkb_.AddUses("i", 1);
+			pkb_.AddUses("i", 2);
+			pkb_.AddUses("d", 2);
+			pkb_.AddUses("e", 5);
 
 			list<int> actual, expected;
 			list<string> actualVarList, expectedVarList;
 
-			actual = _pkb.getModifiedBy("a");
+			actual = pkb_.GetModifiedBy("a");
 			expected = { 1,3 };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getModifiedBy("b");
+			actual = pkb_.GetModifiedBy("b");
 			expected = { 2 };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getModifiedBy("c");
+			actual = pkb_.GetModifiedBy("c");
 			expected = { 2 };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getModifiedBy("z");
+			actual = pkb_.GetModifiedBy("z");
 			expected = { 2 };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getModifiedBy("xyz");
+			actual = pkb_.GetModifiedBy("xyz");
 			expected = { 4 };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getUsedBy("a");
+			actual = pkb_.GetUsedBy("a");
 			expected = { 1, 5 };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getUsedBy("i");
+			actual = pkb_.GetUsedBy("i");
 			expected = { 1, 2 };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getUsedBy("d");
+			actual = pkb_.GetUsedBy("d");
 			expected = { 2 };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getUsedBy("e");
+			actual = pkb_.GetUsedBy("e");
 			expected = { 5 };
 			Assert::IsTrue(actual == expected);
 
-			actual = _pkb.getUsedBy("invalid");
+			actual = pkb_.GetUsedBy("invalid");
 			expected = {};
 			Assert::IsTrue(actual == expected);
 
 			/* all the variables from the mod and uses table should be valid */
-			Assert::IsTrue(_pkb.isValidVar("a"));
-			Assert::IsTrue(_pkb.isValidVar("b"));
-			Assert::IsTrue(_pkb.isValidVar("c"));
-			Assert::IsTrue(_pkb.isValidVar("z"));
-			Assert::IsTrue(_pkb.isValidVar("xyz"));
-			Assert::IsTrue(_pkb.isValidVar("i"));
-			Assert::IsTrue(_pkb.isValidVar("d"));
-			Assert::IsTrue(_pkb.isValidVar("e"));
+			Assert::IsTrue(pkb_.IsValidVar("a"));
+			Assert::IsTrue(pkb_.IsValidVar("b"));
+			Assert::IsTrue(pkb_.IsValidVar("c"));
+			Assert::IsTrue(pkb_.IsValidVar("z"));
+			Assert::IsTrue(pkb_.IsValidVar("xyz"));
+			Assert::IsTrue(pkb_.IsValidVar("i"));
+			Assert::IsTrue(pkb_.IsValidVar("d"));
+			Assert::IsTrue(pkb_.IsValidVar("e"));
 
-			actualVarList = _pkb.getAllModVar();
+			actualVarList = pkb_.GetAllModVar();
 			expectedVarList = { "a", "b", "c", "z", "xyz" };
 			Assert::IsTrue(actual == expected);
 
 			/* clear the existing modVarList and check if the assertion is
 			correct for the case where the list is empty */
-			actualVarList = _pkb.getAllUsedVar();
+			actualVarList = pkb_.GetAllUsedVar();
 			expectedVarList = { "a", "i", "d", "e" };
 			Assert::IsTrue(actual == expected);
 
-			actualVarList = _pkb.getVarList();
+			actualVarList = pkb_.GetVarList();
 			expectedVarList = { "a", "b", "c", "z", "xyz", "i", "d", "e" };
 			Assert::IsTrue(actual == expected);
 		}
 
 		TEST_METHOD(TestFollowsTable_IT1)
 		{
-			PKB _pkb;
+			PKB pkb_;
 
 			/*
 				procedure ABC
@@ -209,18 +209,18 @@ namespace UnitTesting
 				}
 			*/
 
-			_pkb.addFollows(1, 1);
-			_pkb.addFollows(2, 1);
-			_pkb.addFollows(3, 1);
-			_pkb.addFollows(4, 2);
-			_pkb.addFollows(5, 2);
-			_pkb.addFollows(6, 1);
-			_pkb.addFollows(7, 3);
-			_pkb.addFollows(8, 3);
-			_pkb.addFollows(9, 4);
-			_pkb.addFollows(10, 4);
-			_pkb.addFollows(11, 3);
-			_pkb.addFollows(12, 5);
+			pkb_.addFollows(1, 1);
+			pkb_.addFollows(2, 1);
+			pkb_.addFollows(3, 1);
+			pkb_.addFollows(4, 2);
+			pkb_.addFollows(5, 2);
+			pkb_.addFollows(6, 1);
+			pkb_.addFollows(7, 3);
+			pkb_.addFollows(8, 3);
+			pkb_.addFollows(9, 4);
+			pkb_.addFollows(10, 4);
+			pkb_.addFollows(11, 3);
+			pkb_.addFollows(12, 5);
 			
 			const int NO_STMT = -1;
 			list<int> expectedList;
@@ -228,98 +228,98 @@ namespace UnitTesting
 
 			//Follows(_, x), where x is first statement in each nesting level
 			//Should return NO_STMT
-			Assert::AreEqual(NO_STMT, _pkb.getFollowedFrom(1));
-			Assert::AreEqual(NO_STMT, _pkb.getFollowedFrom(4));
-			Assert::AreEqual(NO_STMT, _pkb.getFollowedFrom(7));
-			Assert::AreEqual(NO_STMT, _pkb.getFollowedFrom(9));
-			Assert::AreEqual(NO_STMT, _pkb.getFollowedFrom(12));
+			Assert::AreEqual(NO_STMT, pkb_.getFollowedFrom(1));
+			Assert::AreEqual(NO_STMT, pkb_.getFollowedFrom(4));
+			Assert::AreEqual(NO_STMT, pkb_.getFollowedFrom(7));
+			Assert::AreEqual(NO_STMT, pkb_.getFollowedFrom(9));
+			Assert::AreEqual(NO_STMT, pkb_.getFollowedFrom(12));
 
 			// Follows(x, _) where x is last statement in each nesting level
 			// Should return NO_STMT
-			Assert::AreEqual(NO_STMT, _pkb.getFollower(6));
-			Assert::AreEqual(NO_STMT, _pkb.getFollower(5));
-			Assert::AreEqual(NO_STMT, _pkb.getFollower(11));
-			Assert::AreEqual(NO_STMT, _pkb.getFollower(10));
-			Assert::AreEqual(NO_STMT, _pkb.getFollower(12));
+			Assert::AreEqual(NO_STMT, pkb_.getFollower(6));
+			Assert::AreEqual(NO_STMT, pkb_.getFollower(5));
+			Assert::AreEqual(NO_STMT, pkb_.getFollower(11));
+			Assert::AreEqual(NO_STMT, pkb_.getFollower(10));
+			Assert::AreEqual(NO_STMT, pkb_.getFollower(12));
 
 			// Correct Follows relationships
-			Assert::AreEqual(2, _pkb.getFollower(1));
-			Assert::AreEqual(3, _pkb.getFollower(2));
-			Assert::AreEqual(6, _pkb.getFollower(3));
-			Assert::AreEqual(5, _pkb.getFollower(4));
-			Assert::AreEqual(11, _pkb.getFollower(8));
-			Assert::AreEqual(10, _pkb.getFollower(9));
+			Assert::AreEqual(2, pkb_.getFollower(1));
+			Assert::AreEqual(3, pkb_.getFollower(2));
+			Assert::AreEqual(6, pkb_.getFollower(3));
+			Assert::AreEqual(5, pkb_.getFollower(4));
+			Assert::AreEqual(11, pkb_.getFollower(8));
+			Assert::AreEqual(10, pkb_.getFollower(9));
 
 			// Correct Follows relationship, using isValidFollows API
-			Assert::IsTrue(_pkb.isValidFollows(1, 2));
-			Assert::IsTrue(_pkb.isValidFollows(2, 3));
-			Assert::IsTrue(_pkb.isValidFollows(3, 6));
-			Assert::IsTrue(_pkb.isValidFollows(8, 11));
+			Assert::IsTrue(pkb_.isValidFollows(1, 2));
+			Assert::IsTrue(pkb_.isValidFollows(2, 3));
+			Assert::IsTrue(pkb_.isValidFollows(3, 6));
+			Assert::IsTrue(pkb_.isValidFollows(8, 11));
 
 			// Incorrect Follows relationships (same nesting level, not in sequence)
-			Assert::AreNotEqual(3, _pkb.getFollower(1));
-			Assert::AreNotEqual(11, _pkb.getFollower(7));
+			Assert::AreNotEqual(3, pkb_.getFollower(1));
+			Assert::AreNotEqual(11, pkb_.getFollower(7));
 
 			// Incorrect Follows relationships (same nesting level, wrong order)
-			Assert::AreNotEqual(1, _pkb.getFollower(2));
-			Assert::AreNotEqual(8, _pkb.getFollower(11));
+			Assert::AreNotEqual(1, pkb_.getFollower(2));
+			Assert::AreNotEqual(8, pkb_.getFollower(11));
 
 			// Incorrect Follows relationships (different nesting level)
-			Assert::AreNotEqual(4, _pkb.getFollower(3));
-			Assert::AreNotEqual(7, _pkb.getFollower(5));
+			Assert::AreNotEqual(4, pkb_.getFollower(3));
+			Assert::AreNotEqual(7, pkb_.getFollower(5));
 
 			// Correct Follows* relationships (Follows(s1, s2))
-			Assert::IsTrue(_pkb.isFollowsStar(1, 2));
-			Assert::IsTrue(_pkb.isFollowsStar(3, 6));
-			Assert::IsTrue(_pkb.isFollowsStar(8, 11));
+			Assert::IsTrue(pkb_.isFollowsStar(1, 2));
+			Assert::IsTrue(pkb_.isFollowsStar(3, 6));
+			Assert::IsTrue(pkb_.isFollowsStar(8, 11));
 
 			// Correct Follows* relationships (statements are not consecutive)
-			Assert::IsTrue(_pkb.isFollowsStar(1, 6));
-			Assert::IsTrue(_pkb.isFollowsStar(7, 11));
+			Assert::IsTrue(pkb_.isFollowsStar(1, 6));
+			Assert::IsTrue(pkb_.isFollowsStar(7, 11));
 
 			// Incorrect Follows* relationships (statements wrong order)
-			Assert::IsFalse(_pkb.isFollowsStar(6, 1));
+			Assert::IsFalse(pkb_.isFollowsStar(6, 1));
 
 			// Incorrect Follows* relationships (different nesting level)
-			Assert::IsFalse(_pkb.isFollowsStar(3, 5));
-			Assert::IsFalse(_pkb.isFollowsStar(7, 9));
+			Assert::IsFalse(pkb_.isFollowsStar(3, 5));
+			Assert::IsFalse(pkb_.isFollowsStar(7, 9));
 
 			// Correct Follows*(_, s) relationships
 			// Select s such that Follows*(s, 3): 1, 2
 			clearVector(expectedVec);
 			expectedVec = { 1, 2 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getFollowedFromStar(3), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.getFollowedFromStar(3), expectedList));
 
 			// Select s such that Follows*(s, 6): 1, 2, 3
 			clearVector(expectedVec);
 			expectedVec = { 1, 2, 3 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getFollowedFromStar(6), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.getFollowedFromStar(6), expectedList));
 
 			// Select s such that Follows*(s, 11): 7, 8
 			clearVector(expectedVec);
 			expectedVec = { 7, 8 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getFollowedFromStar(11), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.getFollowedFromStar(11), expectedList));
 
 			// Correct Follows*(s, _) relationships
 			// Select s such that Follows*(1, s): 2, 3, 6
 			clearVector(expectedVec);
 			expectedVec = { 2, 3, 6 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getFollowerStar(1), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.getFollowerStar(1), expectedList));
 
 			clearVector(expectedVec);
 			expectedVec = { 8, 11 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getFollowerStar(7), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.getFollowerStar(7), expectedList));
 		}
 
 		/* Our main objective is to Follows across if/else and multiple procedures and with call stmts */
 		TEST_METHOD(TestFollowsTable_IT2)
 		{
-			PKB _pkb;
+			PKB pkb_;
 		/*
 			procedure A {
 		1		if r then {
@@ -366,75 +366,75 @@ namespace UnitTesting
 		33			b = 5;}}
 		*/
 
-			_pkb.addFollows(1, 1);
-			_pkb.addFollows(2, 2);
-			_pkb.addFollows(3, 2);
-			_pkb.addFollows(4, 2);
-			_pkb.addFollows(5, 3);
-			_pkb.addFollows(6, 4);
-			_pkb.addFollows(7, 4);
-			_pkb.addFollows(8, 3);
-			_pkb.addFollows(9, 5);
-			_pkb.addFollows(10, 5);
-			_pkb.addFollows(11, 6);
-			_pkb.addFollows(12, 6);
-			_pkb.addFollows(13, 6);
-			_pkb.addFollows(14, 7);
-			_pkb.addFollows(15, 7);
-			_pkb.addFollows(16, 8);
-			_pkb.addFollows(17, 9);
-			_pkb.addFollows(18, 10);
-			_pkb.addFollows(19, 10);
-			_pkb.addFollows(20, 11);
-			_pkb.addFollows(21, 6);
-			_pkb.addFollows(22, 12);
-			_pkb.addFollows(23, 13);
-			_pkb.addFollows(24, 13);
-			_pkb.addFollows(25, 1);
-			_pkb.addFollows(26, 14);
-			_pkb.addFollows(27, 15);
-			_pkb.addFollows(28, 16);
-			_pkb.addFollows(29, 17);
-			_pkb.addFollows(30, 17);
-			_pkb.addFollows(31, 18);
-			_pkb.addFollows(32, 19);
-			_pkb.addFollows(33, 20);
+			pkb_.addFollows(1, 1);
+			pkb_.addFollows(2, 2);
+			pkb_.addFollows(3, 2);
+			pkb_.addFollows(4, 2);
+			pkb_.addFollows(5, 3);
+			pkb_.addFollows(6, 4);
+			pkb_.addFollows(7, 4);
+			pkb_.addFollows(8, 3);
+			pkb_.addFollows(9, 5);
+			pkb_.addFollows(10, 5);
+			pkb_.addFollows(11, 6);
+			pkb_.addFollows(12, 6);
+			pkb_.addFollows(13, 6);
+			pkb_.addFollows(14, 7);
+			pkb_.addFollows(15, 7);
+			pkb_.addFollows(16, 8);
+			pkb_.addFollows(17, 9);
+			pkb_.addFollows(18, 10);
+			pkb_.addFollows(19, 10);
+			pkb_.addFollows(20, 11);
+			pkb_.addFollows(21, 6);
+			pkb_.addFollows(22, 12);
+			pkb_.addFollows(23, 13);
+			pkb_.addFollows(24, 13);
+			pkb_.addFollows(25, 1);
+			pkb_.addFollows(26, 14);
+			pkb_.addFollows(27, 15);
+			pkb_.addFollows(28, 16);
+			pkb_.addFollows(29, 17);
+			pkb_.addFollows(30, 17);
+			pkb_.addFollows(31, 18);
+			pkb_.addFollows(32, 19);
+			pkb_.addFollows(33, 20);
 
 			const int NO_STMT = -1;
 			list<int> expectedList;
 			vector<int> expectedVec;
 
 			// Follows(1, 25), where 25 follows the ifstmt 1
-			Assert::AreEqual(1, _pkb.getFollowedFrom(25));
-			Assert::AreEqual(25, _pkb.getFollower(1));
-			Assert::IsTrue(_pkb.isValidFollows(1, 25));
-			Assert::IsTrue(_pkb.isFollowsStar(1, 25));
+			Assert::AreEqual(1, pkb_.getFollowedFrom(25));
+			Assert::AreEqual(25, pkb_.getFollower(1));
+			Assert::IsTrue(pkb_.isValidFollows(1, 25));
+			Assert::IsTrue(pkb_.isFollowsStar(1, 25));
 
 			// Test Follows does not hold between if/else stmt blocks
-			Assert::IsFalse(_pkb.isValidFollows(5, 9));
+			Assert::IsFalse(pkb_.isValidFollows(5, 9));
 
 			// We test getFollowsStar for some stmts nested deeply in ifstmts
 			// Observe 11, 12, 13, 21 are all in nestinglevel = 6
 			clearVector(expectedVec);
 			expectedVec = { 12, 13, 21 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getFollowerStar(11), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.getFollowerStar(11), expectedList));
 
 			clearVector(expectedVec);
 			expectedVec = { 11, 12, 13 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getFollowedFromStar(21), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.getFollowedFromStar(21), expectedList));
 
 			// Test Follows does not hold between two procedures
-			Assert::IsFalse(_pkb.isValidFollows(25, 26));
+			Assert::IsFalse(pkb_.isValidFollows(25, 26));
 
 			// Test Follows within second procedure 
-			Assert::IsTrue(_pkb.isValidFollows(29, 30));
+			Assert::IsTrue(pkb_.isValidFollows(29, 30));
 		}
 
 		TEST_METHOD(TestParentTable_IT1)
 		{
-			PKB _pkb;
+			PKB pkb_;
 
 			/*
 				procedure ABC
@@ -462,63 +462,63 @@ namespace UnitTesting
 				}
 			*/
 
-			_pkb.addParent(-1, 1);
-			_pkb.addParent(-1, 2);
-			_pkb.addParent(-1, 3);
-			_pkb.addParent(3, 4);
-			_pkb.addParent(3, 5);
-			_pkb.addParent(-1, 6);
-			_pkb.addParent(6, 7);
-			_pkb.addParent(6, 8);
-			_pkb.addParent(8, 9);
-			_pkb.addParent(8, 10);
-			_pkb.addParent(6, 11);
-			_pkb.addParent(11, 12);
+			pkb_.AddParent(-1, 1);
+			pkb_.AddParent(-1, 2);
+			pkb_.AddParent(-1, 3);
+			pkb_.AddParent(3, 4);
+			pkb_.AddParent(3, 5);
+			pkb_.AddParent(-1, 6);
+			pkb_.AddParent(6, 7);
+			pkb_.AddParent(6, 8);
+			pkb_.AddParent(8, 9);
+			pkb_.AddParent(8, 10);
+			pkb_.AddParent(6, 11);
+			pkb_.AddParent(11, 12);
 
-			_pkb.addParentStar(3, 4);
-			_pkb.addParentStar(3, 5);
-			_pkb.addParentStar(6, 7);
-			_pkb.addParentStar(6, 8);
-			_pkb.addParentStar(8, 9);
-			_pkb.addParentStar(6, 9);
-			_pkb.addParentStar(8, 10);
-			_pkb.addParentStar(6, 10);
-			_pkb.addParentStar(6, 11);
-			_pkb.addParentStar(11, 12);
-			_pkb.addParentStar(6, 12);
+			pkb_.AddParentStar(3, 4);
+			pkb_.AddParentStar(3, 5);
+			pkb_.AddParentStar(6, 7);
+			pkb_.AddParentStar(6, 8);
+			pkb_.AddParentStar(8, 9);
+			pkb_.AddParentStar(6, 9);
+			pkb_.AddParentStar(8, 10);
+			pkb_.AddParentStar(6, 10);
+			pkb_.AddParentStar(6, 11);
+			pkb_.AddParentStar(11, 12);
+			pkb_.AddParentStar(6, 12);
 
 			const int NO_PARENT = -1;
 			const int FALSE = -1;
 
 			// Parent(_, x), where x is not in any container
 			// Should return NO_PARENT
-			Assert::AreEqual(_pkb.getParentOf(1), NO_PARENT);
-			Assert::AreEqual(_pkb.getParentOf(2), NO_PARENT);
-			Assert::AreEqual(_pkb.getParentOf(3), NO_PARENT);
-			Assert::AreEqual(_pkb.getParentOf(6), NO_PARENT);
+			Assert::AreEqual(pkb_.GetParentOf(1), NO_PARENT);
+			Assert::AreEqual(pkb_.GetParentOf(2), NO_PARENT);
+			Assert::AreEqual(pkb_.GetParentOf(3), NO_PARENT);
+			Assert::AreEqual(pkb_.GetParentOf(6), NO_PARENT);
 
 			// Correct Parent relationships
-			Assert::AreEqual(_pkb.getParentOf(4), 3);
-			Assert::AreEqual(_pkb.getParentOf(5), 3);
-			Assert::AreEqual(_pkb.getParentOf(7), 6);
-			Assert::AreEqual(_pkb.getParentOf(9), 8);
-			Assert::AreEqual(_pkb.getParentOf(12), 11);
+			Assert::AreEqual(pkb_.GetParentOf(4), 3);
+			Assert::AreEqual(pkb_.GetParentOf(5), 3);
+			Assert::AreEqual(pkb_.GetParentOf(7), 6);
+			Assert::AreEqual(pkb_.GetParentOf(9), 8);
+			Assert::AreEqual(pkb_.GetParentOf(12), 11);
 
 			// Incorrect Parent relationships (container stmt does not match parent)
-			Assert::AreNotEqual(_pkb.getParentOf(4), 6);
-			Assert::AreNotEqual(_pkb.getParentOf(7), 3);
-			Assert::AreNotEqual(_pkb.getParentOf(12), 8);
+			Assert::AreNotEqual(pkb_.GetParentOf(4), 6);
+			Assert::AreNotEqual(pkb_.GetParentOf(7), 3);
+			Assert::AreNotEqual(pkb_.GetParentOf(12), 8);
 
 			// Incorrect Parent relationships 
 			// (not direct parent, i.e. Parent* holds but not Parent)
-			Assert::AreNotEqual(_pkb.getParentOf(10), 6);
-			Assert::AreNotEqual(_pkb.getParentOf(12), 6);
+			Assert::AreNotEqual(pkb_.GetParentOf(10), 6);
+			Assert::AreNotEqual(pkb_.GetParentOf(12), 6);
 		}
 
 		/* Our main objective is to Parent across if/else and multiple procedures and with call stmts */
 		TEST_METHOD(TestParentTable_IT2)
 		{
-			PKB _pkb;
+			PKB pkb_;
 		/*
 			procedure A {
 		1		if r then {
@@ -565,81 +565,81 @@ namespace UnitTesting
 		33			b = 5;}}
 		*/
 
-			_pkb.addParent(-1, 1);
-			_pkb.addParent(1, 2);
-			_pkb.addParent(1, 3);
-			_pkb.addParent(1, 4);
-			_pkb.addParent(4, 5);
-			_pkb.addParent(5, 6);
-			_pkb.addParent(5, 7);
-			_pkb.addParent(4, 8);
-			_pkb.addParent(4, 9);
-			_pkb.addParent(4, 10);
-			_pkb.addParent(10, 11);
-			_pkb.addParent(10, 12);
-			_pkb.addParent(10, 13);
-			_pkb.addParent(13, 14);
-			_pkb.addParent(13, 15);
-			_pkb.addParent(15, 16);
-			_pkb.addParent(16, 17);
-			_pkb.addParent(17, 18);
-			_pkb.addParent(17, 19);
-			_pkb.addParent(13, 20);
-			_pkb.addParent(10, 21);
-			_pkb.addParent(10, 22);
-			_pkb.addParent(1, 23);
-			_pkb.addParent(1, 24);
-			_pkb.addParent(-1, 25);
-			_pkb.addParent(-1, 26);
-			_pkb.addParent(26, 27);
-			_pkb.addParent(26, 28);
-			_pkb.addParent(28, 29);
-			_pkb.addParent(28, 30);
-			_pkb.addParent(28, 31);
-			_pkb.addParent(27, 32);
-			_pkb.addParent(26, 33);
+			pkb_.AddParent(-1, 1);
+			pkb_.AddParent(1, 2);
+			pkb_.AddParent(1, 3);
+			pkb_.AddParent(1, 4);
+			pkb_.AddParent(4, 5);
+			pkb_.AddParent(5, 6);
+			pkb_.AddParent(5, 7);
+			pkb_.AddParent(4, 8);
+			pkb_.AddParent(4, 9);
+			pkb_.AddParent(4, 10);
+			pkb_.AddParent(10, 11);
+			pkb_.AddParent(10, 12);
+			pkb_.AddParent(10, 13);
+			pkb_.AddParent(13, 14);
+			pkb_.AddParent(13, 15);
+			pkb_.AddParent(15, 16);
+			pkb_.AddParent(16, 17);
+			pkb_.AddParent(17, 18);
+			pkb_.AddParent(17, 19);
+			pkb_.AddParent(13, 20);
+			pkb_.AddParent(10, 21);
+			pkb_.AddParent(10, 22);
+			pkb_.AddParent(1, 23);
+			pkb_.AddParent(1, 24);
+			pkb_.AddParent(-1, 25);
+			pkb_.AddParent(-1, 26);
+			pkb_.AddParent(26, 27);
+			pkb_.AddParent(26, 28);
+			pkb_.AddParent(28, 29);
+			pkb_.AddParent(28, 30);
+			pkb_.AddParent(28, 31);
+			pkb_.AddParent(27, 32);
+			pkb_.AddParent(26, 33);
 
 			/* We will only populate for some */
-			_pkb.addParentStar(13, 14);
-			_pkb.addParentStar(13, 15);
-			_pkb.addParentStar(13, 16);
-			_pkb.addParentStar(13, 17);
-			_pkb.addParentStar(13, 18);
-			_pkb.addParentStar(13, 19);
-			_pkb.addParentStar(13, 20);
+			pkb_.AddParentStar(13, 14);
+			pkb_.AddParentStar(13, 15);
+			pkb_.AddParentStar(13, 16);
+			pkb_.AddParentStar(13, 17);
+			pkb_.AddParentStar(13, 18);
+			pkb_.AddParentStar(13, 19);
+			pkb_.AddParentStar(13, 20);
 
 			const int NO_PARENT = -1;
 			list<int> expectedList;
 			vector<int> expectedVec;
 
 			// Parent(1, x), x is in fact 2, 3, 4, 23, 24
-			Assert::AreEqual(1, _pkb.getParentOf(2));
-			Assert::AreEqual(1, _pkb.getParentOf(23));
-			Assert::AreEqual(1, _pkb.getParentOf(24));
+			Assert::AreEqual(1, pkb_.GetParentOf(2));
+			Assert::AreEqual(1, pkb_.GetParentOf(23));
+			Assert::AreEqual(1, pkb_.GetParentOf(24));
 
 			clearVector(expectedVec);
 			expectedVec = { 2, 3, 4, 23, 24 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getChildrenOf(1), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetChildrenOf(1), expectedList));
 
 			// Parent*(13, _)
 			clearVector(expectedVec);
 			expectedVec = { 14, 15, 16, 17, 18, 19, 20 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getChildStarOf(13), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetChildStarOf(13), expectedList));
 
 			// Test Parent across different procedures
-			Assert::AreNotEqual(_pkb.getParentOf(26), 25);
+			Assert::AreNotEqual(pkb_.GetParentOf(26), 25);
 
 			// Test Parent else stmts is its ifstmt
-			Assert::AreEqual(28, _pkb.getParentOf(31));
+			Assert::AreEqual(28, pkb_.GetParentOf(31));
 		}
 
 		TEST_METHOD(TestModifiesTable_IT1)
 		{
-			PKB _pkb;
+			PKB pkb_;
 			Parser p("SIMPLE_test_3.txt");
-			_pkb = p.process();
+			pkb_ = p.Process();
 
 			/*
 				procedure ABC
@@ -675,45 +675,45 @@ namespace UnitTesting
 			clearVector(expectedVec);
 			expectedVec = { "x" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getModifiedBy(1), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetModifiedBy(1), expectedList));
 
 			// Modifies(4, "apple") -- TRUE
 			clearVector(expectedVec);
 			expectedVec = { "apple" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getModifiedBy(4), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetModifiedBy(4), expectedList));
 
 			// Modifies(11, "mango") -- TRUE
 			clearVector(expectedVec);
 			expectedVec = { "mango" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getModifiedBy(11), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetModifiedBy(11), expectedList));
 
 			/* Correct Modifies relationships (while statements) */
 			// Modifies(3, v) for v = apple, banana -- TRUE
 			clearVector(expectedVec);
 			expectedVec = { "apple", "banana" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getModifiedBy(3), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetModifiedBy(3), expectedList));
 
 			//Modifies(6, v) for v = s, r, x, mango, papapya -- TRUE
 			clearVector(expectedVec);
 			expectedVec = { "s", "r", "x", "mango", "papaya" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getModifiedBy(6), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetModifiedBy(6), expectedList));
 
 			// Modifies(8, v) for v = s, r, x, mango, papapya -- TRUE
 			clearVector(expectedVec);
 			expectedVec = { "r", "x", "mango" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getModifiedBy(8), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetModifiedBy(8), expectedList));
 		}
 
 		TEST_METHOD(TestUsesTable_IT1)
 		{
-			PKB _pkb;
+			PKB pkb_;
 			Parser p("SIMPLE_test_3.txt");
-			_pkb = p.process();
+			pkb_ = p.Process();
 
 			/*
 				procedure ABC
@@ -749,39 +749,39 @@ namespace UnitTesting
 			clearVector(expectedVec);
 			expectedVec = { "z" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getUsedBy(2), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetUsedBy(2), expectedList));
 
 			// Uses(4, "orange") -- TRUE
 			clearVector(expectedVec);
 			expectedVec = { "orange" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getUsedBy(4), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetUsedBy(4), expectedList));
 
 			/* Correct Uses relationships (while statements) */
 			// Uses(3, v) for v = i, orange, pear -- TRUE
 			clearVector(expectedVec);
 			expectedVec = { "i", "orange", "pear" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getUsedBy(3), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetUsedBy(3), expectedList));
 
 			// Uses(6, v) for v = i, orange, pear -- TRUE
 			clearVector(expectedVec);
 			expectedVec = { "i", "orange", "pear" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getUsedBy(3), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetUsedBy(3), expectedList));
 
 			// Uses(6, v) for v = x, t, y, durian, z, watermelon -- TRUE
 			clearVector(expectedVec);
 			expectedVec = { "x", "t", "y", "durian", "z", "watermelon" };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getUsedBy(6), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetUsedBy(6), expectedList));
 		}
 
 		TEST_METHOD(TestConstantTable_IT1)
 		{
-			PKB _pkb;
+			PKB pkb_;
 			Parser p("SIMPLE_test_3.txt");
-			_pkb = p.process();
+			pkb_ = p.Process();
 
 			/*
 				procedure ABC
@@ -816,21 +816,21 @@ namespace UnitTesting
 			clearVector(expectedVec);
 			expectedVec = { 1 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getStmtlineByConstant(1), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.getStmtlineByConstant(1), expectedList));
 
 			/* Correct Uses relationships (constant in containers) */
 			// Uses(6, "2"), Uses(8, "2"), Uses(9, "2") -- TRUE
 			clearVector(expectedVec);
 			expectedVec = { 6,8,9 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getStmtlineByConstant(2), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.getStmtlineByConstant(2), expectedList));
 		}
 
 		TEST_METHOD(TestStatementTable_IT1)
 		{
-			PKB _pkb;
+			PKB pkb_;
 			Parser p("SIMPLE_test_3.txt");
-			_pkb = p.process();
+			pkb_ = p.Process();
 			/*
 			procedure XYZ
 			{
@@ -865,61 +865,61 @@ namespace UnitTesting
 			clearVector(expectedVec);
 			expectedVec = { 1, 2, 4, 5, 7, 9, 10, 11, 13 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getAssignList(), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetAssignList(), expectedList));
 
 			/* Select all while stmts */
 			// while w; Select w -- 3, 6, 8, 12
 			expectedVec = { 3, 6, 8, 12 };
 			vecToListHelper(expectedVec, expectedList);
-			Assert::IsTrue(listCmpHelper(_pkb.getWhileList(), expectedList));
+			Assert::IsTrue(listCmpHelper(pkb_.GetWhileList(), expectedList));
 		}
 
 		TEST_METHOD(TestStatementFunction_IT1)
 		{
-			PKB _pkb;
+			PKB pkb_;
 
-			_pkb.addStatement(1, "assign");
-			_pkb.addStatement(2, "assign");
+			pkb_.AddStatement(1, "assign");
+			pkb_.AddStatement(2, "assign");
 			//_pkb.addStatement(1, "while"); //invalid case
-			_pkb.addStatement(3, "assign");
-			_pkb.addStatement(5, "while");
-			_pkb.addStatement(6, "assign");
-			_pkb.addStatement(7, "invalidtype"); //invalid
-			_pkb.addStatement(8, "assign");
-			_pkb.addStatement(9, "while");
-			_pkb.addStatement(10, "assign");
+			pkb_.AddStatement(3, "assign");
+			pkb_.AddStatement(5, "while");
+			pkb_.AddStatement(6, "assign");
+			pkb_.AddStatement(7, "invalidtype"); //invalid
+			pkb_.AddStatement(8, "assign");
+			pkb_.AddStatement(9, "while");
+			pkb_.AddStatement(10, "assign");
 
 			list<int> actual, expected1, expected2;
 			int actualTotal, expectedTotal;
 
-			actual = _pkb.getAssignList();
+			actual = pkb_.GetAssignList();
 			expected1 = { 1, 2, 3, 6, 8, 10 };
 			expected2 = { 1, 2, 3, 6, 7, 8, 10 };
 			Assert::IsTrue(actual == expected1);
 			/* stmt 7 should not be in the list; stmtType is invalid */
 			Assert::IsFalse(actual == expected2);
 			
-			actual = _pkb.getWhileList();
+			actual = pkb_.GetWhileList();
 			expected1 = {5, 9};
 			expected2 = {5, 7, 9};
 			Assert::IsTrue(actual == expected1);
 			/* stmt 7 should not be in the list; stmtType is invalid */
 			Assert::IsFalse(actual == expected2);
 
-			actual = _pkb.getStmtList();
+			actual = pkb_.GetStmtList();
 			expected1 = { 1, 2, 3, 5, 6, 8, 9, 10 };
 			Assert::IsTrue(actual == expected1);
 			
-			actualTotal = _pkb.getStatementCount();
+			actualTotal = pkb_.GetStatementCount();
 			expectedTotal = 8;
 			Assert::IsTrue(actualTotal == expectedTotal);
 		///* check isValidStmt */
-		Assert::IsTrue(_pkb.isValidStmt(1));
-		Assert::IsTrue(_pkb.isValidStmt(2));
-		Assert::IsTrue(_pkb.isValidStmt(3));
-		Assert::IsFalse(_pkb.isValidStmt(4));
-		Assert::IsTrue(_pkb.isValidStmt(5));
-		Assert::IsFalse(_pkb.isValidStmt(11));
+		Assert::IsTrue(pkb_.IsValidStmt(1));
+		Assert::IsTrue(pkb_.IsValidStmt(2));
+		Assert::IsTrue(pkb_.IsValidStmt(3));
+		Assert::IsFalse(pkb_.IsValidStmt(4));
+		Assert::IsTrue(pkb_.IsValidStmt(5));
+		Assert::IsFalse(pkb_.IsValidStmt(11));
 		}
 
 	private:

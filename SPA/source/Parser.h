@@ -21,29 +21,29 @@ class Parser
 {
 public:
 	Parser();
-	Parser(string fileName);
-	PKB process();
+	Parser(string file_name);
+	PKB Process();
 
 private:
-	PKB _pkb;
-	Tokenizer _tk;
-	DesignExtractor _de;
-	string next_token;
-	string procName;
-	int stmtLine;
-	int curr_first_stmt_of_proc;
+	PKB pkb_;
+	Tokenizer tokenizer_;
+	DesignExtractor design_extractor_;
+	string next_token_;
+	string proc_name_;
+	int curr_stmt_line_;
+	int curr_first_stmt_of_proc_;
 
 	// Parent data	
-	stack<int> parentStack;
+	stack<int> parent_stack_;
 	int NO_PARENT_FLAG = -1;
 
 	// Follows data
-	int followsMaxNestingLevel;
-	stack<int> followsStack;
+	int follows_max_nest_lvl_;
+	stack<int> follows_stack_;
 
 	// RHS data
-	stack<string> bracketStack;
-	string currRHS;
+	stack<string> bracket_stack_;
+	string curr_rhs_;
 
 	// SIMPLE language flags and stmtTypes
 	string PROCEDURE_FLAG = "procedure";
@@ -63,22 +63,22 @@ private:
 	string LEFT_PARENTHESIS = "(";
 	string RIGHT_PARENTHESIS = ")";
 
-	void match(string token);
-	void parseProgram();
-	void parseProcedure();
-	void parseStmtLst();
-	void parseWhileStmt();
-	void parseIfStmt();
-	void parseElseStmt();
-	void parseCallStmt();
-	void parseAssignStmt();
-	void parseAssignRHS();
-	void parseExpression();
-	void parseTerm();
-	void parseFactor();
-	bool isConstant(string s);
-	void addAllParentsOfCurrStmt(int stmtLine);
-	void addAllParentsOfUsedVariable(string v);
-	void addAllParentsOfModifiedVariable(string v);
-	void addAllParentsOfUsedConstant(int c);
+	void Match(string token);
+	void ParseProgram();
+	void ParseProcedure();
+	void ParseStmtLst();
+	void ParseWhileStmt();
+	void ParseIfStmt();
+	void ParseElseStmt();
+	void ParseCallStmt();
+	void ParseAssignStmt();
+	void ParseAssignRHS();
+	void ParseExpression();
+	void ParseTerm();
+	void ParseFactor();
+	bool IsConstant(string s);
+	void AddAllParentsOfCurrStmt(int stmt_line);
+	void AddAllParentsOfUsedVariable(string v);
+	void AddAllParentsOfModifiedVariable(string v);
+	void AddAllParentsOfUsedConstant(int c);
 };

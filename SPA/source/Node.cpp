@@ -2,22 +2,22 @@
 using namespace std;
 
 Node::Node() {
-	stmtnum = -1;
+	stmt_num_ = -1;
 }
 
 Node::Node(int stmtline) {
-	stmtnum = stmtline;
+	stmt_num_ = stmtline;
 }
 
-void Node::addNext(Node* n) {
-	nextList.push_back(n);
+void Node::AddNext(Node* n) {
+	next_list_.push_back(n);
 }
 
-vector<Node*> Node::getNextList() {
-	return nextList;
+vector<Node*> Node::GetNextList() {
+	return next_list_;
 }
 
-int Node::getStmtnum()
+int Node::GetStmtnum()
 {
-	return stmtnum;
+	return stmt_num_;
 }
